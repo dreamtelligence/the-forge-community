@@ -1,0 +1,2813 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+  FOUNDER
+  MENTOR
+}
+
+enum AccountStatus {
+  ACTIVE
+  DELETED
+}
+
+enum EnergyTransactionType {
+  GRANT
+  SPEND
+  REFUND
+  ADJUSTMENT
+}
+
+enum EnergyTransactionStatus {
+  RESERVED
+  SETTLED
+  REFUNDED
+}
+
+enum AiActionStatus {
+  PENDING
+  CONFIRMED
+  EXECUTED
+  FAILED
+  CANCELLED
+}
+
+enum VentureType {
+  ECOMMERCE
+  SAAS
+  SERVICE
+  INFLUENCER
+  MARKETPLACE
+  AGENCY
+  OTHER
+}
+
+enum VentureStatus {
+  IDEATION
+  IN_PROGRESS
+  LAUNCHED
+  PAUSED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SquadRole {
+  LEAD    // Squad Lead (decision maker, founder)
+  MEMBER  // Regular member
+  GUEST   // Observer only (limited access)
+}
+
+// ============================================
+// ADMIN SYSTEM - Applications
+// ============================================
+
+model FounderApplication {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  instagram       String?
+  why             String?  @db.Text
+  role            String?  // 'investor', 'builder'
+  capital         String?
+  skill           String?
+  status          ApplicationStatus @default(PENDING)
+  notionId        String?  // Optional: Link to Notion if needed
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CONTACTED
+}
+
+// ============================================
+// LEGAL STUDIO - Document Types & Status
+// ============================================
+
+enum LegalDocumentType {
+  NDA                 // Non-Disclosure Agreement (Mutual or One-Way)
+  SERVICE_AGREEMENT   // Service Provider / Freelancer Contract
+  PARTNERSHIP         // B2B Partnership Agreement
+  SUPPLIER_CONTRACT   // Manufacturer / Supplier Terms
+  EMPLOYMENT          // Employment Contract (Mini-Job, Freelance)
+  CUSTOM              // Custom template
+}
+
+enum LegalDocumentStatus {
+  DRAFT       // Being edited
+  REVIEW      // Ready for review
+  SENT        // Sent to partner
+  SIGNED      // Both parties signed
+  ARCHIVED    // No longer active
+  REJECTED    // Partner declined
+}
+
+enum AchievementCategory {
+  LAUNCH
+  COMMUNITY
+  EXPERTISE
+}
+
+enum NotificationType {
+  FORUM_COMMENT
+  FORUM_REPLY
+  SYSTEM
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  profileSlug   String?   @unique
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+  notionId      String?   @unique
+  onboardingComplete Boolean @default(false)
+  hasSeenTour        Boolean @default(false)
+  hasSeenCockpitTour Boolean @default(false)
+  founderNumber Int       @default(0)
+  karmaScore    Int       @default(0)
+  phone         String?
+  birthday      String?
+  addressStreet String? @map("addressstreet")
+  addressCity   String? @map("addresscity")
+  addressZip    String? @map("addresszip")
+  addressCountry String? @default("Germany") @map("addresscountry")
+  instagram     String?
+  linkedin      String?
+  bio           String?
+  goal          String?
+  skills        String[] @default([])
+
+  // Relations
+  squadMemberships SquadMember[]
+
+  voteResponses VoteResponse[]
+  roadmapVotes  RoadmapVote[]
+  createdDecisions Decision[]
+  karma         Karma[]
+  forumVotes    ForumVote[]
+  forumPosts    ForumPost[]
+  forumComments ForumComment[]
+  forumCommentVotes ForumCommentVote[]
+  followers     UserFollow[] @relation("UserFollowers")
+  following     UserFollow[] @relation("UserFollowing")
+  directParticipants DirectParticipant[]
+  directMessages DirectMessage[]
+  aiChatThreads AiChatThread[]
+  aiActions     AiAction[]
+  notifications Notification[] @relation("NotificationRecipient")
+  notificationsSent Notification[] @relation("NotificationActor")
+  achievements  UserAchievement[]
+  ventures      Venture[]
+  ventureTasks  VentureTask[]
+  mentoringSessions MentoringSession[]
+  moderationWarnings ModerationWarning[]
+  legalDocuments LegalDocument[]
+  marketingContents MarketingContent[]
+  mediaAssets       MediaAsset[]
+  mediaAssetLikes   MediaAssetLike[]
+  createdSamples    Sample[]
+  createdOrders     ProductionOrder[]
+  createdWarehouseItems WarehouseItem[]
+  inventoryTransactions InventoryTransaction[]
+  handledInboundPackages InboundPackage[]
+  createdFulfillmentOrders FulfillmentOrder[]
+  assignedPickLists PickList[]
+  createdShipments Shipment[]
+  handledReturnItems ReturnItem[]
+  createdCampaigns  MarketingCampaign[]
+  createdPosts      ContentPost[]
+  createdApps       ForgeApp[]
+  timeEntries       TimeEntry[]
+  walletTransactions WalletTransaction[]
+  memories          UserMemory[]
+  platformTaxProfile PlatformTaxProfile?
+  platformCreditPurchases PlatformCreditPurchase[]
+  platformCreditUsages PlatformCreditUsage[]
+  platformLedgerEntries PlatformLedgerEntry[]
+
+  // NextAuth
+  accounts      Account[]
+  sessions      Session[]
+
+  // Moderation
+  toxicityWarnings Int      @default(0)
+  isBanned         Boolean  @default(false)
+  banReason        String?
+  bannedAt         DateTime?
+  accountStatus    AccountStatus @default(ACTIVE)
+  deletedAt        DateTime?
+  deletedReason    String?
+  
+  // AI Credits System (Freemium)
+  credits          Int      @default(50)
+  energyTransactions EnergyTransaction[]
+  rateLimitBuckets  RateLimitBucket[]
+
+  // Stripe Subscription (69€/mo Platform Fee)
+  stripeCustomerId      String?  @unique
+  stripeSubscriptionId  String?  @unique
+  subscriptionStatus    String?  // active, cancelled, past_due, trialing
+  subscriptionTier      String   @default("founder") // founder, pro, enterprise
+  subscriptionEndsAt    DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  notificationPreference NotificationPreference?
+  privacyPreference      PrivacyPreference?
+
+  // API Key Management
+  apiKeys       ApiKey[]
+  apiWebhooks   ApiWebhook[]
+  providerKeys  UserProviderKey[]
+  
+  // Enterprise Integrations
+  integrationConnections IntegrationConnection[]
+  docusignEnvelopes      DocuSignEnvelope[]
+}
+
+model UserFollow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model EnergyTransaction {
+  id          String                  @id @default(cuid())
+  userId      String
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta       Int
+  balanceAfter Int
+  type        EnergyTransactionType
+  status      EnergyTransactionStatus @default(SETTLED)
+  feature     String?
+  provider    String?
+  model       String?
+  requestId   String?                 @unique
+  promptTokens Int?
+  completionTokens Int?
+  totalTokens Int?
+  metadata    Json?
+  relatedTransactionId String?
+  relatedTransaction   EnergyTransaction? @relation("EnergyTransactionRelation", fields: [relatedTransactionId], references: [id], onDelete: SetNull)
+  refunds     EnergyTransaction[]     @relation("EnergyTransactionRelation")
+  createdAt   DateTime                @default(now())
+  platformCreditUsages PlatformCreditUsage[]
+
+  @@index([userId, createdAt])
+  @@index([feature])
+  @@index([status])
+}
+
+model RateLimitBucket {
+  userId      String
+  feature     String
+  windowStart DateTime
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, feature, windowStart])
+  @@index([feature, windowStart])
+}
+
+model WebhookEvent {
+  eventId     String    @id @map("event_id")
+  processedAt DateTime? @default(now()) @map("processed_at")
+
+  @@map("webhook_events")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actorId   String?
+  actor     User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  type      NotificationType
+  title     String
+  message   String?
+  href      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+}
+
+model NotificationPreference {
+  userId        String  @id
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  forumComments Boolean @default(true)
+  forumReplies  Boolean @default(true)
+  mentions      Boolean @default(true)
+  system        Boolean @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PrivacyPreference {
+  userId             String  @id
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileVisible     Boolean @default(true)
+  showFollowerCounts Boolean @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model UserDeletion {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  email     String
+  name      String?
+  data      Json?
+  createdAt DateTime @default(now())
+}
+
+model UserProviderKey {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider       String
+  encryptedKey   String
+  keyHint        String
+  isActive       Boolean  @default(true)
+  lastValidatedAt DateTime?
+  validationError String? @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@index([provider])
+}
+
+model Squad {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+    mission     String?  @db.Text
+    slug        String   @unique
+    status      String   @default("forming") // forming, planning, building, launched
+  
+    squadType   String   @default("venture") // venture, project, experiment
+    minMembers  Int      @default(2)
+    maxMembers  Int      @default(5)
+  
+    // Stripe Connect
+  // (Squad erhält Zahlungen)
+  stripeConnectedAccountId String?  @unique
+  stripeAccountStatus      String?  // pending, enabled, disabled, rejected
+  stripeOnboardingComplete Boolean  @default(false)
+  stripeChargesEnabled     Boolean  @default(false) // Kann Squad Zahlungen empfangen?
+  stripePayoutsEnabled     Boolean  @default(false) // Kann Squad auszahlen?
+
+  // Wallet Extension
+  wallet      SquadWallet?
+
+  members     SquadMember[]
+  roadmaps    RoadmapItem[]
+  decisions   Decision[]
+  ventures    Venture[]
+  transactions SquadTransaction[]
+  legalDocuments LegalDocument[]
+  timeEntries    TimeEntry[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SquadWallet {
+  id              String   @id @default(cuid())
+  squadId         String   @unique
+  squad           Squad    @relation(fields: [squadId], references: [id], onDelete: Cascade)
+
+  balance         Float    @default(0.0)
+  budgetTotal     Float    @default(0.0)
+  
+  // Allocated Budgets
+  budgetSamples    Float   @default(0.0)
+  budgetProduction Float   @default(0.0)
+  budgetMarketing  Float   @default(0.0)
+
+  transactions    WalletTransaction[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model WalletTransaction {
+  id              String   @id @default(cuid())
+  walletId        String
+  wallet          SquadWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  type            String   // deposit, expense, refund
+  category        String   // samples, production, marketing, software, misc
+  amount          Float
+  description     String?
+  
+  createdById     String
+  createdBy       User     @relation(fields: [createdById], references: [id])
+  
+  createdAt       DateTime @default(now())
+
+  @@index([walletId])
+  @@index([type])
+}
+
+// ============================================
+// SQUAD MEMBERSHIP - Many-to-Many System
+// ============================================
+
+model SquadMember {
+  id          String    @id @default(cuid())
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  squadId     String
+  squad       Squad     @relation(fields: [squadId], references: [id], onDelete: Cascade)
+
+  // Role & Permissions
+  role        SquadRole @default(MEMBER)
+
+  // Equity & Ownership (optional for revenue sharing)
+  equityShare Float?    // Percentage: 20.5 = 20.5%
+
+  // Timestamps
+  joinedAt    DateTime  @default(now())
+  leftAt      DateTime? // Track when they left (soft delete)
+
+  // Prevent duplicate memberships
+  @@unique([userId, squadId])
+  @@index([userId])
+  @@index([squadId])
+  @@index([role])
+}
+
+model RoadmapItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("PLANNED") // PLANNED, IN_PROGRESS, DONE
+  
+  squadId     String
+  squad       Squad    @relation(fields: [squadId], references: [id])
+  
+  votes       RoadmapVote[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RoadmapVote {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  roadmapItemId String
+  roadmapItem   RoadmapItem @relation(fields: [roadmapItemId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, roadmapItemId]) // Prevent duplicate votes
+}
+
+model Decision {
+  id            String      @id @default(cuid())
+  squadId       String
+  squad         Squad       @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  ventureId     String?
+  venture       Venture?    @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  // Question
+  question      String
+  description   String?     @db.Text
+  type          String      @default("multiple-choice") // multiple-choice, yes-no, ranking
+  options       String[]    // For multiple choice
+
+  // Status
+  status        String      @default("open") // open, closed
+  deadline      DateTime?
+
+  // Results
+  requiredQuorum   Int      @default(50) // % of members required to vote
+  winningThreshold Int      @default(50) // % required to win
+  winningOption    String?
+
+  // Relations
+  responses     VoteResponse[]
+
+  // Metadata
+  createdById   String?
+  createdBy     User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime    @default(now())
+  closedAt      DateTime?
+
+  @@index([squadId])
+  @@index([status])
+}
+
+model VoteResponse {
+  id            String      @id @default(cuid())
+  decisionId    String
+  decision      Decision    @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Response
+  choice        String
+  comment       String?
+
+  // Metadata
+  votedAt       DateTime    @default(now())
+
+  @@unique([decisionId, userId]) // One vote per user per decision
+  @@index([decisionId])
+  @@index([userId])
+}
+
+model ForumVote {
+  id        String   @id @default(cuid())
+  postId    String
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  voteType  Int      // 1 (Up) or -1 (Down)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId]) // Prevent double voting
+  @@index([postId])
+}
+
+model ForumPost {
+  id            String   @id @default(cuid())
+  authorId      String?
+  author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorName    String
+  founderNumber Int      @default(0)
+  content       String   @db.Text
+  category      String   @default("General")
+  likes         Int      @default(0)
+
+  comments      ForumComment[]
+  votes         ForumVote[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model ForumComment {
+  id         String   @id @default(cuid())
+  postId     String
+  post       ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     ForumComment? @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    ForumComment[] @relation("CommentThread")
+  authorId   String?
+  author     User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorName String
+  content    String   @db.Text
+  likes      Int      @default(0)
+  votes      ForumCommentVote[]
+  createdAt  DateTime @default(now())
+
+  @@index([postId])
+  @@index([parentId])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model ForumCommentVote {
+  id        String   @id @default(cuid())
+  commentId String
+  comment   ForumComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  voteType  Int
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+}
+
+model DirectThread {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  lastMessageAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  participants  DirectParticipant[]
+  messages      DirectMessage[]
+
+  @@index([lastMessageAt])
+}
+
+model DirectParticipant {
+  id        String   @id @default(cuid())
+  threadId  String
+  thread    DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([threadId, userId])
+  @@index([userId])
+  @@index([threadId])
+}
+
+model DirectMessage {
+  id        String   @id @default(cuid())
+  threadId  String
+  thread    DirectThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  editedAt  DateTime?
+
+  @@index([threadId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+model AiChatThread {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String?
+  lastMessageAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  messages      AiChatMessage[]
+
+  @@index([userId])
+  @@index([lastMessageAt])
+}
+
+model AiChatMessage {
+  id          String   @id @default(cuid())
+  threadId    String
+  thread      AiChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  role        String
+  content     String   @db.Text
+  mode        String?
+  attachments Json?
+  sources     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([threadId])
+  @@index([createdAt])
+}
+
+model AiAction {
+  id                   String         @id @default(cuid())
+  userId               String
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ventureId            String?
+  venture              Venture?       @relation(fields: [ventureId], references: [id], onDelete: SetNull)
+  toolName             String
+  status               AiActionStatus @default(PENDING)
+  requiresConfirmation Boolean        @default(true)
+  confirmationToken    String?        @unique
+  summary              String?
+  payload              Json?
+  result               Json?
+  error                String?
+  confirmedAt          DateTime?
+  executedAt           DateTime?
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([ventureId])
+  @@index([status])
+  @@index([toolName])
+  @@index([createdAt])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  title       String
+  description String
+  category    AchievementCategory
+  icon        String
+  tier        Int      @default(1)
+
+  userAchievements UserAchievement[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  earnedAt      DateTime @default(now())
+  contextType   String?
+  contextId     String?
+
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement  Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+model TrainingCourse {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  summary       String?
+  category      String
+  level         String?
+  coverImage    String?
+  durationMins  Int?
+
+  modules       TrainingModule[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+}
+
+model TrainingModule {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  order     Int
+  title     String
+  summary   String?
+  content   String   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, order])
+  @@index([courseId])
+}
+
+model Karma {
+  id        String   @id @default(cuid())
+  points    Int
+  reason    String
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Optional: Link to specific actions
+  squadId   String?  // Context for the karma
+  
+  createdAt DateTime @default(now())
+
+  @@index([squadId]) // Performance index as requested
+}
+
+// NextAuth Models
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([provider, providerAccountId])
+}
+ 
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
+}
+
+// ============================================
+// VENTURE CREATION SYSTEM
+// ============================================
+
+model Venture {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  type            VentureType   @default(OTHER)
+  typeLabel       String?
+  status          VentureStatus @default(IDEATION)
+  isPersonalStudio Boolean      @default(false)
+
+  // Wizard Progress
+  currentPhase    Int           @default(1) // 1-6 (Ideation -> Launch)
+  phases          VenturePhase[]
+
+  // Business Data
+  productType     String?
+  targetMarket    String?
+  brandColors     String?       // JSON: ["#hex1", "#hex2"]
+  logoUrl         String?
+  pricing         Json?         // Flexible pricing structure
+  marketingBudget Float?
+  totalBudget     Float?
+  estimatedRevenue Float?
+
+  // Deadlines & Tracking
+  launchDate      DateTime?
+  lastActivityAt  DateTime      @default(now())
+
+  // Relations
+  ownerId         String
+  owner           User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  squadId         String?
+  squad           Squad?        @relation(fields: [squadId], references: [id])
+
+  tasks           VentureTask[]
+  steps           VentureStep[]
+  costs           CostItem[]
+  resources       VentureResource[]
+  mentoringSessions MentoringSession[]
+  brandDNA        BrandDNA?
+  voiceProfile    VoiceProfile?
+  legalDocuments  LegalDocument[]
+  marketingContents MarketingContent[]
+  mediaAssets     MediaAsset[]
+  suppliers       Supplier[]
+  samples         Sample[]
+  productionOrders ProductionOrder[]
+  warehouseLocations WarehouseLocation[]
+  storageBins       StorageBin[]
+  warehouseItems    WarehouseItem[]
+  inventoryTransactions InventoryTransaction[]
+  customerAccounts  CustomerAccount[]
+  inboundPackages   InboundPackage[]
+  fulfillmentOrders FulfillmentOrder[]
+  pickLists         PickList[]
+  shipments         Shipment[]
+  returnItems       ReturnItem[]
+  warehouseImportErrors WarehouseImportError[]
+  campaigns       MarketingCampaign[]
+  posts           ContentPost[]
+  decisions       Decision[]
+  apps            ForgeApp[]
+  apiKeys         ApiKey[]
+  apiWebhooks     ApiWebhook[]
+  aiActions       AiAction[]
+  trendReports    TrendReport[]
+  competitorSnapshots CompetitorSnapshot[]
+  
+  // Enterprise Integrations
+  integrationConnections IntegrationConnection[]
+  docusignEnvelopes      DocuSignEnvelope[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([ownerId])
+  @@index([ownerId, isPersonalStudio])
+  @@index([squadId])
+  @@index([status])
+}
+
+model VenturePhase {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  phaseNumber     Int      // 1-6
+  name            String
+  status          String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  
+  totalTasks      Int      @default(0)
+  completedTasks  Int      @default(0)
+
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([ventureId, phaseNumber])
+}
+
+// ============================================
+// TREND HUNTER - Market Analysis
+// ============================================
+
+model TrendReport {
+  id          String   @id @default(cuid())
+  ventureId   String
+  venture     Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  // Search Context
+  category    String
+  timeframe   String   @default("current_month")
+
+  // Results (JSON)
+  data        Json
+
+  // Status
+  status      String   @default("COMPLETED")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ventureId])
+}
+
+// ============================================
+// COMPETITOR WATCHDOG - Market Intelligence
+// ============================================
+
+model CompetitorSnapshot {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  competitorUrl   String
+  competitorName  String?
+
+  // Change Detection Hashes
+  contentHash     String?
+  priceHash       String?
+  productHash     String?
+
+  // Structured Data
+  data            Json
+
+  // Results
+  changesDetected Boolean  @default(false)
+  changeSummary   String?  @db.Text
+
+  scannedAt       DateTime @default(now())
+
+  @@index([ventureId])
+  @@index([competitorUrl])
+  @@index([scannedAt])
+}
+
+// ============================================
+// BRAND DNA - AI Context System
+// ============================================
+
+model BrandDNA {
+  id              String   @id @default(cuid())
+  ventureId       String   @unique
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  // Core Identity
+  brandName       String
+  tagline         String?
+  mission         String?   // "Why we exist"
+  vision          String?   // "Where we're going"
+  values          String[]  @default([]) // ["Sustainability", "Innovation"]
+
+  // Voice & Tone (for AI content generation)
+  toneOfVoice     String?   // "Professional", "Casual", "Edgy", "Friendly"
+  personality     String[]  @default([]) // ["Bold", "Playful", "Authentic"]
+  writingStyle    String?   // "Short & punchy", "Detailed & informative"
+
+  // Target Audience
+  targetAudience  Json?     // { age: "25-35", gender: "all", location: "EU", interests: [] }
+  customerPersona String?   // Free text description
+
+  // Visual Identity
+  primaryColor    String?   // "#3b82f6"
+  secondaryColors String[]  @default([]) // ["#000000", "#FFFFFF"]
+  logoUrl         String?
+  fontFamily      String?   // "Inter, sans-serif"
+
+  // Product/Service
+  productCategory String?   // "Fashion", "Food", "SaaS"
+  keyFeatures     String[]  @default([]) // ["Organic", "Handmade", "Sustainable"]
+  usp             String?   // Unique Selling Proposition
+
+  // Competitors (for context)
+  competitors     Json?     // [{ name: "Brand X", url: "...", strengths: [] }]
+
+  // AI Context (Most Important!)
+  aiContext       String?   // Free text for Gemini: "Always mention sustainability..."
+  doNotMention    String[]  @default([]) // Topics to avoid in AI responses
+  characterPrompt String?   @db.Text @map("character_prompt")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([ventureId])
+}
+
+model VoiceProfile {
+  id                               String   @id @default(cuid())
+  ventureId                        String   @unique
+  venture                          Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  voiceId                          String?
+  voiceName                        String?
+  modelId                          String?
+  pronunciationDictionaryId        String?
+  pronunciationDictionaryVersionId String?
+  voiceSettings                    Json?
+
+  createdAt                        DateTime @default(now())
+  updatedAt                        DateTime @updatedAt
+
+  @@index([ventureId])
+}
+
+// ============================================
+// LEGAL STUDIO - Document Management
+// ============================================
+
+model LegalDocument {
+  id              String              @id @default(cuid())
+
+  // Relations
+  ventureId       String
+  venture         Venture             @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  squadId         String?
+  squad           Squad?              @relation(fields: [squadId], references: [id], onDelete: SetNull)
+
+  createdById     String
+  createdBy       User                @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  // Document Details
+  documentType    LegalDocumentType
+  documentTitle   String              // "NDA with Supplier XYZ"
+  status          LegalDocumentStatus @default(DRAFT)
+
+  // AI Generation Context
+  aiPrompt        String?             @db.Text // Original prompt used
+  generatedContent String?            @db.Text // AI-generated contract text
+
+  // Partner Information
+  partnerCompanyName    String?
+  partnerContactName    String?
+  partnerContactEmail   String?
+  partnerContactPhone   String?
+  partnerAddress        String?       @db.Text
+
+  // Contract Terms (JSON for flexibility)
+  contractTerms   Json?               // { duration: "12 months", payment: "Net 30", scope: "..." }
+
+  // File Storage
+  documentUrl     String?             // PDF export URL (Vercel Blob)
+  signatureUrl    String?             // E-Signature service URL (DocuSign, HelloSign)
+
+  // Metadata
+  version         Int                 @default(1) // Track revisions
+  notes           String?             @db.Text
+
+  // Timestamps
+  sentAt          DateTime?           // When sent to partner
+  signedAt        DateTime?           // When both parties signed
+  expiresAt       DateTime?           // Contract expiry date
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Performance Indexes
+  @@index([ventureId])
+  @@index([squadId])
+  @@index([createdById])
+  @@index([status])
+  @@index([documentType])
+  @@index([createdAt])
+}
+
+model VentureStep {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  stepNumber      Int
+  stepName        String
+  status          String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  data            Json?    // Step-specific data
+
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([ventureId, stepNumber])
+  @@index([ventureId])
+}
+
+model VentureTask {
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  status          String       @default("TODO") // TODO, IN_PROGRESS, DONE, BLOCKED
+  priority        TaskPriority @default(MEDIUM)
+
+  // Deadlines
+  dueDate         DateTime?
+  completedAt     DateTime?
+  overdueNotifiedAt DateTime?  // Track when mentor was notified
+
+  // Relations
+  ventureId       String
+  venture         Venture      @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  assignedToId    String?
+  assignedTo      User?        @relation(fields: [assignedToId], references: [id])
+
+  // Template Data
+  isFromTemplate  Boolean      @default(false)
+  templateOrder   Int?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([ventureId])
+  @@index([assignedToId])
+  @@index([dueDate])
+  @@index([status])
+}
+
+model VentureTemplate {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  type            VentureType
+
+  // Template Data
+  defaultSteps    Json     // Array of step configs
+  defaultTasks    Json     // Array of task templates with deadlines
+  estimatedDuration Int?   // Days to complete
+
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([type])
+}
+
+model CostItem {
+  id              String   @id @default(cuid())
+  category        String   // MARKETING, DEVELOPMENT, OPERATIONS, etc.
+  name            String
+  amount          Float
+  isRecurring     Boolean  @default(false)
+  frequency       String?  // MONTHLY, YEARLY, ONCE
+
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([category])
+}
+
+model Resource {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  category        String   // B2B_DIRECTORY, TEMPLATE, TOOL, GUIDE
+  type            String?  // SUPPLIER, MANUFACTURER, SERVICE
+
+  // Resource Data
+  url             String?
+  contactEmail    String?
+  contactInfo     Json?
+  tags            String[] @default([])
+
+  // B2B Specific
+  minOrderQty     Int?
+  priceRange      String?
+  location        String?
+
+  isPublic        Boolean  @default(true)
+  ventures        VentureResource[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([type])
+}
+
+model VentureResource {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  resourceId      String
+  resource        Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@unique([ventureId, resourceId])
+  @@index([ventureId])
+  @@index([resourceId])
+}
+
+model MentoringSession {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  mentorId        String
+  mentor          User     @relation(fields: [mentorId], references: [id])
+
+  reason          String   // DEADLINE_OVERDUE, REQUESTED, SCHEDULED
+  notes           String?
+  outcome         String?
+
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([mentorId])
+}
+
+model ModerationWarning {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  reason          String   // AI-detected reason (toxicity, spam, harassment, etc.)
+  content         String   // The content that triggered the warning
+  severity        String   // LOW, MEDIUM, HIGH
+  warningNumber   Int      // 1, 2, 3 (helps track which warning this is)
+
+  acknowledged    Boolean  @default(false)
+  acknowledgedAt  DateTime?
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model LinkPreview {
+  id              String   @id @default(cuid())
+  url             String   @unique
+
+  // Metadata from OpenGraph/Twitter Cards
+  title           String?
+  description     String?
+  image           String?
+  siteName        String?
+
+  // AI-generated summary
+  aiSummary       String?
+
+  // Cache control
+  fetchedAt       DateTime @default(now())
+  expiresAt       DateTime? // Cache expiry
+
+  @@index([url])
+  @@index([fetchedAt])
+}
+
+model SystemCache {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([expiresAt])
+}
+
+// ============================================
+// MARKETING STUDIO - Content Generation
+// ============================================
+
+model MarketingContent {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+  
+  contentType     String   // 'instagram', 'blog', 'email', etc.
+  prompt          String   @db.Text
+  generatedContent String  @db.Text
+  
+  createdAt       DateTime @default(now())
+  
+  createdById     String
+  createdBy     User     @relation(fields: [createdById], references: [id])
+
+  @@index([ventureId])
+  @@index([createdById])
+  @@index([contentType])
+}
+
+
+// ============================================
+// STRIPE CONNECT - TRANSACTION LOG
+// ============================================
+// WICHTIG: Dies ist NUR ein Log für Transparenz!
+// Wir halten KEIN Geld! Alle Gelder laufen über Stripe Connect.
+
+enum TransactionType {
+  SALE              // Squad verkauft Produkt (Shop)
+  REFUND            // Rückerstattung
+  PLATFORM_FEE      // Unsere Provision (automatisch von Stripe)
+  PAYOUT            // Squad zahlt aus (Stripe → Squad Bank)
+  SUBSCRIPTION      // User zahlt 69€/mo (geht an uns)
+}
+
+enum TransactionStatus {
+  PENDING           // Zahlung wird verarbeitet
+  SUCCEEDED         // Erfolgreich
+  FAILED            // Fehlgeschlagen
+  REFUNDED          // Rückerstattet
+}
+
+// ============================================
+// PLATFORM FINANCE - Taxes, Invoices & EÜR
+// ============================================
+
+enum PlatformInvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  VOID
+  REFUNDED
+}
+
+enum PlatformLedgerDirection {
+  INCOME
+  EXPENSE
+}
+
+enum PlatformLedgerSource {
+  INVOICE
+  CREDIT_PURCHASE
+  CREDIT_USAGE
+  REFUND
+  STRIPE_FEE
+  SUBSCRIPTION
+  OTHER
+}
+
+enum PlatformDocumentType {
+  INVOICE
+  RECEIPT
+  STATEMENT
+  CONTRACT
+  EMAIL
+  OTHER
+}
+
+model SquadTransaction {
+  id              String   @id @default(cuid())
+
+  // Relation
+  squadId         String
+  squad           Squad    @relation(fields: [squadId], references: [id], onDelete: Cascade)
+
+  // Transaction Details
+  type            TransactionType
+  status          TransactionStatus @default(PENDING)
+  amount          Float    // In EUR (oder currency)
+  currency        String   @default("EUR")
+
+  // Stripe IDs (für Nachverfolgung, NICHT für Geld-Holding!)
+  stripePaymentIntentId    String?  @unique
+  stripeChargeId           String?
+  stripeTransferId         String?  // Transfer zu Squad Connected Account
+
+  // Platform Fee (unsere Provision)
+  platformFeeAmount Float?  // z.B. 5€ bei 100€ Sale
+  platformFeePercent Float? // z.B. 5.0 (= 5%)
+
+  // Description & Metadata
+  description     String?
+  metadata        Json?    // Flexible Daten (order_id, customer_email, etc.)
+
+  // Related Order/Customer (optional)
+  customerEmail   String?
+  orderId         String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([squadId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([stripePaymentIntentId])
+}
+
+// ============================================
+// PLATFORM FINANCE - Tax, Invoices & EÜR
+// ============================================
+
+model PlatformTaxProfile {
+  id               String   @id @default(cuid())
+  ownerId          String?  @unique
+  owner            User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  businessName     String
+  businessType     String   @default("Einzelunternehmen")
+  addressStreet    String
+  addressZip       String
+  addressCity      String
+  addressCountry   String   @default("Germany")
+
+  taxNumber        String?
+  vatId            String?
+  taxOfficeName    String?
+  taxOfficeId      String?
+
+  smallBusiness    Boolean  @default(true)
+  invoiceEmail     String?
+  bankIban         String?
+  bankBic          String?
+  logoUrl          String?
+  invoiceNote      String?  @db.Text
+  defaultCurrency  String   @default("EUR")
+
+  invoices         PlatformInvoice[]
+  ledgerEntries    PlatformLedgerEntry[]
+  documents        PlatformDocument[]
+  creditPurchases  PlatformCreditPurchase[]
+  creditUsages     PlatformCreditUsage[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model PlatformInvoice {
+  id                  String   @id @default(cuid())
+  profileId           String
+  profile             PlatformTaxProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  status              PlatformInvoiceStatus @default(ISSUED)
+  invoiceNumber       String   @unique
+  issueDate           DateTime @default(now())
+  serviceDate         DateTime?
+  servicePeriodStart  DateTime?
+  servicePeriodEnd    DateTime?
+
+  buyerName           String
+  buyerEmail          String?
+  buyerTaxNumber      String?
+  buyerVatId          String?
+  buyerAddress        Json?
+  buyerCountry        String?
+
+  currency            String   @default("EUR")
+  subtotal            Float
+  taxRate             Float    @default(0)
+  taxAmount           Float    @default(0)
+  total               Float
+  isSmallBusiness     Boolean  @default(true)
+  smallBusinessNote   String?  @db.Text
+
+  pdfUrl              String?
+  structuredXmlUrl    String?
+  snapshot            Json?
+
+  stripePaymentIntentId String? @unique
+  stripeChargeId         String?
+  stripeInvoiceId        String?
+  paidAt              DateTime?
+
+  lineItems           PlatformInvoiceLine[]
+  ledgerEntry         PlatformLedgerEntry?
+  documents           PlatformDocument[]
+  creditPurchase      PlatformCreditPurchase? @relation("CreditPurchaseInvoice")
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([issueDate])
+  @@index([status])
+}
+
+model PlatformInvoiceLine {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     PlatformInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float    @default(1)
+  unitPrice   Float
+  netAmount   Float
+  taxRate     Float    @default(0)
+  taxAmount   Float    @default(0)
+  totalAmount Float
+  categoryId  String?
+  category    PlatformLedgerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([invoiceId])
+}
+
+model PlatformLedgerCategory {
+  id          String   @id @default(cuid())
+  type        PlatformLedgerDirection
+  name        String
+  code        String?
+  description String?
+  isSystem    Boolean  @default(false)
+
+  entries     PlatformLedgerEntry[]
+  invoiceLines PlatformInvoiceLine[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PlatformLedgerEntry {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     PlatformTaxProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  direction   PlatformLedgerDirection
+  source      PlatformLedgerSource
+  sourceId    String?
+  categoryId  String?
+  category    PlatformLedgerCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  description String?
+  bookedAt    DateTime @default(now())
+
+  amountNet   Float
+  taxAmount   Float    @default(0)
+  amountGross Float
+  currency    String   @default("EUR")
+
+  invoiceId   String?  @unique
+  invoice     PlatformInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  documents   PlatformDocument[]
+  creditUsage PlatformCreditUsage? @relation("LedgerCreditUsage")
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([direction])
+  @@index([bookedAt])
+  @@index([source])
+}
+
+model PlatformDocument {
+  id            String   @id @default(cuid())
+  profileId     String
+  profile       PlatformTaxProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  type          PlatformDocumentType
+  title         String
+  documentUrl   String
+  mimeType      String?
+  size          Int?
+  sha256        String?
+  issuedAt      DateTime?
+  retentionUntil DateTime?
+
+  invoiceId     String?
+  invoice       PlatformInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  ledgerEntryId String?
+  ledgerEntry   PlatformLedgerEntry? @relation(fields: [ledgerEntryId], references: [id], onDelete: SetNull)
+  metadata      Json?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([type])
+}
+
+model PlatformCreditPurchase {
+  id            String   @id @default(cuid())
+  profileId     String
+  profile       PlatformTaxProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credits       Int
+  currency      String   @default("EUR")
+  amountNet     Float
+  taxAmount     Float    @default(0)
+  amountGross   Float
+
+  invoiceId     String?  @unique
+  invoice       PlatformInvoice? @relation("CreditPurchaseInvoice", fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  stripePaymentIntentId String? @unique
+  stripeChargeId        String?
+  stripeInvoiceId       String?
+
+  createdAt     DateTime @default(now())
+
+  @@index([profileId])
+  @@index([userId])
+}
+
+model PlatformCreditUsage {
+  id            String   @id @default(cuid())
+  profileId     String
+  profile       PlatformTaxProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  energyTransactionId String? @unique
+  energyTransaction EnergyTransaction? @relation(fields: [energyTransactionId], references: [id], onDelete: SetNull)
+
+  credits       Int
+  provider      String?
+  model         String?
+  feature       String?
+  costAmount    Float?
+  currency      String   @default("EUR")
+  usedAt        DateTime @default(now())
+
+  ledgerEntryId String?  @unique
+  ledgerEntry   PlatformLedgerEntry? @relation("LedgerCreditUsage", fields: [ledgerEntryId], references: [id], onDelete: SetNull)
+  metadata      Json?
+
+  createdAt     DateTime @default(now())
+
+  @@index([profileId])
+  @@index([userId])
+  @@index([usedAt])
+}
+
+// ============================================
+// MARKETING STUDIO - Campaign Management
+// ============================================
+
+model MarketingCampaign {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  // Campaign Info
+  name            String
+  description     String?  @db.Text
+  goal            String?  // 'awareness', 'conversion', 'engagement'
+
+  // Timeline
+  startDate       DateTime?
+  endDate         DateTime?
+
+  // Budget (optional)
+  budgetAmount    Float?
+  budgetCurrency  String   @default("EUR")
+  spentAmount     Float?
+
+  // Status
+  status          CampaignStatus @default(DRAFT)
+
+  // Relations
+  posts           ContentPost[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     String
+  createdBy       User     @relation(fields: [createdById], references: [id])
+
+  @@index([ventureId])
+  @@index([status])
+}
+
+enum CampaignStatus {
+  DRAFT          // In Planung
+  ACTIVE         // Läuft
+  PAUSED         // Pausiert
+  COMPLETED      // Abgeschlossen
+  ARCHIVED       // Archiviert
+}
+
+model ContentPost {
+  id              String   @id @default(cuid())
+  campaignId      String?
+  campaign        MarketingCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  // Content
+  title           String
+  content         String   @db.Text
+  contentType     String   // 'instagram', 'blog', 'email', etc.
+
+  // Scheduling
+  status          PostStatus @default(DRAFT)
+  scheduledFor    DateTime?
+  publishedAt     DateTime?
+
+  // Channel-Specific
+  platform        String?  // 'instagram', 'linkedin', 'twitter', 'email'
+  externalId      String?  // ID from social platform (if posted via API)
+  externalUrl     String?  // URL to published post
+
+  // Media
+  imageUrls       String[] // Attached images
+
+  // Performance (optional, für später)
+  views           Int?
+  likes           Int?
+  comments        Int?
+  shares          Int?
+  clicks          Int?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     String
+  createdBy       User     @relation(fields: [createdById], references: [id])
+
+  @@index([campaignId])
+  @@index([ventureId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+enum PostStatus {
+  DRAFT          // Nicht fertig
+  READY          // Bereit zum Planen
+  SCHEDULED      // Geplant für Datum X
+  PUBLISHED      // Veröffentlicht
+  FAILED         // Fehler beim Posten
+  ARCHIVED       // Archiviert
+}
+
+// ============================================
+// SOURCING STUDIO - Supplier Management
+// ============================================
+
+model Supplier {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  // Basic Info
+  companyName     String
+  contactName     String?
+  email           String?
+  phone           String?
+  website         String?
+  address         String?  @db.Text
+  country         String?
+
+  // Categories
+  category        String   // 'fabric', 'manufacturer', 'packaging', 'logistics'
+  specialization  String?  // e.g., 'Organic Cotton', 'Screen Printing'
+
+  // Business Details
+  moq             Int?     // Minimum Order Quantity
+  leadTimeDays    Int?     // Production lead time
+  paymentTerms    String?  // e.g., "50% upfront, 50% on delivery"
+
+  // Rating & Notes
+  rating          Int?     // 1-5 stars
+  notes           String?  @db.Text
+  tags            String[] // ['sustainable', 'fast', 'premium']
+
+  // Relations
+  samples         Sample[]
+  orders          ProductionOrder[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([ventureId])
+  @@index([category])
+  @@index([country])
+}
+
+model Sample {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  supplierId      String
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  // Sample Details
+  productName     String
+  description     String?  @db.Text
+  quantity        Int?
+  cost            Float?
+  currency        String   @default("EUR")
+
+  // Status Tracking
+  status          SampleStatus @default(REQUESTED)
+  orderedAt       DateTime?
+  receivedAt      DateTime?
+
+  // Quality Assessment
+  approved        Boolean?
+  qualityRating   Int?     // 1-5 stars
+  feedback        String?  @db.Text
+
+  // Files
+  imageUrls       String[] // Vercel Blob URLs
+  specFileUrls    String[] // Technical specs, PDFs
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     String
+  createdBy       User     @relation(fields: [createdById], references: [id])
+
+  @@index([ventureId])
+  @@index([supplierId])
+  @@index([status])
+}
+
+enum SampleStatus {
+  REQUESTED      // Sample requested
+  ORDERED        // Order placed
+  IN_TRANSIT     // Shipped
+  RECEIVED       // Arrived
+  APPROVED       // Quality check passed
+  REJECTED       // Quality check failed
+}
+
+model ProductionOrder {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  supplierId      String
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+
+  // Order Details
+  orderNumber     String   // e.g., "PO-2025-001"
+  productName     String
+  description     String?  @db.Text
+  quantity        Int
+  unitPrice       Float
+  totalPrice      Float
+  currency        String   @default("EUR")
+
+  // Timeline
+  orderDate       DateTime @default(now())
+  expectedDelivery DateTime?
+  actualDelivery  DateTime?
+
+  // Status & Payment
+  status          OrderStatus @default(DRAFT)
+  paymentStatus   PaymentStatus @default(PENDING)
+  depositPaid     Float?
+  finalPaid       Float?
+
+  // Files & Notes
+  poFileUrl       String?  // Purchase Order PDF
+  invoiceUrls     String[] // Invoices
+  notes           String?  @db.Text
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdById     String
+  createdBy       User     @relation(fields: [createdById], references: [id])
+
+  @@index([ventureId])
+  @@index([supplierId])
+  @@index([status])
+}
+
+enum OrderStatus {
+  DRAFT          // Not sent yet
+  SENT           // PO sent to supplier
+  CONFIRMED      // Supplier confirmed
+  IN_PRODUCTION  // Manufacturing
+  SHIPPED        // On the way
+  DELIVERED      // Received
+  COMPLETED      // Closed
+  CANCELLED      // Cancelled
+}
+
+enum PaymentStatus {
+  PENDING        // Not paid
+  DEPOSIT_PAID   // Partial payment
+  FULLY_PAID     // Paid in full
+  REFUNDED       // Money returned
+}
+
+// ============================================
+// WAREHOUSE / FULFILLMENT (LagerHub WMS)
+// ============================================
+
+model WarehouseLocation {
+  id          String   @id @default(cuid())
+  ventureId   String
+  venture     Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  timezone    String?  @default("Europe/Berlin")
+  isActive    Boolean  @default(true)
+
+  bins        StorageBin[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([ventureId, code])
+  @@index([ventureId])
+}
+
+model StorageBin {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  locationId    String?
+  location      WarehouseLocation? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  code          String
+  label         String?
+  binType       StorageBinType @default(SHELF)
+  capacity      Int?
+  isActive      Boolean  @default(true)
+
+  defaultForItems WarehouseItem[] @relation("ItemDefaultBin")
+  inventoryTransactions InventoryTransaction[] @relation("InventoryTxnBin")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([ventureId, code])
+  @@index([ventureId])
+  @@index([locationId])
+}
+
+model WarehouseItem {
+  id              String   @id @default(cuid())
+  ventureId       String
+  venture         Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  sku             String
+  barcode         String?
+  name            String
+  description     String?  @db.Text
+  unit            String   @default("pcs")
+
+  quantityOnHand  Int      @default(0)
+  reservedQuantity Int     @default(0)
+  reorderLevel    Int      @default(0)
+
+  defaultBinId    String?
+  defaultBin      StorageBin? @relation("ItemDefaultBin", fields: [defaultBinId], references: [id], onDelete: SetNull)
+
+  isActive        Boolean  @default(true)
+
+  createdById     String
+  createdBy       User     @relation(fields: [createdById], references: [id])
+
+  inventoryTransactions InventoryTransaction[]
+  orderLines      FulfillmentOrderLine[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([ventureId, sku])
+  @@index([ventureId])
+  @@index([barcode])
+}
+
+model InventoryTransaction {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  itemId        String
+  item          WarehouseItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  binId         String?
+  bin           StorageBin? @relation("InventoryTxnBin", fields: [binId], references: [id], onDelete: SetNull)
+
+  type          InventoryTransactionType
+  quantity      Int
+  previousQty   Int
+  newQty        Int
+
+  referenceType String?
+  referenceId   String?
+  notes         String?  @db.Text
+
+  createdById   String
+  createdBy     User     @relation(fields: [createdById], references: [id])
+
+  createdAt     DateTime @default(now())
+
+  @@index([ventureId])
+  @@index([itemId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model CustomerAccount {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  type          CustomerType @default(BUSINESS)
+  name          String
+  companyName   String?
+  email         String?
+  phone         String?
+  externalRef   String?  // e.g. shopifyCustomerId
+  notes         String?  @db.Text
+
+  inboundPackages InboundPackage[]
+  orders        FulfillmentOrder[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([externalRef])
+}
+
+model InboundPackage {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  customerId    String?
+  customer      CustomerAccount? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  linkedOrderId String?
+  linkedOrder   FulfillmentOrder? @relation(fields: [linkedOrderId], references: [id], onDelete: SetNull)
+
+  carrier       CarrierType @default(OTHER)
+  trackingNumber String?
+  externalReference String?
+
+  status        InboundPackageStatus @default(RECEIVED)
+  receivedAt    DateTime @default(now())
+  storedAt      DateTime?
+  pickedUpAt    DateTime?
+  closedAt      DateTime?
+
+  photoUrls     String[]
+  photoRetentionUntil DateTime?
+  notes         String?  @db.Text
+
+  handledById   String
+  handledBy     User     @relation(fields: [handledById], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([customerId])
+  @@index([linkedOrderId])
+  @@index([status])
+  @@index([trackingNumber])
+}
+
+model FulfillmentOrder {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  orderNumber   String
+  source        FulfillmentOrderSource @default(MANUAL)
+  sourceOrderId String?
+
+  customerId    String?
+  customer      CustomerAccount? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  status        FulfillmentOrderStatus @default(IMPORTED)
+  currency      String   @default("EUR")
+  subtotal      Float?
+  shippingCost  Float?
+  totalAmount   Float?
+  notes         String?  @db.Text
+  importPayload Json?
+
+  importedAt    DateTime @default(now())
+  pickedAt      DateTime?
+  packedAt      DateTime?
+  shippedAt     DateTime?
+  completedAt   DateTime?
+  cancelledAt   DateTime?
+
+  createdById   String?
+  createdBy     User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  lines         FulfillmentOrderLine[]
+  pickLists     PickList[]
+  shipments     Shipment[]
+  inboundPackages InboundPackage[]
+  returns       ReturnItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([ventureId, orderNumber])
+  @@unique([ventureId, source, sourceOrderId])
+  @@index([ventureId])
+  @@index([status])
+  @@index([customerId])
+}
+
+model FulfillmentOrderLine {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         FulfillmentOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  itemId        String?
+  item          WarehouseItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  sku           String
+  title         String
+  quantity      Int
+  pickedQuantity Int @default(0)
+  packedQuantity Int @default(0)
+  status        FulfillmentLineStatus @default(OPEN)
+
+  pickListItems PickListItem[]
+  returns       ReturnItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([itemId])
+  @@index([status])
+}
+
+model PickList {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  orderId       String?
+  order         FulfillmentOrder? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  status        PickListStatus @default(OPEN)
+  generatedAt   DateTime @default(now())
+  completedAt   DateTime?
+  notes         String?  @db.Text
+
+  assignedToId  String?
+  assignedTo    User?    @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  items         PickListItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([orderId])
+  @@index([status])
+}
+
+model PickListItem {
+  id            String   @id @default(cuid())
+  pickListId    String
+  pickList      PickList @relation(fields: [pickListId], references: [id], onDelete: Cascade)
+
+  orderLineId   String
+  orderLine     FulfillmentOrderLine @relation(fields: [orderLineId], references: [id], onDelete: Cascade)
+
+  targetQty     Int
+  pickedQty     Int @default(0)
+  status        PickListItemStatus @default(PENDING)
+  binCodeSnapshot String?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([pickListId, orderLineId])
+  @@index([status])
+}
+
+model Shipment {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  orderId       String
+  order         FulfillmentOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  carrier       CarrierType @default(OTHER)
+  trackingNumber String?
+  labelUrl      String?
+  status        ShipmentStatus @default(CREATED)
+
+  shippedAt     DateTime?
+  deliveredAt   DateTime?
+  metadata      Json?
+
+  createdById   String
+  createdBy     User     @relation(fields: [createdById], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([orderId])
+  @@index([status])
+  @@index([trackingNumber])
+}
+
+model ReturnItem {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  orderId       String?
+  order         FulfillmentOrder? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  orderLineId   String?
+  orderLine     FulfillmentOrderLine? @relation(fields: [orderLineId], references: [id], onDelete: SetNull)
+
+  status        ReturnStatus @default(ANNOUNCED)
+  quantity      Int @default(1)
+  reason        String?
+  conditionNote String?  @db.Text
+
+  receivedAt    DateTime?
+  inspectedAt   DateTime?
+  resolvedAt    DateTime?
+
+  handledById   String?
+  handledBy     User?    @relation(fields: [handledById], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([orderId])
+  @@index([status])
+}
+
+model WarehouseImportError {
+  id            String   @id @default(cuid())
+  ventureId     String
+  venture       Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  provider      FulfillmentOrderSource
+  sourceEntity  String   // e.g. "order"
+  sourceEntityId String?
+  payload       Json?
+  errorMessage  String   @db.Text
+  resolvedAt    DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([ventureId, provider])
+  @@index([resolvedAt])
+  @@index([createdAt])
+}
+
+enum StorageBinType {
+  SHELF
+  BOX
+  PALLET
+  OTHER
+}
+
+enum InventoryTransactionType {
+  IN
+  OUT
+  ADJUST
+  TRANSFER
+  RESERVE
+  RELEASE
+}
+
+enum CustomerType {
+  PRIVATE
+  BUSINESS
+}
+
+enum CarrierType {
+  DHL
+  HERMES
+  UPS
+  DPD
+  GLS
+  OTHER
+}
+
+enum InboundPackageStatus {
+  RECEIVED
+  STORED
+  LINKED_TO_ORDER
+  PICKED_UP
+  CLOSED
+}
+
+enum FulfillmentOrderSource {
+  SHOPIFY
+  WOOCOMMERCE
+  MANUAL
+}
+
+enum FulfillmentOrderStatus {
+  IMPORTED
+  READY_TO_PICK
+  PICKING
+  PACKED
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum FulfillmentLineStatus {
+  OPEN
+  PICKED
+  PACKED
+  SHIPPED
+  CANCELLED
+}
+
+enum PickListStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PickListItemStatus {
+  PENDING
+  PICKED
+  SHORT
+}
+
+enum ShipmentStatus {
+  CREATED
+  HANDED_OVER
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+  LOST
+}
+
+enum ReturnStatus {
+  ANNOUNCED
+  RECEIVED
+  INSPECTED
+  RESTOCKED
+  DISPOSED
+  RETURNED_TO_SENDER
+}
+
+// ============================================
+// FORGE LAB - App Builder
+// ============================================
+
+model ForgeApp {
+  id          String   @id @default(cuid())
+  ventureId   String
+  venture     Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  
+  // Configuration
+  inputs      Json     // Array of input definitions [{id, label, type}]
+  workflow    Json     // Step configuration [{id, tool, params}]
+  template    String?  // Prompt template for text generation steps
+  
+  // Status
+  isPublic    Boolean  @default(false)
+  isArchived  Boolean  @default(false)
+
+  // Usage Stats
+  runCount    Int      @default(0)
+  lastRunAt   DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([ownerId])
+}
+
+// ============================================
+// MEDIA STUDIO - Asset Management
+// ============================================
+
+model MediaAsset {
+  id          String   @id @default(cuid())
+  ventureId   String
+  venture     Venture  @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  type        MediaType
+  url         String
+  thumbnailUrl String?
+  filename    String?
+  mimeType    String?
+  size        Int?     // bytes
+  likes       Int      @default(0)
+
+  // Metadata
+  width       Int?
+  height      Int?
+  duration    Float?   // seconds (video only)
+  
+  // Lineage / Editing
+  source      MediaSource @default(GENERATED)
+  parentId    String?
+  parent      MediaAsset? @relation("AssetHistory", fields: [parentId], references: [id], onDelete: SetNull)
+  children    MediaAsset[] @relation("AssetHistory")
+
+  // AI Generation Meta (for reproduction)
+  prompt      String?   @db.Text
+  model       String?
+  seed        String?
+
+  // Usage Context
+  tags        String[]
+  isFavorite  Boolean   @default(false)
+  isArchived  Boolean   @default(false)
+  isPublic    Boolean   @default(false)
+  likeVotes   MediaAssetLike[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ventureId])
+  @@index([type])
+  @@index([source])
+}
+
+model MediaAssetLike {
+  id        String     @id @default(cuid())
+  assetId   String
+  asset     MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  userId    String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([assetId, userId])
+  @@index([assetId])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+enum MediaSource {
+  GENERATED
+  UPLOADED
+  EDITED
+  EXTERNAL
+}
+
+model TimeEntry {
+  id              String   @id @default(cuid())
+  squadId         String
+  squad           Squad    @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  hours           Float
+  description     String
+  date            DateTime @default(now())
+  activityType    String   // development, design, marketing, admin
+
+  isApproved      Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+
+  @@index([squadId])
+  @@index([userId])
+}
+
+model UserMemory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  category  String   @default("general") // e.g., 'preference', 'fact', 'goal'
+  importance Int      @default(1) // 1-5
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([category])
+}
+
+// ============================================
+// API KEY MANAGEMENT - External API Access
+// ============================================
+
+model ApiKey {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ventureId       String?
+  venture         Venture? @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  name            String   // User-friendly name ("Production Bot", "Zapier Integration")
+  keyHash         String   @unique // SHA256 hash of the key
+  keyPrefix       String   // First 8 chars for display (forge_prod_XXXXXXXX)
+
+  scopes          String[] @default([]) // ["media:generate", "content:create", "venture:read"]
+  rateLimit       Int      @default(100) // Requests per hour
+  rateLimitDaily  Int      @default(1000)
+
+  isActive        Boolean  @default(true)
+  lastUsedAt      DateTime?
+  expiresAt       DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  requests        ApiRequest[]
+
+  @@index([userId])
+  @@index([ventureId])
+  @@index([keyHash])
+}
+
+model ApiRequest {
+  id              String   @id @default(cuid())
+  apiKeyId        String
+  apiKey          ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  endpoint        String   // "/api/v1/media/generate"
+  method          String   // "POST"
+  statusCode      Int
+
+  creditsUsed     Int?
+  responseTime    Int?     // milliseconds
+
+  ipAddress       String?
+  userAgent       String?
+
+  error           String?  @db.Text
+
+  createdAt       DateTime @default(now())
+
+  @@index([apiKeyId, createdAt])
+  @@index([endpoint])
+}
+
+model ApiWebhook {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ventureId       String?
+  venture         Venture? @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+
+  url             String
+  events          String[] @default([]) // ["media.generated", "content.created"]
+  secret          String   // Webhook signature secret
+
+  isActive        Boolean  @default(true)
+  lastTriggeredAt DateTime?
+  failureCount    Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([ventureId])
+}
+
+// ============================================
+// ENTERPRISE INTEGRATIONS
+// Notion, DocuSign, Slack, etc.
+// ============================================
+
+model IntegrationConnection {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ventureId     String?
+  venture       Venture? @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+  
+  provider      IntegrationProvider
+  status        IntegrationStatus @default(DISCONNECTED)
+  
+  // OAuth Credentials (encrypted)
+  accessToken   String?  // Encrypted at rest
+  refreshToken  String?  // Encrypted at rest
+  tokenExpiresAt DateTime?
+  
+  // Provider-specific IDs
+  workspaceId   String?  // Notion workspace, DocuSign account
+  workspaceName String?
+  userEmail     String?  // Email at provider
+  
+  // Scopes/Permissions granted
+  scopes        String[] @default([])
+  
+  // Metadata
+  lastSyncedAt  DateTime?
+  lastError     String?  @db.Text
+  lastErrorAt   DateTime?
+  
+  // Provider-specific settings (JSON)
+  metadata      Json?    @db.JsonB
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  syncLogs      IntegrationSyncLog[]
+  
+  @@unique([userId, provider, workspaceId])
+  @@index([userId])
+  @@index([ventureId])
+  @@index([provider, status])
+}
+
+model IntegrationSyncLog {
+  id              String   @id @default(cuid())
+  connectionId    String
+  connection      IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  
+  resourceType    String   // "brand-dna", "roadmap", "contract"
+  resourceId      String   // ID in The Forge
+  externalId      String   // ID in external system (Notion page ID, etc.)
+  externalUrl     String?  // Direct link to external resource
+  
+  direction       SyncDirection
+  status          SyncStatus
+  
+  // Sync details
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  durationMs      Int?
+  
+  // Error handling
+  error           String?  @db.Text
+  retryCount      Int      @default(0)
+  
+  // Payload (for debugging)
+  requestPayload  Json?
+  responsePayload Json?
+  
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([connectionId, resourceType])
+  @@index([status, retryCount])
+  @@index([createdAt])
+}
+
+model DocuSignEnvelope {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ventureId         String?
+  venture           Venture? @relation(fields: [ventureId], references: [id], onDelete: Cascade)
+  
+  // DocuSign-specific
+  envelopeId        String   @unique // DocuSign's envelope ID
+  documentType      String   // "co-founder", "supplier", "nda", "custom"
+  templateId        String?  // If created from template
+  
+  // Status tracking
+  status            DocuSignStatus @default(CREATED)
+  statusUpdatedAt   DateTime?
+  
+  // Signers
+  signers           Json     // [{email, name, status, signedAt, declinedReason}]
+  
+  // Documents
+  documents         Json     // [{documentId, name, url}]
+  
+  // Final output
+  signedDocumentUrl String?
+  certificateUrl    String?
+  
+  // Audit & Compliance
+  auditTrail        Json?    // Full DocuSign audit trail
+  ipAddresses       Json?    // IP tracking for compliance
+  
+  // Timestamps
+  sentAt            DateTime?
+  completedAt       DateTime?
+  voidedAt          DateTime?
+  voidedReason      String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([ventureId])
+  @@index([envelopeId])
+  @@index([status, createdAt])
+}
+
+// Enums for Integrations
+enum IntegrationProvider {
+  NOTION
+  DOCUSIGN
+  SLACK
+  GITHUB
+  GOOGLE_CALENDAR
+  SHOPIFY
+  AIRTABLE
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  EXPIRED
+}
+
+enum SyncDirection {
+  TO_EXTERNAL    // Forge → Notion/DocuSign
+  FROM_EXTERNAL  // Notion → Forge
+  BIDIRECTIONAL
+}
+
+enum SyncStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+enum DocuSignStatus {
+  CREATED
+  SENT
+  DELIVERED
+  SIGNED
+  COMPLETED
+  DECLINED
+  VOIDED
+}

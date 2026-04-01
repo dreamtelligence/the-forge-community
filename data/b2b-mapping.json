@@ -1,0 +1,29 @@
+{
+  "sourceDefaults": {
+    "B2B": { "category": "B2B_DIRECTORY" },
+    "b2b_": { "category": "B2B_DIRECTORY" },
+    "B2B_Lager": { "category": "LOGISTICS" }
+  },
+  "sectionTypeOverrides": {
+    "Gefriergetrocknete Früchte, Trockenfrüchte & Feinkost": "Feinkost",
+    "Nahrungsergänzungsmittel & Sportnahrung": "Bio-Produkte",
+    "Verpackungsmaterial, Druck & Werbeartikel": "Drucktechnik",
+    "Kleidung, Textilien & Mode": "Damenmode",
+    "Unterwäsche & Basics": "Basics",
+    "T‑Shirts, Hoodies & Freizeitmode": "Fashion-Hoodies",
+    "Workwear & Spezialisten": "Berufsbekleidung",
+    "Versanddienstleister und Paketdienste in Deutschland (B2B‑Abhol‑ und Zustellservices, Stand 2026)": "Express Logistik",
+    "Dienstleister, Fulfillment‑ und Logistikunternehmen": "E-Commerce Logistik",
+    "Einzelne Logistik- und Fulfillment‑Anbieter": "E-Commerce Fulfillment",
+    "Weitere Logistikunternehmen": "B2B Fulfillment"
+  },
+  "ignoreSections": [
+    "Einleitung",
+    "Nutzungshinweis",
+    "Weitere Hinweise",
+    "Zusatzleistungen",
+    "Verfügbarkeit regionaler Dienste",
+    "Preisabweichungen je nach Service",
+    "Weitere Hinweise"
+  ]
+}

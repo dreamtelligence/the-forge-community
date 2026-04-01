@@ -1,0 +1,33 @@
+# Dependencies
+/node_modules
+
+# Build output
+/.next
+/out
+/dist
+
+# Runtime / logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env*.example
+
+# Deployment
+/.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Coverage / reports
+/coverage
