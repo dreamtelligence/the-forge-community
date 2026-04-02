@@ -18,6 +18,78 @@ Es kombiniert **Brand, Marketing, Sourcing, Legal, Community und Venture-Ops** i
 - **Kernnutzen:** Weniger Tool-Wechsel, klarer End-to-End-Flow von Ideation bis Launch.
 - **Betriebsmodell:** Closed Beta mit AI-Credits/Freemium-Logik (siehe Abschnitt unten).
 
+## 🎬 Produkt-Demo
+
+> Klick auf ein Thumbnail, um den Screenshot in voller Größe zu öffnen. Ein echtes Modal ist in GitHub-READMEs nicht möglich, daher ist die Demo als klickbares Grid umgesetzt.
+
+<details>
+  <summary><strong>Demo-Screens öffnen</strong></summary>
+  <br />
+  <p align="center">
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.22.52.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.22.52.png" width="32%" alt="The Forge Demo Screenshot 01" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.17.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.17.png" width="32%" alt="The Forge Demo Screenshot 02" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.26.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.26.png" width="32%" alt="The Forge Demo Screenshot 03" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.35.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.35.png" width="32%" alt="The Forge Demo Screenshot 04" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.46.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.46.png" width="32%" alt="The Forge Demo Screenshot 05" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.55.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.55.png" width="32%" alt="The Forge Demo Screenshot 06" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.03.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.03.png" width="32%" alt="The Forge Demo Screenshot 07" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.05.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.05.png" width="32%" alt="The Forge Demo Screenshot 08" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.14.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.14.png" width="32%" alt="The Forge Demo Screenshot 09" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.19.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.19.png" width="32%" alt="The Forge Demo Screenshot 10" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.22.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.22.png" width="32%" alt="The Forge Demo Screenshot 11" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.33.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.33.png" width="32%" alt="The Forge Demo Screenshot 12" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.45.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.45.png" width="32%" alt="The Forge Demo Screenshot 13" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.58.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.58.png" width="32%" alt="The Forge Demo Screenshot 14" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.06.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.06.png" width="32%" alt="The Forge Demo Screenshot 15" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.33.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.33.png" width="32%" alt="The Forge Demo Screenshot 16" />
+    </a>
+    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.26.44.png">
+      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.26.44.png" width="32%" alt="The Forge Demo Screenshot 17" />
+    </a>
+  </p>
+</details>
+
 ## 🚀 SaaS & Growth Modell
 
 The Forge nutzt ein **Product-Led Growth** Modell für maximale Konvertierung von Social-Media-Traffic:
