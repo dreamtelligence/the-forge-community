@@ -2,7 +2,7 @@
 
 > **Stake & Scale** – Das KI-gestützte SaaS-Betriebssystem für Solo-Gründer, um gemeinsam skalierbare Ventures zu bauen.
 
-https://www.stakeandscale.de
+
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
