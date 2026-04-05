@@ -34,6 +34,7 @@ export default function DecisionsPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [votingFor, setVotingFor] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const fetchDecisions = useCallback(async () => {
     setLoading(true);
@@ -56,6 +57,10 @@ export default function DecisionsPage() {
   useEffect(() => {
     fetchDecisions();
   }, [fetchDecisions]);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const handleVote = async (decisionId: string, choice: string) => {
     setVotingFor(decisionId);
@@ -88,6 +93,13 @@ export default function DecisionsPage() {
 
   const getVoteCount = (decision: Decision, option: string) => {
     return decision.responses.filter(r => r.choice === option).length;
+  };
+
+  const formatRelativeTime = (value?: string, addSuffix = true) => {
+    if (!value || !isHydrated) return '--';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '--';
+    return formatDistanceToNow(parsed, { addSuffix, locale: de });
   };
 
   return (
@@ -149,7 +161,7 @@ export default function DecisionsPage() {
                   <div>
                     <p className="text-xs text-white font-bold">{decision.createdBy?.name || 'Unbekannt'}</p>
                     <p className="text-[10px] text-white/40">
-                      vor {formatDistanceToNow(new Date(decision.createdAt), { addSuffix: false, locale: de })}
+                      vor {formatRelativeTime(decision.createdAt, false)}
                     </p>
                   </div>
                 </div>
@@ -164,7 +176,7 @@ export default function DecisionsPage() {
                 {decision.deadline && (
                   <div className="flex items-center gap-2 text-xs text-[#FF9900] mb-4 bg-[#FF9900]/5 px-3 py-2 rounded-lg w-fit">
                     <Clock className="w-3 h-3" />
-                    <span>Endet {formatDistanceToNow(new Date(decision.deadline), { addSuffix: true, locale: de })}</span>
+                    <span>Endet {formatRelativeTime(decision.deadline, true)}</span>
                   </div>
                 )}
 

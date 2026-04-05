@@ -346,6 +346,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
   const [notifications, setNotifications] = useState<ForumNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsUnread, setNotificationsUnread] = useState(0);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [] = useState(false);
   const [, setEmojiPickerSize] = useState({ width: 320, height: 400 });
   const toastTimeoutRef = useRef<number | null>(null);
@@ -373,6 +374,13 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
     { id: 'factCheck', label: 'Faktencheck' },
     { id: 'nextSteps', label: 'Nächste Schritte' },
   ];
+
+  const formatRelativeTime = (value?: string | null) => {
+    if (!value || !isHydrated) return '--';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '--';
+    return formatDistanceToNow(parsed, { addSuffix: true, locale: de });
+  };
 
   const fetchUser = async () => {
     try {
@@ -405,6 +413,10 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
     }, 0);
     return () => clearTimeout(timer);
   }, [activeChannel, sortMode]);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     const updateEmojiPickerSize = () => {
@@ -997,7 +1009,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-[11px] font-bold">{notification.title}</span>
                       <span className="text-[9px] text-white/30 uppercase tracking-widest">
-                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: de })}
+                        {formatRelativeTime(notification.createdAt)}
                       </span>
                     </div>
                     <div className="text-[11px] text-white/60">
@@ -1326,7 +1338,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                             </div>
                           )}
                           <span>•</span>
-                          <span>{formatDistanceToNow(new Date(post.createdTime), { addSuffix: true, locale: de })}</span>
+                          <span>{formatRelativeTime(post.createdTime)}</span>
                           <span className="sm:ml-auto bg-white/5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">{post.category}</span>
                         </div>
 
@@ -1375,7 +1387,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                                 {firstRootComment.author.startsWith('@') ? '' : '@'}{firstRootComment.author}
                               </span>
                               <span>•</span>
-                              <span>{formatDistanceToNow(new Date(firstRootComment.time), { addSuffix: true, locale: de })}</span>
+                              <span>{formatRelativeTime(firstRootComment.time)}</span>
                             </div>
                             <p className="text-white/70 text-sm line-clamp-3">
                               {firstCommentPreview || '—'}
@@ -1599,7 +1611,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                                             </span>
                                           )}
                                           <span>•</span>
-                                          <span>{formatDistanceToNow(new Date(comment.time), { addSuffix: true, locale: de })}</span>
+                                          <span>{formatRelativeTime(comment.time)}</span>
                                         </div>
 
                                         {parent && (
