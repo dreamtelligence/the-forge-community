@@ -55,6 +55,14 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
     }
   };
 
+  const formatIssueDate = (value: Date) =>
+    new Intl.DateTimeFormat('de-DE', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(value));
+
   return (
     <div className="glass-card rounded-2xl border border-white/10 p-8">
       <div className="flex items-center gap-3 mb-6">
@@ -101,13 +109,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-white/40">
-                      <span>
-                        {new Date(invoice.issueDate).toLocaleDateString('de-DE', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </span>
+                      <span>{formatIssueDate(invoice.issueDate)}</span>
                       <span className="font-mono">{invoice.invoiceNumber}</span>
                     </div>
                   </div>

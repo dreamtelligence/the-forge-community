@@ -31,6 +31,15 @@ export function UsageBreakdownCard(props: {
   items: UsageItem[];
 }) {
   const { windowDays, summary, items } = props;
+  const formatTimestamp = (value: Date) =>
+    new Intl.DateTimeFormat('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    }).format(new Date(value));
 
   return (
     <div className="glass-card rounded-2xl border border-white/10 p-8">
@@ -82,7 +91,7 @@ export function UsageBreakdownCard(props: {
                   {(item.provider || 'provider').toUpperCase()} · {item.feature || 'usage'}
                 </div>
                 <div className="text-xs text-white/40">
-                  {new Date(item.usedAt).toLocaleString('de-DE')} · {item.credits} Credits
+                  {formatTimestamp(item.usedAt)} · {item.credits} Credits
                 </div>
               </div>
               <div className="text-right">

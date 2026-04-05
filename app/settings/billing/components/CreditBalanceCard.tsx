@@ -15,6 +15,13 @@ interface CreditBalanceCardProps {
 
 export function CreditBalanceCard({ currentCredits, recentGrants }: CreditBalanceCardProps) {
   const isLow = currentCredits < 20;
+  const formatDate = (value: Date) =>
+    new Intl.DateTimeFormat('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'UTC',
+    }).format(new Date(value));
 
   return (
     <div className="glass-card rounded-2xl border border-white/10 p-8">
@@ -82,7 +89,7 @@ export function CreditBalanceCard({ currentCredits, recentGrants }: CreditBalanc
                   </div>
                 </div>
                 <div className="text-xs text-white/40">
-                  {new Date(grant.createdAt).toLocaleDateString('de-DE')}
+                  {formatDate(grant.createdAt)}
                 </div>
               </div>
             ))}

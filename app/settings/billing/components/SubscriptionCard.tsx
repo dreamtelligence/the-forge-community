@@ -22,6 +22,14 @@ export function SubscriptionCard({
   const hasActiveSubscription =
     subscriptionStatus === 'active' ||
     (isCancelled && subscriptionEndsAt && new Date(subscriptionEndsAt) > new Date());
+  const subscriptionEndsAtLabel = subscriptionEndsAt
+    ? new Intl.DateTimeFormat('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'UTC',
+      }).format(new Date(subscriptionEndsAt))
+    : null;
 
   const handleCancelSubscription = async () => {
     setIsLoading(true);
@@ -128,9 +136,7 @@ export function SubscriptionCard({
               <span className="text-white/40">
                 {isCancelled ? 'Abo endet am' : 'Nächste Abrechnung'}
               </span>
-              <span className="text-white">
-                {new Date(subscriptionEndsAt).toLocaleDateString('de-DE')}
-              </span>
+              <span className="text-white">{subscriptionEndsAtLabel}</span>
             </div>
           )}
           {isCancelled && (

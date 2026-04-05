@@ -1291,26 +1291,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                     const firstCommentPreview = firstRootComment ? stripMarkdown(firstRootComment.content) : '';
 
                     return (
-                    <div key={post.id} id={post.id} className="bg-transparent sm:bg-[#121212] border-b border-white/10 sm:border sm:rounded-xl flex flex-col sm:flex-row sm:hover:border-white/20 transition-all group">
-                      {/* Vote Sidebar */}
-                      <div className="hidden sm:flex w-12 bg-black/20 flex-col items-center py-4 gap-1 shrink-0 sm:rounded-l-xl">
-                        <button 
-                          onClick={() => handleVote(post.id, 1)}
-                          className={`p-1.5 rounded-md transition-all ${post.userVote === 1 ? 'text-[#FF9900] bg-[#FF9900]/10' : 'text-white/20 hover:text-white hover:bg-white/5'}`}
-                        >
-                          <ArrowUp className="w-5 h-5" />
-                        </button>
-                        <span className={`text-xs font-bold ${post.userVote === 1 ? 'text-[#FF9900]' : post.userVote === -1 ? 'text-blue-400' : 'text-white/60'}`}>
-                          {post.likes}
-                        </span>
-                        <button 
-                          onClick={() => handleVote(post.id, -1)}
-                          className={`p-1.5 rounded-md transition-all ${post.userVote === -1 ? 'text-blue-400 bg-blue-400/10' : 'text-white/20 hover:text-white hover:bg-white/5'}`}
-                        >
-                          <ArrowDown className="w-5 h-5" />
-                        </button>
-                      </div>
-
+                    <div key={post.id} id={post.id} className="bg-transparent sm:bg-[#121212] border-b border-white/10 sm:border sm:rounded-xl sm:hover:border-white/20 transition-all group">
                       {/* Post Content */}
                       <div className="flex-1 p-4 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/40 mb-3">
@@ -1402,6 +1383,25 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                         )}
 
                         <div className="hidden sm:flex flex-wrap items-center gap-3 pt-3 border-t border-white/5">
+                          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-1">
+                            <button 
+                              onClick={() => handleVote(post.id, 1)}
+                              className={`p-1 transition-all ${post.userVote === 1 ? 'text-[#FF9900]' : 'text-white/40 hover:text-white'}`}
+                              aria-label="Upvote"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </button>
+                            <span className={`text-[11px] font-bold ${post.userVote === 1 ? 'text-[#FF9900]' : post.userVote === -1 ? 'text-blue-400' : 'text-white/70'}`}>
+                              {post.likes}
+                            </span>
+                            <button 
+                              onClick={() => handleVote(post.id, -1)}
+                              className={`p-1 transition-all ${post.userVote === -1 ? 'text-blue-400' : 'text-white/40 hover:text-white'}`}
+                              aria-label="Downvote"
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </button>
+                          </div>
                           <button
                             onClick={() => toggleComments(post.id)}
                             className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all ${ 

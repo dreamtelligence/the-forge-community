@@ -30,6 +30,15 @@ export default function ApiKeyCard({ apiKey, onRevoke }: ApiKeyCardProps) {
     }
   };
 
+  const lastUsedLabel = apiKey.lastUsedAt
+    ? new Intl.DateTimeFormat('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'UTC',
+      }).format(new Date(apiKey.lastUsedAt))
+    : 'Nie';
+
   return (
     <div className="p-6 rounded-xl border border-white/10 bg-white/[0.02] hover:border-[#FF9900]/30 transition-all">
       <div className="flex items-start justify-between">
@@ -54,7 +63,7 @@ export default function ApiKeyCard({ apiKey, onRevoke }: ApiKeyCardProps) {
           </div>
           
           <p className="text-[10px] text-white/30 mt-3">
-            Zuletzt verwendet: {apiKey.lastUsedAt ? new Date(apiKey.lastUsedAt).toLocaleDateString() : 'Nie'}
+            Zuletzt verwendet: {lastUsedLabel}
           </p>
         </div>
         

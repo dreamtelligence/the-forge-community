@@ -33,7 +33,14 @@ export default function ProviderKeysClient({ initialReplicateStatus }: ProviderK
 
   const updatedAtLabel = useMemo(() => {
     if (!status.updatedAt) return null;
-    return new Date(status.updatedAt).toLocaleString('de-DE');
+    return new Intl.DateTimeFormat('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    }).format(new Date(status.updatedAt));
   }, [status.updatedAt]);
 
   const resetFeedback = () => {
