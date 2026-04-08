@@ -22,7 +22,7 @@ Es kombiniert **Brand, Marketing, Sourcing, Legal, Community und Venture-Ops** i
 
 ## 🎬 Produkt-Demo
 
-> Klick auf ein Thumbnail, um den Screenshot in voller Größe zu öffnen. Ein echtes Modal ist in GitHub-READMEs nicht möglich, daher ist die Demo als klickbares Grid umgesetzt.
+> Klick auf ein Thumbnail, um den Screenshot in voller Größe zu öffnen.
 
 <details>
   <summary><strong>Demo-Screens öffnen</strong></summary>
