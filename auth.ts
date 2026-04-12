@@ -14,7 +14,8 @@ import { isConfiguredAdminEmail } from '@/lib/admin-access';
 import { getCaseworkerLoginEmail, isCaseworkerCredentialsEnabled } from '@/lib/caseworker-login';
 import { ensureSessionUser } from '@/lib/session-user';
 
-const resendClient = new ResendClient(process.env.AUTH_RESEND_KEY);
+const resendApiKey = process.env.AUTH_RESEND_KEY;
+const resendClient = resendApiKey ? new ResendClient(resendApiKey) : null;
 const resendFrom =
   process.env.AUTH_RESEND_FROM ||
   (process.env.NODE_ENV === 'production'
@@ -32,11 +33,14 @@ function constantTimeEqual(a: string, b: string): boolean {
 
 const providers: Provider[] = [
   Resend({
-      apiKey: process.env.AUTH_RESEND_KEY,
+      apiKey: resendApiKey || 're_placeholder',
       from: resendFrom,
       async sendVerificationRequest({ identifier: email, url }) {
         if (!isLoginAllowedDuringClosedBeta(email)) {
           throw new Error('BETA_ACCESS_CLOSED');
+        }
+        if (!resendClient) {
+          throw new Error('AUTH_RESEND_KEY is not configured');
         }
         try {
           await resendClient.emails.send({
@@ -216,6 +220,9 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       if (!adminEmail) return;
 
       try {
+        if (!resendClient) {
+          return;
+        }
         const createdAt = new Date().toISOString();
         await resendClient.emails.send({
           from: resendFrom,
