@@ -9,19 +9,23 @@ const connectionString =
   process.env.DATABASE_URL_UNPOOLED ||
   process.env.DIRECT_URL ||
   process.env.POSTGRES_URL_NON_POOLING;
+const isBuildPhase = process.env.npm_lifecycle_event === 'build';
+const fallbackConnectionString = 'postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder';
+const resolvedConnectionString =
+  connectionString || (isBuildPhase ? fallbackConnectionString : undefined);
 
-if (!connectionString) {
+if (!resolvedConnectionString) {
   throw new Error('Missing DATABASE_URL for Prisma.');
 }
 
 const poolSize = Number.parseInt(process.env.PG_POOL_SIZE || '', 10);
 const shouldUseSsl =
-  connectionString.includes('sslmode=require') ||
-  connectionString.includes('ssl=true') ||
+  resolvedConnectionString.includes('sslmode=require') ||
+  resolvedConnectionString.includes('ssl=true') ||
   process.env.PGSSL === 'true';
 
 const pool = new pg.Pool({
-  connectionString,
+  connectionString: resolvedConnectionString,
   max: Number.isFinite(poolSize) && poolSize > 0 ? poolSize : 10,
   ssl: shouldUseSsl ? { rejectUnauthorized: false } : undefined
 });

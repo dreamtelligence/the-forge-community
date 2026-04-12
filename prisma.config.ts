@@ -21,15 +21,17 @@ const url =
   process.env.POSTGRES_URL ||
   process.env.POSTGRES_PRISMA_URL;
 const shadowDatabaseUrl = process.env.SHADOW_DATABASE_URL;
+const isPrismaGenerate = process.argv.includes("generate");
+const fallbackDatabaseUrl = "postgresql://placeholder:placeholder@127.0.0.1:5432/placeholder";
 
-if (!url) {
+if (!url && !isPrismaGenerate) {
   throw new Error("Missing database URL for Prisma config.");
 }
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url,
+    url: url || fallbackDatabaseUrl,
     shadowDatabaseUrl,
   },
 });
