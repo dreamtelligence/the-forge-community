@@ -281,11 +281,11 @@ export default function ContextAwareAiSidebar() {
                           prose-li:text-white/70 prose-li:my-1
                           prose-a:text-[#FF9900] prose-a:underline hover:prose-a:text-white transition-colors
                         ">
-                          <ReactMarkdown 
+                            <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
                             components={{
-                              a: ({ _node, ...props }) => {
-                                const isInternal = props.href && props.href.startsWith('/');
+                              a: (props) => {
+                                const isInternal = typeof props.href === 'string' && props.href.startsWith('/');
                                 if (isInternal) {
                                   return (
                                     <Link href={props.href as string} className="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-xs no-underline hover:bg-white/20 transition-colors border border-white/5 text-[#FF9900]">
