@@ -1,6 +1,27 @@
 import type { NextConfig } from "next";
 
-const appOrigin = process.env.NEXT_PUBLIC_APP_URL || "https://www.stakeandscale.de";
+const defaultAppOrigin = "https://www.stakeandscale.de";
+const appOrigin = (() => {
+  const rawOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (!rawOrigin) {
+    return defaultAppOrigin;
+  }
+
+  try {
+    const normalizedOrigin = new URL(rawOrigin).origin;
+    if (
+      process.env.NODE_ENV === "production" &&
+      ["localhost", "127.0.0.1", "0.0.0.0"].includes(new URL(normalizedOrigin).hostname)
+    ) {
+      return defaultAppOrigin;
+    }
+
+    return normalizedOrigin;
+  } catch {
+    return defaultAppOrigin;
+  }
+})();
 const cspReportOnly = process.env.CSP_REPORT_ONLY === "true";
 const appOriginHost = (() => {
   try {
