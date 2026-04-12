@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Video, User, Zap, Play, Download, Sparkles, Shirt, Languages, Youtube } from 'lucide-react';
+import { Video, User, Zap, Play, Download, Sparkles, Shirt, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CreditsTopUpModal } from '@/app/components/billing/CreditsTopUpModal';
 import Hyperspeed, { hyperspeedPresets } from '@/app/components/visual/Hyperspeed';
@@ -212,7 +212,7 @@ export function AvatarStudio({ ventureId }: AvatarStudioProps) {
         />
       </div>
       <div className="flex items-center gap-2 text-[10px] text-white/40 font-bold uppercase tracking-widest">
-        <Youtube className="w-3.5 h-3.5 text-red-500" />
+        <Play className="w-3.5 h-3.5 text-red-500" />
         <span>{label}</span>
       </div>
     </div>
