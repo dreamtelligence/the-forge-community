@@ -5,7 +5,7 @@ import PageShell from '@/app/components/PageShell';
 import AuthGuard from '@/app/components/AuthGuard';
 import { 
   User, MapPin, Briefcase, 
-  Instagram, Linkedin, Save, CheckCircle, 
+  Save, CheckCircle, 
   Camera, Loader2,
   Trophy, 
   Lock
@@ -364,7 +364,7 @@ export default function ProfilePage() {
                       </div>
                       <div className="grid md:grid-cols-2 gap-6">
                         <div className="relative group">
-                          <Linkedin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#FF9900] transition-colors" />
+                          <Briefcase className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#FF9900] transition-colors" />
                           <input 
                             type="text" value={formData.linkedin} onChange={e => setFormData({...formData, linkedin: e.target.value})}
                             placeholder="LinkedIn URL"
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                           />
                         </div>
                         <div className="relative group">
-                          <Instagram className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#FF9900] transition-colors" />
+                          <Camera className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#FF9900] transition-colors" />
                           <input 
                             type="text" value={formData.instagram} onChange={e => setFormData({...formData, instagram: e.target.value})}
                             placeholder="Instagram Profile"
