@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Loader2, 
-  Slack,
+  MessageSquare,
   Check,
 } from 'lucide-react';
 
@@ -132,7 +132,7 @@ export function SlackConnectButton({
       {isLoading ? (
         <Loader2 className="w-4 h-4 animate-spin" />
       ) : (
-        <Slack className="w-4 h-4" />
+        <MessageSquare className="w-4 h-4" />
       )}
       Connect Slack
     </Button>
