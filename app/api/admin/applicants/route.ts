@@ -3,7 +3,8 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export async function GET() {
   const session = await auth();
@@ -40,6 +41,9 @@ export async function PATCH(req: NextRequest) {
     // If status is APPROVED, send the email
     if (status === 'APPROVED') {
       try {
+        if (!resend) {
+          throw new Error('RESEND_API_KEY is not configured');
+        }
         await resend.emails.send({
           from: 'STAKE & SCALE <info@stakeandscale.de>',
           to: application.email,
