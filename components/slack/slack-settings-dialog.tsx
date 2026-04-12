@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slack, Settings, Bell, Hash, Loader2, Check } from 'lucide-react';
+import { MessageSquare, Settings, Bell, Hash, Loader2, Check } from 'lucide-react';
 import { SlackConnectButton } from './slack-connect-button';
 import { SlackChannelSelect } from './slack-channel-select';
 import { SlackNotificationToggle, NotificationPreference, defaultPreferences } from './slack-notification-toggle';
@@ -197,7 +197,7 @@ export function SlackSettingsDialog({
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm" className="gap-2">
-            <Slack className="w-4 h-4" />
+            <MessageSquare className="w-4 h-4" />
             Slack Settings
           </Button>
         )}
@@ -206,7 +206,7 @@ export function SlackSettingsDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Slack className="w-5 h-5" style={{ color: '#4A154B' }} />
+            <MessageSquare className="w-5 h-5" style={{ color: '#4A154B' }} />
             Slack Integration
           </DialogTitle>
           <DialogDescription>
