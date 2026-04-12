@@ -15,7 +15,7 @@
 - **Squads**: Groups of 2-5 members form to build ventures collaboratively
 - **Ventures**: Created via a guided wizard (E-Commerce, SaaS, Service types)
 - **The Forge**: The venture workspace with studios for Brand, Legal, Marketing, and Sourcing
-- **AI-First**: Gemini Flash 2.0 powers content generation, moderation, and advisor chatbot
+- **AI-First**: Gemini 2.0 Flash powers content generation, moderation, and advisor chatbot
 
 ---
 
@@ -23,12 +23,12 @@
 
 | Category | Technology |
 |----------|------------|
-| **Framework** | Next.js 16.1.2 (App Router, React Server Components) |
+| **Framework** | Next.js 16.2.3 (App Router, React Server Components) |
 | **Language** | TypeScript 5 (strict mode) |
-| **Database** | PostgreSQL (Vercel Postgres) + Prisma 7.2 |
+| **Database** | PostgreSQL (Vercel Postgres) + Prisma 7.7 |
 | **Authentication** | NextAuth v5 (JWT, Magic Links via Resend) |
 | **Payments** | Stripe (Subscriptions + Connect for marketplace) |
-| **AI** | Gemini Flash 2.0 (primary), Groq (fallback) |
+| **AI** | Gemini 2.0 Flash (primary), Groq (fallback) |
 | **Storage** | Vercel Blob for file uploads |
 | **Styling** | Tailwind CSS v4 |
 | **Deployment** | Vercel |
@@ -396,4 +396,4 @@ export async function GET(request: Request) {
 
 ---
 
-*Last updated: February 2026*
+*Last updated: April 12, 2026*

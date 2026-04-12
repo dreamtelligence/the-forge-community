@@ -1122,10 +1122,10 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
   return (
     <AuthGuard>
       <PageShell contentClassName="flex-1 px-4 pb-24 pt-20 sm:px-6 lg:ml-64 lg:px-6 lg:py-8 transition-all relative overflow-hidden">
-        <div className="max-w-[1600px] grid grid-cols-1 lg:grid-cols-[240px_1fr_320px] lg:h-[calc(100dvh-6rem)] lg:items-start gap-8">
+        <div className="max-w-[1600px] grid grid-cols-1 gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start xl:grid-cols-[240px_minmax(0,1fr)_320px]">
           
           {/* LEFT SIDEBAR - Reddit Style Navigation */}
-          <aside className="hidden lg:block lg:sticky lg:top-0 lg:h-[calc(100dvh-6rem)] lg:overflow-y-auto space-y-8" data-tour="forum-channels">
+          <aside className="hidden lg:block lg:sticky lg:top-0 lg:h-[calc(100dvh-4rem)] lg:overflow-y-auto space-y-8" data-tour="forum-channels">
             <div className="space-y-1">
               {FEEDS.map(f => (
                 <NavItem
@@ -1165,7 +1165,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
           </aside>
 
           {/* MAIN FEED */}
-          <main className="space-y-4 lg:h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:overscroll-y-contain lg:pr-2">
+          <main className="min-w-0 space-y-4 lg:h-[calc(100dvh-4rem)] lg:overflow-y-auto lg:overscroll-y-contain lg:pr-2">
             {/* Mobile Filters */}
             <div className="lg:hidden space-y-3 bg-[#121212] border border-white/10 rounded-xl p-3" data-tour="forum-mobile-filters">
               <div className="flex items-center justify-between">
@@ -1796,7 +1796,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
           </main>
 
           {/* RIGHT SIDEBAR */}
-          <aside className="hidden xl:block xl:sticky xl:top-0 xl:h-[calc(100dvh-6rem)] xl:overflow-y-auto space-y-6">
+          <aside className="hidden xl:block xl:sticky xl:top-0 xl:h-[calc(100dvh-4rem)] xl:overflow-y-auto space-y-6">
             {notificationsOpen && (
               renderNotificationsPanel()
             )}
