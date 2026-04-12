@@ -239,16 +239,21 @@ function ScrollIndicator({
   const segmentSize = 1 / total;
   const start = index * segmentSize;
   const end = (index + 1) * segmentSize;
+  const pad = Math.min(0.05, segmentSize * 0.25);
+  const fadeInStart = Math.max(0, start - pad);
+  const fadeOutEnd = Math.min(1, end + pad);
+  const activeStart = Math.min(end, start + pad);
+  const activeEnd = Math.max(activeStart, end - pad);
   
   const opacity = useTransform(
     scrollYProgress,
-    [start - 0.05, start, end, end + 0.05],
+    [fadeInStart, start, end, fadeOutEnd],
     [0.3, 1, 1, 0.3]
   );
   
   const scale = useTransform(
     scrollYProgress,
-    [start, start + 0.05, end - 0.05, end],
+    [start, activeStart, activeEnd, end],
     [1, 1.2, 1.2, 1]
   );
 
