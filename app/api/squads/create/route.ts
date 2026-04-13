@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { setSquadVisibility } from '@/lib/squad-visibility';
+import { runSerializableTransaction } from '@/lib/transaction-retry';
 import type { CreateSquadRequest } from '@/types/database';
 
 function toSlug(input: string): string {
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
 
     const slug = await generateUniqueSlug(name);
 
-    const squad = await prisma.$transaction(async (tx) => {
+    const squad = await runSerializableTransaction(async (tx) => {
       const created = await tx.squad.create({
         data: {
           name,
@@ -87,7 +88,6 @@ export async function POST(request: Request) {
           squadId: created.id,
           userId: user.id,
           role: 'LEAD',
-          equityShare: Number((100 / maxMembers).toFixed(2)),
         },
       });
 
@@ -95,14 +95,15 @@ export async function POST(request: Request) {
         data: { squadId: created.id },
       });
 
+      await setSquadVisibility(
+        created.id,
+        { is_public: isPublic, is_accepting_members: maxMembers > 1 },
+        { is_public: true, is_accepting_members: maxMembers > 1 },
+        tx
+      );
+
       return created;
     });
-
-    const visibility = await setSquadVisibility(
-      squad.id,
-      { is_public: isPublic, is_accepting_members: true },
-      { is_public: true, is_accepting_members: true }
-    );
 
     console.log(`✅ Squad created: ${squad.name} (${squad.id}) by ${session.user.email}`);
 
@@ -114,8 +115,8 @@ export async function POST(request: Request) {
         mission: squad.mission,
         status: squad.status,
         squad_type: squad.squadType,
-        is_public: visibility.is_public,
-        is_accepting_members: visibility.is_accepting_members,
+        is_public: isPublic,
+        is_accepting_members: maxMembers > 1,
         max_members: squad.maxMembers,
         current_members: 1,
         created_at: squad.createdAt,

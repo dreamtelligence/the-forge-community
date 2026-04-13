@@ -34,27 +34,25 @@ export async function GET(request: Request) {
     }
 
     const squadsRaw = await prisma.squad.findMany({
-      where:
-        filter === 'my-squads'
-          ? {
-              status: { not: 'archived' },
-              members: {
-                some: {
-                  userId: user.id,
-                  leftAt: null,
-                },
-              },
-            }
-          : {
-              status: { not: 'archived' },
-            },
-      include: {
+      where: {
+        status: { not: 'archived' },
+      },
+      select: {
+        id: true,
+        name: true,
+        mission: true,
+        status: true,
+        squadType: true,
+        maxMembers: true,
+        createdAt: true,
         members: {
           where: { leftAt: null },
           orderBy: [{ role: 'asc' }, { joinedAt: 'asc' }],
-          include: {
+          select: {
+            userId: true,
+            role: true,
             user: {
-              select: { name: true, email: true },
+              select: { name: true },
             },
           },
         },
@@ -92,26 +90,23 @@ export async function GET(request: Request) {
           current_members: currentMembers,
           max_members: squad.maxMembers,
           lead_name: lead?.user.name || null,
-          lead_email: lead?.user.email || null,
           created_at: squad.createdAt,
           is_public: visibility.is_public,
           is_accepting_members: visibility.is_accepting_members,
           slots_available: slotsAvailable,
           my_role: myMembership ? toUiRole(myMembership.role) : null,
-          members: squad.members.map((member) => ({
-            id: member.id,
-            user_id: member.userId,
-            role: toUiRole(member.role),
-            equity_share: member.equityShare,
-            joined_at: member.joinedAt,
-            user_name: member.user.name,
-            user_email: member.user.email,
-          })),
           member_count: currentMembers,
         };
       })
       .filter((squad) => {
-        if (filter !== 'open') return true;
+        if (filter === 'my-squads') {
+          return Boolean(squad.my_role);
+        }
+
+        if (filter === 'all') {
+          return squad.is_public || Boolean(squad.my_role);
+        }
+
         const openByStatus = squad.status === 'forming' || squad.status === 'building';
         return (
           squad.is_public &&

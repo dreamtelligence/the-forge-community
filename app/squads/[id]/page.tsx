@@ -36,9 +36,8 @@ interface Member {
   id: string;
   user_id: string;
   user_name: string;
-  user_email: string;
   role: string;
-  equity_share: number;
+  equity_share?: number | null;
   hours_contributed: number;
   tasks_completed: number;
   joined_at: string;
@@ -135,14 +134,14 @@ export default function SquadDetailPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setJoinError(data.error || 'Bewerbung konnte nicht gesendet werden');
+        setJoinError(data.error || 'Beitritt konnte nicht durchgeführt werden');
         return;
       }
 
       setShowJoinModal(false);
       setApplicationSent(true);
     } catch (err: any) {
-      setJoinError(err.message || 'Bewerbung konnte nicht gesendet werden');
+      setJoinError(err.message || 'Beitritt konnte nicht durchgeführt werden');
     } finally {
       setJoining(false);
     }
@@ -225,13 +224,13 @@ export default function SquadDetailPage() {
                   className="btn-shimmer bg-[var(--accent)] text-[var(--accent-foreground)] px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[var(--accent)]/20"
                 >
                   <UserPlus className="w-5 h-5" />
-                  Jetzt bewerben
+                  Jetzt beitreten
                 </motion.button>
               )}
 
               {applicationSent && (
                 <div className="px-8 py-4 rounded-xl border border-white/10 text-white/60 text-xs font-bold uppercase tracking-[0.2em] text-center">
-                  Bewerbung gesendet
+                  Beitritt erfolgreich
                 </div>
               )}
 
@@ -468,6 +467,8 @@ function StatCard({ icon: Icon, label, value, trend }: any) {
 
 function MemberCard({ member }: { member: Member }) {
   const isLead = member.role === 'lead';
+  const equityLabel =
+    typeof member.equity_share === 'number' ? `${member.equity_share.toFixed(1)}%` : 'Offen';
 
   return (
     <motion.div
@@ -493,7 +494,7 @@ function MemberCard({ member }: { member: Member }) {
         </div>
 
         <div className="text-right">
-          <div className="text-xl font-bold text-white">{Number(member.equity_share).toFixed(1)}%</div>
+          <div className="text-xl font-bold text-white">{equityLabel}</div>
           <div className="text-xs text-white/40">Equity</div>
         </div>
       </div>
@@ -613,26 +614,26 @@ function JoinModal({ squad, onClose, onJoin, joining, error }: any) {
           <div className="w-20 h-20 rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center mx-auto mb-6 text-[var(--accent)] text-4xl font-instrument-serif">
             {squad.name.charAt(0)}
           </div>
-          <h2 className="text-3xl font-instrument-serif text-white mb-2">Bewerbung senden</h2>
+          <h2 className="text-3xl font-instrument-serif text-white mb-2">Squad beitreten</h2>
           <p className="text-white/60">
-            Deine Bewerbung geht direkt an den Lead von <strong>{squad.name}</strong>
+            Du trittst dem öffentlichen Squad <strong>{squad.name}</strong> direkt bei.
           </p>
         </div>
 
         <div className="space-y-4 mb-6">
           <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5">
-            <div className="text-xs text-white/40 mb-1">Potenzielle Equity (Richtwert)</div>
+            <div className="text-xs text-white/40 mb-1">Mitgliedschaft</div>
             <div className="text-2xl font-bold text-white">
-              {Number((100 / (squad.currentMembers + 1))).toFixed(1)}%
+              Aktiv ab Beitritt
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 text-sm text-white/60">
-            <p className="mb-2">Nach Annahme erhältst du:</p>
+            <p className="mb-2">Nach dem Beitritt erhältst du:</p>
             <ul className="space-y-1 text-xs">
               <li>• Zugriff auf Squad Forum & Resources</li>
               <li>• Mitbestimmungsrecht bei Entscheidungen</li>
-              <li>• Anteil am Venture (bei Launch)</li>
+              <li>• Beteiligung gemäß separater Squad-Absprachen</li>
             </ul>
           </div>
         </div>
@@ -668,7 +669,7 @@ function JoinModal({ squad, onClose, onJoin, joining, error }: any) {
             disabled={joining}
             className="flex-1 bg-[var(--accent)] text-[var(--accent-foreground)] px-6 py-4 rounded-xl font-bold text-sm uppercase tracking-widest disabled:opacity-50"
           >
-            {joining ? 'Sende...' : 'Bewerbung senden'}
+            {joining ? 'Trete bei...' : 'Jetzt beitreten'}
           </button>
         </div>
       </motion.div>

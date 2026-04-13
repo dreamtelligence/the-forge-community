@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { sendDirectMessage } from '@/lib/direct-messages';
 import { getSquadVisibility } from '@/lib/squad-visibility';
+import { runSerializableTransaction } from '@/lib/transaction-retry';
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -28,81 +29,61 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const squad = await prisma.squad.findUnique({
-      where: { id: squadId },
-      select: {
-        id: true,
-        name: true,
-        mission: true,
-        status: true,
-        maxMembers: true,
-        members: {
-          where: { leftAt: null },
-          select: { userId: true, role: true },
+    const membershipResult = await runSerializableTransaction(async (tx) => {
+      const squad = await tx.squad.findUnique({
+        where: { id: squadId },
+        select: {
+          id: true,
+          name: true,
+          mission: true,
+          status: true,
+          maxMembers: true,
+          members: {
+            where: { leftAt: null },
+            select: { userId: true, role: true },
+          },
         },
-      },
-    });
+      });
 
-    if (!squad) {
-      return NextResponse.json(
-        { error: 'Squad not found or not accepting members' },
-        { status: 404 }
+      if (!squad) {
+        throw new Error('SQUAD_NOT_JOINABLE');
+      }
+
+      const currentMembers = squad.members.length;
+      const visibility = await getSquadVisibility(
+        squad.id,
+        { is_public: true, is_accepting_members: currentMembers < squad.maxMembers },
+        tx
       );
-    }
 
-    if (squad.status !== 'forming' && squad.status !== 'building') {
-      return NextResponse.json(
-        { error: 'Squad not found or not accepting members' },
-        { status: 404 }
-      );
-    }
+      const isJoinableStatus = squad.status === 'forming' || squad.status === 'building';
+      if (
+        !isJoinableStatus ||
+        currentMembers >= squad.maxMembers ||
+        !visibility.is_public ||
+        !visibility.is_accepting_members
+      ) {
+        throw new Error('SQUAD_NOT_JOINABLE');
+      }
 
-    const currentMembers = squad.members.length;
-    if (currentMembers >= squad.maxMembers) {
-      return NextResponse.json(
-        { error: 'Squad not found or not accepting members' },
-        { status: 404 }
-      );
-    }
+      const existingMember = await tx.squadMember.findFirst({
+        where: {
+          squadId,
+          userId: user.id,
+        },
+        select: { id: true, leftAt: true },
+      });
 
-    const visibility = await getSquadVisibility(
-      squad.id,
-      { is_public: true, is_accepting_members: currentMembers < squad.maxMembers }
-    );
+      if (existingMember && !existingMember.leftAt) {
+        throw new Error('ALREADY_MEMBER');
+      }
 
-    if (!visibility.is_public || !visibility.is_accepting_members) {
-      return NextResponse.json(
-        { error: 'Squad not found or not accepting members' },
-        { status: 404 }
-      );
-    }
-
-    const existingMember = await prisma.squadMember.findFirst({
-      where: {
-        squadId,
-        userId: user.id,
-      },
-      select: { id: true, leftAt: true },
-    });
-
-    if (existingMember && !existingMember.leftAt) {
-      return NextResponse.json(
-        { error: 'You are already a member of this squad' },
-        { status: 409 }
-      );
-    }
-
-    const newMemberCount = currentMembers + 1;
-    const equityShare = Number((100 / newMemberCount).toFixed(2));
-
-    await prisma.$transaction(async (tx) => {
       if (existingMember) {
         await tx.squadMember.update({
           where: { id: existingMember.id },
           data: {
             leftAt: null,
             role: 'MEMBER',
-            equityShare,
           },
         });
       } else {
@@ -111,22 +92,26 @@ export async function POST(request: Request) {
             squadId,
             userId: user.id,
             role: 'MEMBER',
-            equityShare,
           },
         });
       }
 
-      await tx.squadMember.updateMany({
-        where: { squadId, leftAt: null },
-        data: { equityShare },
-      });
+      return {
+        squad: {
+          id: squad.id,
+          name: squad.name,
+          mission: squad.mission,
+        },
+        leadUserId: squad.members.find((member) => member.role === 'LEAD')?.userId ?? null,
+      };
     });
 
-    const lead = squad.members.find((member) => member.role === 'LEAD');
-    if (lead && lead.userId !== user.id) {
+    const leadUserId = membershipResult.leadUserId;
+    const squad = membershipResult.squad;
+    if (leadUserId && leadUserId !== user.id) {
       const dmContent = [
-        `Neue Bewerbung für Squad: ${squad.name}`,
-        `Bewerber: ${user.name || user.email}`,
+        `Neues Mitglied für Squad: ${squad.name}`,
+        `Beitritt: ${user.name || user.email}`,
         message ? `Nachricht: ${message}` : null,
         `Squad Link: /squads/${squad.id}`,
       ]
@@ -136,7 +121,7 @@ export async function POST(request: Request) {
       try {
         await sendDirectMessage({
           senderId: user.id,
-          recipientId: lead.userId,
+          recipientId: leadUserId,
           content: dmContent,
         });
       } catch (error) {
@@ -157,6 +142,20 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: any) {
+    if (error instanceof Error && error.message === 'ALREADY_MEMBER') {
+      return NextResponse.json(
+        { error: 'Du bist bereits Mitglied dieses Squads.' },
+        { status: 409 }
+      );
+    }
+
+    if (error instanceof Error && error.message === 'SQUAD_NOT_JOINABLE') {
+      return NextResponse.json(
+        { error: 'Dieser Squad ist aktuell nicht öffentlich beitretbar.' },
+        { status: 404 }
+      );
+    }
+
     console.error('Error joining squad:', error);
     return NextResponse.json(
       { error: 'Failed to join squad', details: error.message },

@@ -260,8 +260,9 @@ export async function getVotes(): Promise<any[]> {
 export async function updateVoteCount(id: string, delta: number): Promise<number> {
   const page: any = await notion.pages.retrieve({ page_id: id });
   const currentVotes = page.properties.Votes?.number || 0;
-  await notion.pages.update({ page_id: id, properties: { Votes: { number: Math.max(0, currentVotes + delta) } } });
-  return currentVotes + delta;
+  const nextVotes = Math.max(0, currentVotes + delta);
+  await notion.pages.update({ page_id: id, properties: { Votes: { number: nextVotes } } });
+  return nextVotes;
 }
 
 // TRANSACTIONS
@@ -344,8 +345,9 @@ export async function addForumPost(data: any): Promise<any> {
 export async function updateForumPostLikes(id: string, delta: number): Promise<number> {
   const page: any = await notion.pages.retrieve({ page_id: id });
   const currentVotes = page.properties.Likes?.number || 0;
-  await notion.pages.update({ page_id: id, properties: { Likes: { number: Math.max(0, currentVotes + delta) } } });
-  return currentVotes + delta;
+  const nextVotes = Math.max(0, currentVotes + delta);
+  await notion.pages.update({ page_id: id, properties: { Likes: { number: nextVotes } } });
+  return nextVotes;
 }
 
 export async function updateForumPost(id: string, content: string): Promise<any> {

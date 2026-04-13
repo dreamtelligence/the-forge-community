@@ -29,13 +29,25 @@ export async function GET(
 
     const squad = await prisma.squad.findUnique({
       where: { id: squadId },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        mission: true,
+        status: true,
+        squadType: true,
+        maxMembers: true,
+        createdAt: true,
         members: {
           where: { leftAt: null },
-          include: {
+          select: {
+            id: true,
+            userId: true,
+            role: true,
+            equityShare: true,
+            joinedAt: true,
             user: {
-              select: { name: true, email: true }
-            }
+              select: { name: true },
+            },
           },
           orderBy: [
             { role: 'asc' }, // Simplified ordering for now
@@ -45,17 +57,6 @@ export async function GET(
         ventures: {
           take: 1,
         },
-        wallet: {
-          include: {
-            transactions: {
-              take: 10,
-              orderBy: { createdAt: 'desc' },
-              include: {
-                createdBy: { select: { name: true } },
-              },
-            },
-          },
-        },
       },
     });
 
@@ -63,24 +64,19 @@ export async function GET(
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
-    // Auto-create Wallet if missing
-    let wallet = squad.wallet;
-    if (!wallet) {
-      wallet = (await prisma.squadWallet.create({
-        data: { squadId: squad.id },
-        include: {
-          transactions: {
-            take: 10,
-            orderBy: { createdAt: 'desc' },
-            include: {
-              createdBy: { select: { name: true } },
-            },
-          },
-        },
-      })) as any;
+    const venture = squad.ventures[0] || null;
+    const currentMembers = squad.members.length;
+    const defaults = {
+      is_public: true,
+      is_accepting_members: currentMembers < squad.maxMembers,
+    };
+    const visibility = await getSquadVisibility(squad.id, defaults);
+    const isMember = squad.members.some(m => m.userId === user.id);
+
+    if (!visibility.is_public && !isMember) {
+      return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
-    const venture = squad.ventures[0] || null;
     let phases: any[] = [];
     if (venture) {
       phases = await prisma.venturePhase.findMany({
@@ -98,16 +94,22 @@ export async function GET(
       );
     }
 
-    const currentMembers = squad.members.length;
-    const defaults = {
-      is_public: true,
-      is_accepting_members: currentMembers < squad.maxMembers,
-    };
-    const visibility = await getSquadVisibility(squad.id, defaults);
     const leadMember = squad.members.find((member) => member.role === 'LEAD') ?? squad.members[0];
-
-    const isMember = squad.members.some(m => m.userId === user.id);
     const userMember = squad.members.find(m => m.userId === user.id);
+    const wallet = isMember
+      ? await prisma.squadWallet.findUnique({
+          where: { squadId: squad.id },
+          include: {
+            transactions: {
+              take: 10,
+              orderBy: { createdAt: 'desc' },
+              include: {
+                createdBy: { select: { name: true } },
+              },
+            },
+          },
+        })
+      : null;
 
     return NextResponse.json({
       squad: {
@@ -115,7 +117,6 @@ export async function GET(
           id: m.id,
           user_id: m.userId,
           user_name: m.user.name,
-          user_email: m.user.email,
           role: m.role.toLowerCase(),
           equity_share: m.equityShare,
           hours_contributed: 0,
@@ -150,7 +151,7 @@ export async function GET(
         : null,
       phases,
       wallet,
-      recent_transactions: (wallet?.transactions || []).map((tx) => ({
+      recent_transactions: isMember ? (wallet?.transactions || []).map((tx) => ({
         id: tx.id,
         type: tx.type,
         category: tx.category,
@@ -160,7 +161,7 @@ export async function GET(
         createdBy: {
           name: tx.createdBy?.name || 'System',
         },
-      })),
+      })) : [],
     });
 
   } catch (error: any) {

@@ -12,10 +12,17 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { decisionId } = await params;
+  const { id: ventureId, decisionId } = await params;
 
   try {
     const body = await req.json();
+    const choice = typeof body.choice === 'string' ? body.choice.trim() : '';
+    const comment = typeof body.comment === 'string' ? body.comment.trim() : null;
+
+    if (!choice) {
+      return NextResponse.json({ error: 'Choice is required' }, { status: 400 });
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { id: true }
@@ -28,9 +35,15 @@ export async function POST(
     // Check if decision exists and user has access via squad
     const decision = await prisma.decision.findUnique({
       where: { id: decisionId },
-      include: {
+      select: {
+        id: true,
+        ventureId: true,
+        type: true,
+        options: true,
+        status: true,
+        deadline: true,
         squad: {
-          include: {
+          select: {
             members: {
               where: {
                 userId: user.id,
@@ -39,10 +52,14 @@ export async function POST(
             }
           }
         }
-      }
+      },
     });
 
     if (!decision) {
+      return NextResponse.json({ error: 'Decision not found' }, { status: 404 });
+    }
+
+    if (decision.ventureId !== ventureId) {
       return NextResponse.json({ error: 'Decision not found' }, { status: 404 });
     }
 
@@ -60,6 +77,11 @@ export async function POST(
         return NextResponse.json({ error: 'Voting deadline has passed' }, { status: 400 });
     }
 
+    const allowedChoices = decision.type === 'YES_NO' ? ['Ja', 'Nein'] : decision.options;
+    if (!allowedChoices.includes(choice)) {
+      return NextResponse.json({ error: 'Invalid choice for this decision' }, { status: 400 });
+    }
+
     // Cast vote (upsert to allow changing vote)
     const vote = await prisma.voteResponse.upsert({
       where: {
@@ -71,12 +93,12 @@ export async function POST(
       create: {
         decisionId: decisionId,
         userId: user.id,
-        choice: body.choice,
-        comment: body.comment
+        choice,
+        comment
       },
       update: {
-        choice: body.choice,
-        comment: body.comment,
+        choice,
+        comment,
         votedAt: new Date() // Update timestamp
       }
     });

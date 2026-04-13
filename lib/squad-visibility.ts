@@ -1,3 +1,4 @@
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export type SquadVisibility = {
@@ -6,6 +7,8 @@ export type SquadVisibility = {
 };
 
 const VISIBILITY_PREFIX = 'squad_visibility:';
+
+type CacheReader = PrismaClient | Prisma.TransactionClient;
 
 function keyForSquad(squadId: string): string {
   return `${VISIBILITY_PREFIX}${squadId}`;
@@ -43,10 +46,11 @@ function mergeWithDefaults(
 
 export async function getSquadVisibility(
   squadId: string,
-  defaults: SquadVisibility
+  defaults: SquadVisibility,
+  db: CacheReader = prisma
 ): Promise<SquadVisibility> {
   try {
-    const row = await prisma.systemCache.findUnique({
+    const row = await db.systemCache.findUnique({
       where: { key: keyForSquad(squadId) },
       select: { value: true },
     });
@@ -60,7 +64,8 @@ export async function getSquadVisibility(
 
 export async function getSquadVisibilityMap(
   squadIds: string[],
-  defaultsBySquad: Record<string, SquadVisibility>
+  defaultsBySquad: Record<string, SquadVisibility>,
+  db: CacheReader = prisma
 ): Promise<Record<string, SquadVisibility>> {
   const result: Record<string, SquadVisibility> = {};
 
@@ -75,7 +80,7 @@ export async function getSquadVisibilityMap(
 
   try {
     const keys = squadIds.map(keyForSquad);
-    const rows = await prisma.systemCache.findMany({
+    const rows = await db.systemCache.findMany({
       where: { key: { in: keys } },
       select: { key: true, value: true },
     });
@@ -97,13 +102,14 @@ export async function getSquadVisibilityMap(
 export async function setSquadVisibility(
   squadId: string,
   updates: Partial<SquadVisibility>,
-  defaults: SquadVisibility
+  defaults: SquadVisibility,
+  db: CacheReader = prisma
 ): Promise<SquadVisibility> {
-  const current = await getSquadVisibility(squadId, defaults);
+  const current = await getSquadVisibility(squadId, defaults, db);
   const next = mergeWithDefaults(current, updates);
 
   try {
-    await prisma.systemCache.upsert({
+    await db.systemCache.upsert({
       where: { key: keyForSquad(squadId) },
       create: {
         key: keyForSquad(squadId),
@@ -115,6 +121,7 @@ export async function setSquadVisibility(
     });
   } catch (error) {
     console.error('Failed to persist squad visibility:', error);
+    throw error;
   }
 
   return next;

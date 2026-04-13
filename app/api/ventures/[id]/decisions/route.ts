@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
+const normalizeDecisionType = (value: unknown) => {
+  const normalized = typeof value === 'string' ? value.trim().toUpperCase() : 'MULTIPLE_CHOICE';
+  return normalized === 'YES_NO' ? 'YES_NO' : 'MULTIPLE_CHOICE';
+};
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -60,7 +65,8 @@ export async function GET(
 
     const decisions = await prisma.decision.findMany({
       where: {
-        squadId: venture.squadId
+        squadId: venture.squadId,
+        ventureId: venture.id,
       },
       include: {
         responses: true,
@@ -97,6 +103,26 @@ export async function POST(
 
   try {
     const body = await req.json();
+    const normalizedType = normalizeDecisionType(body.type);
+    const question = typeof body.question === 'string' ? body.question.trim() : '';
+    const description = typeof body.description === 'string' ? body.description.trim() : null;
+    const options =
+      normalizedType === 'YES_NO'
+        ? ['Ja', 'Nein']
+        : Array.isArray(body.options)
+          ? body.options
+              .map((option: unknown) => (typeof option === 'string' ? option.trim() : ''))
+              .filter(Boolean)
+          : [];
+
+    if (question.length < 5) {
+      return NextResponse.json({ error: 'Question is too short' }, { status: 400 });
+    }
+
+    if (normalizedType === 'MULTIPLE_CHOICE' && options.length < 2) {
+      return NextResponse.json({ error: 'At least two options are required' }, { status: 400 });
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { id: true }
@@ -141,10 +167,10 @@ export async function POST(
       data: {
         squadId: venture.squadId,
         ventureId: venture.id,
-        question: body.question,
-        description: body.description,
-        type: body.type || 'multiple-choice',
-        options: body.options || [],
+        question,
+        description,
+        type: normalizedType,
+        options,
         deadline: body.deadline ? new Date(body.deadline) : null,
         createdById: user.id
       }

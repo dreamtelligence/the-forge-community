@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTransactions, addTransaction } from '@/lib/notion';
+import { requireAdmin } from '@/lib/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,24 +18,39 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const adminCheck = await requireAdmin();
+  if (adminCheck) return adminCheck;
+
   try {
     const body = await request.json();
 
     const { description, amount, category, type, date, status, receiptUrl, notes } = body;
 
-    if (!description || !amount || !category || !type || !date) {
+    const normalizedDescription = typeof description === 'string' ? description.trim() : '';
+    const normalizedCategory = typeof category === 'string' ? category.trim() : '';
+    const normalizedType = typeof type === 'string' ? type.trim() : '';
+    const normalizedAmount = Number(amount);
+    const normalizedDate = new Date(date);
+
+    if (
+      !normalizedDescription ||
+      !normalizedCategory ||
+      !normalizedType ||
+      !Number.isFinite(normalizedAmount) ||
+      Number.isNaN(normalizedDate.getTime())
+    ) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Invalid transaction payload' },
         { status: 400 }
       );
     }
 
     const result = await addTransaction({
-      description,
-      amount,
-      category,
-      type,
-      date,
+      description: normalizedDescription,
+      amount: normalizedAmount,
+      category: normalizedCategory,
+      type: normalizedType,
+      date: normalizedDate.toISOString(),
       status,
       receiptUrl,
       notes,
