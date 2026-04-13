@@ -437,89 +437,140 @@ vercel                   # Deployment auf Vercel
 
 ---
 
-## 🎯 Features-Übersicht
+## 🎯 Code-verifizierte Funktionsinventur
 
-### Produktflächen (Pages)
+Stand dieser README-Auditierung: **13.04.2026**.  
+Die folgende Übersicht basiert auf dem tatsächlich vorhandenen Code in `app/`, `app/api/`, `lib/`, `prisma/schema.prisma` und `vercel.json`.
 
-- **Public/Growth:** Landing (`/`, `/en`), Login (`/login`, `/en/login`), Pricing, Demo-Shop, Legal Pages.
-- **Founder Area:** Dashboard, Ventures, Tasks, Calendar, Transparency, Profile/Dossier, Updates.
-- **Community:** Forum, Messages, Communication Hub, Squads.
-- **Forge Workspace:** Dashboard, Brand, Legal, Marketing, Music, Sourcing, Decisions, Admin, Venture-Settings.
-- **Academy:** Resources-Liste und Kurs-Detailseiten (`/resources`, `/resources/[slug]`).
-- **Platform Settings:** Settings, Billing, Integrations, API Keys, Provider Keys.
-- **Admin Area:** Applicants, Finance, Users.
+### Plattform-Scope
 
-### Forge Studios & Tools (operativ)
+- **66 App-Pages** im App Router
+- **176 API-Route-Handler**
+- **64 venture-spezifische Endpunkte** unter `app/api/ventures/[id]`
+- **46 Orion-Tool-Definitionen** in `lib/orion-tools.ts`
+- **93 Prisma-Modelle** für Produkt-, AI-, Billing-, Community- und Warehouse-Domänen
 
-- **Brand DNA Studio:** Positionierung, Tonalität, Zielgruppe, Prompts-Kontext.
-- **Marketing Studio:** Media Workspace + Copywriter + Competitor Watchdog.
-- **Media/Creator Toolchain:** Veo, Nano Banana, FaceSwap, LipSync, Motion Transfer, Voice, Rembg, Character DNA.
-- **Campaigns:** Kampagnen, Posts, Content-Workflow.
-- **Music & Sounds:** Soundstripe Proxy/Preview Integration.
-- **Sourcing Studio:** Supplier CRM, Samples, Orders, AI Search, Directory-Import.
-- **Trend Radar:** AI-basierte Trend/Opportunity-Reports.
-- **Warehouse (LagerHub):** Inbound, Bins, Inventory, Picklists, Shipments, Returns, Reorder Suggestions, Ops Digest.
-- **Legal Studio:** Vertragserstellung, Status-Flow, Contract-Scan.
-- **Decision Hall:** Team-Votes und Abstimmungen.
-- **Forge Lab Apps:** Venture-gebundene Mini-Apps (CRUD + Builder + Runner).
+### Produktflächen & User Journeys
 
-#### Forge Lab (Marketing)
+- **Public & Growth:** Landing (`/`, `/en`), Pricing (`/pricing`, `/en/pricing`), Login (`/login`, `/en/login`), Demo-Shop (`/demo-shop`), Hero-Demo (`/hero-demo`), API-Doku (`/docs`, `/docs/api`) sowie deutsch/englische Legal Pages.
+- **Founder Workspace:** Dashboard, Ventures, Venture-Detailseiten, Venture-Wizard, Tasks, Calendar/Events, Transparency/Finanzprotokoll, Profile/Dossier, Updates/Announcements.
+- **Community & Collaboration:** Forum, Direct Messages, Communication-Hub, Squads-Marktplatz, Follower-System, Notifications.
+- **Forge Workspace:** Venture-Dashboard, Brand, Marketing, Legal, Sourcing, Decisions, Music, Admin, Venture-Settings.
+- **Learning & Enablement:** Forge Academy über `/resources` und `/resources/[slug]` plus Training-APIs.
+- **Platform Settings:** Account-/Privacy-/Notification-Settings, Billing, Integrations, API Keys, Provider Keys.
+- **Admin-Oberfläche:** Applicants, Finance, Users sowie Setup-/Security-/Credit-Endpunkte.
 
-- **Was ist es?** Ein interner Mini-App-Builder für wiederverwendbare KI-Workflows pro Venture.
-- **Builder:** Definiert Inputs (`text`, `number`, `image`), Prompt-Template mit Platzhaltern (`[input_id]`) und Workflow-Stack (z. B. `rembg` + Model).
-- **Runner:** Führt den Workflow mit Live-Logs aus (optional Preprocessing, danach Bildgenerierung) und liefert Assets zurück.
-- **Typischer Use Case:** Team baut einmal eine "Produkt-Visual-App" und nutzt sie danach mit wechselnden Produktdaten statt jedes Mal neue Prompts manuell zu bauen.
-- **API-Flows:** 
-  - `GET/POST /api/ventures/[id]/marketing/apps`
-  - `PUT/DELETE /api/ventures/[id]/marketing/apps/[appId]`
-  - Runner-Tools: `POST /api/ventures/[id]/marketing/tools/rembg`, `POST /api/ventures/[id]/marketing/nano-banana`
+### Community, Forum & Orion
 
-### Academy (integriert)
+- **Forum-Feed:** Posts, Kommentare, Threading, Likes/Votes, Edit/Delete, Uploads, Link-Previews, Related Posts, Venture-bezogene Threads.
+- **Trending Topics:** eigener Trending-Feed mit Analyse der Forenbeiträge über `app/api/forum/trending/route.ts` und UI in `app/components/TrendingTopics.tsx`.
+- **Orion im Forum:** Erwähnungen via `@orion` in Posts und Kommentaren sowie ein Action-Menü mit `summarize`, `feedback`, `expand`, `factCheck`, `nextSteps`.
+- **Orion Feedback:** gesonderter Flow in `app/api/forum/ai-action/route.ts`, der Orion-Antworten als Kommentar im Thread speichert.
+- **Communication Hub:** persistente AI-Threads mit Modi `chat`, `research`, `supplier`, `factcheck`, Dateianhängen, Quellenanzeige und Thread-Archiv.
+- **Contextual Forge Chat:** kontextbewusster Orion-Chat in `app/api/chat/contextual/route.ts` mit Forge-Wissen, Tool-Calls, Action-Confirmation-Flow und Attachments für Bild-, PDF- und Videoanalyse.
+- **Direct Messages:** 1:1-Threads, Inbox, Suche, Unread-Zähler, Thread-Erstellung über Profil/Slug.
+- **Follower-System:** Follow/Unfollow und Follower-/Following-Zahlen für Founder-Profile.
+- **Updates:** `/updates` liest Announcements über die Notion-basierte Announcement-API.
 
-- **Training APIs:** `GET /api/training`, `GET /api/training/[slug]`
-- **Content Surface:** Filterbare Kursübersicht + modulare Detailseiten.
-- **Beispielkurse:** Forge Studio Guide, AI Venture Playbook 2026, VEO 3.1 Shop Visuals, Rechtlicher Leitfaden (DE/EU), TikTok Takeoff 2025, KI-Masterclass 2025.
+### AI, Research & Moderation
 
-### API & Automation
+- **AI News:** täglicher Forum-Post in der Kategorie `AI News` via `app/api/cron/ai-news/route.ts` plus manueller Admin-Trigger über `app/api/admin/ai-news/trigger/route.ts`.
+- **AI News Sourcing:** Brave Search + Domain-Filter + Recency-Filter + AI-Summary/Proofread.
+- **Research:** allgemeine Web-Recherche, Supplier-Recherche und Faktencheck über `app/api/research/route.ts`.
+- **Contract Scan:** AI-gestützter Vertrags-Scan im Communication-Hub über `app/api/communication/contract-scan/route.ts`.
+- **Voice Polish:** separater Text-Polish-Endpoint unter `app/api/voice/polish/route.ts`.
+- **Moderation:** AI-gestützte Toxicity-Prüfung, Hard-Block-Regeln, Sanitizing, Strike-System, Ban-Logik und Moderation-Warnings in Forum und Direct Messages.
+- **Moderation-Verhalten:** Forum-Beiträge können bei mittlerer Toxizität umformuliert/sanitized werden; DMs blocken gezielte Angriffe härter und ohne Sanitizing.
+- **Safety & Limits:** Rate Limits für AI- und Forum-Flows, Account-Sperren bei wiederholten Verstößen, Closed-Beta-Zugangskontrolle.
 
-- **Gesamt:** 176 API-Route-Handler (davon 64 Venture-spezifisch unter `/api/ventures/[id]`).
-- **External API:** `/api/v1/media/generate-image` + API-Key Scope System.
-- **Integrations APIs:** Notion, Slack, DocuSign-Integration-Layer.
-- **Webhooks:** Stripe, Replicate, Slack.
-- **Cron Jobs:** Deadlines, Media Cleanup, Legal-Corpus Sync, Energy Refund, Watchdog, Warehouse Ops Digest.
+### Venture Core
 
-### Security, Access & Governance
+- **Venture Wizard:** 6-stufiger Erstellungsflow mit Typwahl, Basisdaten, Produkt/Service, Pricing, Marketingbudget und Launch-Timeline.
+- **Venture-Typen:** `ECOMMERCE`, `SAAS`, `SERVICE`, `INFLUENCER`, `OTHER`; im Detailcode zusätzlich Typ-Labels für `MARKETPLACE` und `AGENCY`.
+- **Venture-Detailseiten:** Fortschritt, Steps, Tasks, Kosten, Timeline, Delete-Flow, Forge-Deep-Link, Notion-Export.
+- **Forge Dashboard:** KPIs für Progress, Status, Budget, Overdue Tasks sowie Quick Actions in Brand, Marketing und Sourcing.
+- **Roadmap & Progress-Modelle:** `VenturePhase`, `VentureStep`, `RoadmapItem`, `RoadmapVote`, `VentureTask`, `CostItem`, `VentureResource`.
+- **Personal Studio Flag:** nicht alle Ventures sind öffentliche Squad-/Forge-Ventures; `isPersonalStudio` ist im Datenmodell und Chat-Kontext berücksichtigt.
 
-- **Closed Beta Gate:** Public Login Toggle + Allowlist + Bewerber-Mailflow.
-- **Multi-Tenant Access:** Venture/Squad Ownership Checks in App + API.
-- **RLS Policies:** Schutz sensibler Tabellen via SQL-Migrations.
-- **BYOK:** Verschlüsselte Provider-Keys (Replicate) pro User.
-- **Admin Tools:** Credit Grants, Applicant-Review, Security Setup Endpunkte.
+### Brand, Marketing & Media
 
-### 🚧 In Arbeit / Teilimplementiert
+- **Brand DNA Studio:** Positionierung, Zielgruppe, Tonalität, AI-Kontext und gespeicherte `BrandDNA`.
+- **Marketing Studio:** zentrale Oberfläche für Content-, Media- und Campaign-Workflows.
+- **Campaigns & Posts:** `MarketingCampaign` und `ContentPost` inkl. CRUD-Endpunkten für Kampagnen und Posts.
+- **Marketing Generation:** generische AI-Generierung unter `app/api/ventures/[id]/marketing/generate/route.ts`.
+- **Character Systems:** Character DNA, AI Influencer Prompts und AI Influencer Page.
+- **Media Toolchain:** Veo, Nano Banana, FaceSwap, LipSync, Motion Transfer, Rembg, Media Stitching.
+- **Voice System:** Voice-Generierung, `VoiceProfile`, Dictionaries, History, SFX und dedizierte Voice-UI.
+- **Forge Lab Apps:** venture-gebundene Mini-Apps mit Builder/Runner-Prinzip für wiederverwendbare Prompt- und Tool-Workflows.
+- **Public Media Feed:** globaler Feed für veröffentlichte Bilder/Videos inklusive Likes, Favorites, Publish/Unpublish, Retention, Frame-Upload und Frame-Extraction.
+- **Creator Utilities:** Camera Prompt Workbench, Lighting Controls, Avatar/Visual-Studios und Media-Grid-Komponenten.
 
-- **DocuSign Vollausbau:** End-to-End Signatur-Rollout wird weiter gehärtet.
-- **Stripe Connect Payouts:** Auszahlungen für Squad-Umsätze.
-- **Weitere Integrationen:** GitHub, Google Calendar, Shopify, Airtable.
+### Sourcing, Trends & Warehouse
 
-## ✅ Explizite Feature-Checkliste (deine Punkte)
+- **Sourcing Studio:** Supplier CRM, Samples, Production Orders, AI Supplier Search, Directory Import, Detailseiten für Supplier.
+- **Trend Radar:** `TrendReport`-Flow über `/api/ventures/[id]/trends` und `/generate` für Opportunity- und Produkttrend-Recherche.
+- **Competitor Watchdog:** Watchdog-Scan und Latest-Endpoints für Venture-Monitoring.
+- **Warehouse / LagerHub:** Bins, Warehouse Items, Inventory Transactions, Inbound Packages, Fotos, Pickup Receipts, Picklists, Shipments, Returns, Import Errors.
+- **Order Import:** manuell sowie über Shopify und WooCommerce.
+- **Ops Automation:** Reorder Suggestions, Warehouse Ops Digest per Cron, Customer Notifications, Retention-Handling für Inbound-Fotos.
+- **Warehouse States:** dedizierte Übergänge und Schutzlogik in `lib/warehouse/transitions.ts`, `lib/warehouse/access.ts`, `lib/warehouse/automation.ts`.
+
+### Legal, Billing & Finance
+
+- **Legal Studio:** Vertragsübersicht, Vertragserstellung im Forge (`/forge/[ventureId]/legal/contracts/new`), Legal-API und `LegalDocument`-Modelle.
+- **Contract AI Flows:** Contract-Scan speichern, Signature-Link anhängen, Legal Corpus Sync via Cron.
+- **Billing:** Billing Summary, Usage, Portal, Subscription Cancel, Checkout.
+- **Credits / Energy:** Reserve-Settle-Refund-Pattern in `lib/energy.ts`, Credits-Anzeige in UI, Credit-Purchases und Usage-Modelle.
+- **Platform Finance:** Invoices, Ledger, Tax Profile, Invoice PDF, CSV-Export für Steuerberatung/Finanzamt.
+- **Transparency:** öffentliches Finanzprotokoll mit Transactions, Founders Count und Export-Flow.
+
+### Squads, Governance & Collaboration
+
+- **Squad Marketplace:** öffentliche/private Squad-Listings, Filter, Suche, Apply-/Join-Flow.
+- **Squad Controls:** Lead-spezifische Steuerung für Sichtbarkeit, Bewerbungsstatus und Einladungen.
+- **Squad Membership:** aktive/inaktive Mitgliedschaften, Rollen, Slots, Squad-Typen.
+- **Squad Wallet:** Wallet-, Transaction- und Budget-Modelle plus UI-Komponente `SquadWalletView`.
+- **Decision Hall:** Entscheidungen und Abstimmungen je Venture/Squad.
+
+### Integrationen, API-Plattform & Ops
+
+- **Notion:** OAuth, Callback, Search, Pages, Databases, Sync sowie Announcement-Integration.
+- **Slack:** OAuth, Channel Discovery, Settings, Disconnect, Notify-Endpoint und Slack-Webhook.
+- **DocuSign:** Datenmodell und Integrations-Layer vorhanden, produktiver End-to-End-Ausbau noch nicht vollständig abgeschlossen.
+- **API Keys:** Create/List/Rotate/Deactivate/Stats, Scope-System, Request-Logging, Webhooks.
+- **Provider Keys / BYOK:** verschlüsselte User-Keys für externe Provider.
+- **Versioned API v1:** `/api/v1/media/generate-image` ist ein **Beispiel-/Template-Endpoint mit echter API-Key-Auth, Scope-Prüfung und Credit-Buchung**, die eigentliche Bildgenerierung ist dort aktuell noch als Mock/TODO implementiert.
+- **Health & Setup:** `/api/health`, `/api/health/db`, `debug-env`, Admin-Setup-Routen für Security und Webhook-Tabelle.
+- **Cron Jobs:** `cleanup-media`, `ai-news`, `legal-corpus-sync`, `warehouse-ops-digest` plus weitere operative Cron-/Watchdog-Routen.
+
+## ✅ Explizite Checkliste für deine Fragen
 
 | Thema | Status | Nachweis im Code |
 |---|---|---|
-| AI News (Forum) | **Live** | `app/api/cron/ai-news/route.ts`, `app/api/admin/ai-news/trigger/route.ts`, `vercel.json` |
-| Forum Trending Topics | **Live** | `app/api/forum/trending/route.ts`, `app/components/TrendingTopics.tsx`, `app/forum/ForumClient.tsx` |
-| Orion (Grok-ähnlicher Stil) | **Live** | `lib/ai.ts` (`"Grok-Style"` im Forum-Prompt), `app/api/chat/contextual/route.ts` |
-| Orion Fähigkeiten (Actions/Tools) | **Live** | `lib/orion-tools.ts` mit **48** Tool-Definitionen (u.a. Ventures, Tasks, Marketing, Legal, Supplier, Samples, Orders, Billing, Integrations) |
-| AI Kommunikation + was sie kann | **Live** | `app/communication/CommunicationClient.tsx` (Threads, Attachments, Modi), `app/api/research/route.ts` (Recherche/Supplier/Factcheck), `app/api/communication/contract-scan/route.ts` |
-| Squad Marketplace | **Live** | `app/squads/page.tsx`, `app/squads/[id]/page.tsx`, `app/api/squads/*` |
-| 3D Camera Angle Prompt Workbench | **Live** | `app/components/forge/CameraPromptsTab.tsx` (Distance/Yaw/Pitch/Roll/FOV-Regler + `Use in Generator`) |
-| Lighting Prompt + Regler | **Live** | `app/components/forge/CameraPromptsTab.tsx` (Light Rig, Simulated Lighting, Prompt Controls) |
-| Suppliers / Samples / Orders | **Live** | `app/forge/[ventureId]/sourcing/page.tsx`, `app/api/ventures/[id]/sourcing/suppliers/route.ts`, `app/api/ventures/[id]/sourcing/samples/route.ts`, `app/api/ventures/[id]/sourcing/orders/route.ts` |
-| Abstimmungen (Votes) | **Live** | `app/forge/[ventureId]/decisions/page.tsx`, `app/api/ventures/[id]/decisions/route.ts`, `app/api/ventures/[id]/decisions/[decisionId]/vote/route.ts` |
-| Budgets (Squad) | **Live / Teilweise** | Live: `app/components/squads/SquadWalletView.tsx`, `prisma/schema.prisma` (`budgetSamples`, `budgetProduction`, `budgetMarketing`); Forge-Admin-Budgetseite ist noch `Coming soon` in `app/forge/[ventureId]/admin/page.tsx` |
-| Dokumente / Rechtliches | **Live** | Public Legal Pages: `app/legal/*`; Legal Studio: `app/forge/[ventureId]/legal/page.tsx`; Legal API: `app/api/ventures/[id]/legal/route.ts`; Dokumenten-API: `app/api/documents/route.ts` |
-| Automatisierung Finanzamt / Steuern | **Teilweise (produktiv nutzbar)** | `lib/platform-tax-profile.ts`, `lib/platform-invoicing.ts`, `lib/invoice-pdf.tsx`, `scripts/export-platform-ledger.mjs` (CSV-Export für Steuerberater/Finanzamt); direkte ELSTER/Finanzamt-API ist **nicht** implementiert |
-| Academy Inhalte | **Live** | `app/resources/page.tsx`, `app/resources/[slug]/page.tsx`, `app/api/resources/route.ts`, `app/api/training/route.ts` |
+| AI News | **Live** | `app/api/cron/ai-news/route.ts`, `app/api/admin/ai-news/trigger/route.ts`, `vercel.json` |
+| Trending Posts / Topics | **Live** | `app/api/forum/trending/route.ts`, `app/components/TrendingTopics.tsx`, `app/forum/ForumClient.tsx` |
+| Orion als Forum-Assistent | **Live** | `app/api/forum/route.ts`, `app/api/forum/comment/route.ts`, `app/api/forum/ai-action/route.ts`, `lib/ai.ts` |
+| Orion kann Feedback geben | **Live** | `app/api/forum/ai-action/route.ts` mit Action `feedback` |
+| Orion außerhalb des Forums | **Live** | `app/communication/CommunicationClient.tsx`, `app/api/chat/contextual/route.ts`, `app/api/chat/route.ts`, `lib/orion-tools.ts` |
+| „Zensieren“ / Moderation | **Live** | `lib/moderation.ts`, `app/api/forum/route.ts`, `app/api/forum/comment/route.ts`, `app/api/messages/threads/[threadId]/route.ts` |
+| Squad | **Live** | `app/squads/page.tsx`, `app/squads/[id]/page.tsx`, `app/api/squads/*`, `prisma/schema.prisma` (`Squad`, `SquadMember`, `SquadWallet`) |
+| Ventures | **Live** | `app/ventures/page.tsx`, `app/ventures/new/page.tsx`, `app/ventures/[id]/page.tsx`, `app/forge/[ventureId]/*` |
+| Brand DNA | **Live** | `app/forge/[ventureId]/brand/page.tsx`, `app/api/ventures/[id]/brand-dna/route.ts`, `prisma/schema.prisma` (`BrandDNA`) |
+| Marketing / Creator Tools | **Live** | `app/forge/[ventureId]/marketing/*`, `app/api/ventures/[id]/marketing/*`, `app/components/marketing/*` |
+| Suppliers / Samples / Orders | **Live** | `app/forge/[ventureId]/sourcing/page.tsx`, `app/api/ventures/[id]/sourcing/*`, `prisma/schema.prisma` (`Supplier`, `Sample`, `ProductionOrder`) |
+| Warehouse / LagerHub | **Live** | `app/components/sourcing/WarehousePanel.tsx`, `app/api/ventures/[id]/warehouse/*`, `lib/warehouse/*` |
+| Votes / Decisions | **Live** | `app/forge/[ventureId]/decisions/page.tsx`, `app/api/ventures/[id]/decisions/*` |
+| Legal / Dokumente | **Live** | `app/forge/[ventureId]/legal/*`, `app/api/ventures/[id]/legal/route.ts`, `app/api/documents/route.ts` |
+| Academy / Resources | **Live** | `app/resources/page.tsx`, `app/resources/[slug]/page.tsx`, `app/api/training/*`, `app/api/resources/route.ts` |
+| Finanzamt-/Steuer-Automation | **Teilweise** | `lib/platform-tax-profile.ts`, `lib/platform-invoicing.ts`, `lib/invoice-pdf.tsx`, `scripts/export-platform-ledger.mjs`; keine direkte ELSTER-/Finanzamt-API im Repo |
+
+### 🚧 Teilimplementiert / bewusst noch nicht vollständig
+
+- **DocuSign:** Datenmodell und Service-Layer sind vorhanden, der vollständige produktive Rollout ist noch nicht abgeschlossen.
+- **Forge Admin Budgetseite:** Squad-/Wallet-/Budget-Datenmodelle existieren, aber die Forge-Admin-Seite ist noch kein vollständiges Budget-Cockpit.
+- **Stripe Connect Payouts:** im Stack und in der README/Planung mitgedacht, aber nicht als vollständig ausgerollter End-to-End-Payout-Flow dokumentierbar.
+- **v1 External Media API:** Auth, Scopes, Logging und Energy-Buchung sind vorhanden; die eigentliche Generator-Implementierung im Beispiel-Endpoint ist noch gemockt.
+- **Weitere Integrationen:** GitHub, Google Calendar, Shopify, Airtable sind als nächste Ausbaustufen bzw. angrenzende Import-/Integrationsziele erkennbar, aber nicht als vollwertige allgemeine Plattform-Integrationen umgesetzt.
 
 ---
 
