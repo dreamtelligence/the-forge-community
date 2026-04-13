@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import PageShell from '@/app/components/PageShell';
 import AuthGuard from '@/app/components/AuthGuard';
 import {
@@ -23,6 +23,7 @@ import { PostSkeleton } from '@/app/components/PostSkeleton';
 import { ForumEditor } from '@/app/components/ForumEditor';
 import { ForumTour } from '@/app/components/onboarding/ForumTour';
 import OnboardingWizard from '@/app/components/onboarding/OnboardingWizard';
+import type { ForumInitialPageMetrics } from '@/lib/forum-performance';
 
 export interface Comment {
   id: string;
@@ -50,6 +51,8 @@ export interface ForumPost {
   likes: number;
   category: string;
   userVote?: number;
+  commentCount?: number;
+  commentsLoaded?: boolean;
   comments?: Comment[];
 }
 
@@ -92,6 +95,8 @@ export interface UserProfile {
 interface ForumClientProps {
   initialPosts: ForumPost[];
   initialUser: UserProfile | null;
+  initialNextCursor?: string | null;
+  initialMetrics?: ForumInitialPageMetrics | null;
   forumVentureId?: string | null;
 }
 
@@ -311,13 +316,19 @@ const MarkdownComponents = {
   }
 };
 
-export default function Forum({ initialPosts, initialUser, forumVentureId }: ForumClientProps) {
+export default function Forum({
+  initialPosts,
+  initialUser,
+  initialNextCursor = null,
+  initialMetrics = null,
+  forumVentureId,
+}: ForumClientProps) {
   // Infinite Scroll State
   const [posts, setPosts] = useState<ForumPost[]>(initialPosts);
   const [isLoadingInitial, setIsLoadingInitial] = useState(initialPosts.length === 0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(Boolean(initialNextCursor) || initialPosts.length === 0);
+  const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({});
 
   const [user, setUser] = useState<UserProfile | null>(initialUser);
   const [forumVentureIdState, setForumVentureIdState] = useState<string | null>(forumVentureId ?? null);
@@ -350,8 +361,45 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
   const [] = useState(false);
   const [, setEmojiPickerSize] = useState({ width: 320, height: 400 });
   const toastTimeoutRef = useRef<number | null>(null);
+
+  const shouldLogForumPerf =
+    process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_FORUM_PERF_LOG === 'true';
+
+  const logForumPerf = useCallback((payload: Record<string, unknown>) => {
+    if (!shouldLogForumPerf) return;
+    console.info('[ForumPerf]', JSON.stringify(payload));
+  }, [shouldLogForumPerf]);
+
+  const logForumFetchMetrics = useCallback((route: string, response: Response) => {
+    if (!shouldLogForumPerf) return;
+
+    const durationMs = response.headers.get('x-forum-duration-ms');
+    const payloadBytes = response.headers.get('x-forum-payload-bytes');
+    const itemCount = response.headers.get('x-forum-item-count');
+    const commentCount = response.headers.get('x-forum-comment-count');
+    const hasNextCursor = response.headers.get('x-forum-has-next-cursor');
+    const serverTiming = response.headers.get('server-timing');
+
+    if (!durationMs && !payloadBytes && !serverTiming) return;
+
+    logForumPerf({
+      route,
+      phase: 'client-fetch',
+      status: response.status,
+      durationMs: durationMs ? Number(durationMs) : null,
+      payloadBytes: payloadBytes ? Number(payloadBytes) : null,
+      itemCount: itemCount ? Number(itemCount) : null,
+      commentCount: commentCount ? Number(commentCount) : null,
+      hasNextCursor: hasNextCursor === null ? null : hasNextCursor === 'true',
+      serverTiming,
+    });
+  }, [logForumPerf, shouldLogForumPerf]);
   const loadMoreRef = useRef(null);
   const isInView = useInView(loadMoreRef);
+  const hasBootstrappedInitialFeed = useRef(false);
+  const nextCursorRef = useRef<string | null>(initialNextCursor);
+  const hasMoreRef = useRef(Boolean(initialNextCursor) || initialPosts.length === 0);
+  const isLoadingMoreRef = useRef(false);
   
   const FEEDS = [
     { id: 'All', name: 'Home Feed', icon: Home },
@@ -389,22 +437,132 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
     } catch (e) { console.error(e); }
   };
 
-  const fetchForumVentureId = async () => {
+  const getCommentCount = (post: ForumPost) => post.commentCount ?? post.comments?.length ?? 0;
+
+  const ensureForumVentureId = async () => {
+    if (forumVentureIdState) return forumVentureIdState;
     try {
       const res = await fetch('/api/forum/venture');
-      if (!res.ok) return;
+      if (!res.ok) return null;
       const data = await res.json();
-      if (data?.id) setForumVentureIdState(data.id);
-    } catch (e) {
-      console.error(e);
+      if (data?.id) {
+        setForumVentureIdState(data.id);
+        return data.id as string;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    return null;
+  };
+
+  const loadCommentsForPost = async (postId: string) => {
+    const targetPost = posts.find((post) => post.id === postId);
+    if (!targetPost || targetPost.commentsLoaded || commentsLoading[postId]) {
+      return;
+    }
+
+    setCommentsLoading((prev) => ({ ...prev, [postId]: true }));
+
+    try {
+      const response = await fetch(`/api/forum/comments?postId=${encodeURIComponent(postId)}`);
+      logForumFetchMetrics('/api/forum/comments', response);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Kommentare konnten nicht geladen werden.');
+      }
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: Array.isArray(data?.comments) ? data.comments : [],
+                commentsLoaded: true,
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error('Comment loading error:', error);
+      setCommentStatus((prev) => ({
+        ...prev,
+        [postId]: 'Kommentare konnten nicht geladen werden. Bitte erneut.',
+      }));
+    } finally {
+      setCommentsLoading((prev) => ({ ...prev, [postId]: false }));
     }
   };
 
+  const fetchPosts = useCallback(async (options: { reset?: boolean; silent?: boolean } = {}) => {
+    const { reset = false, silent = false } = options;
+
+    if (!reset && (isLoadingMoreRef.current || !hasMoreRef.current)) return;
+
+    if (reset) setIsLoadingInitial(true);
+    else if (!silent) {
+      isLoadingMoreRef.current = true;
+      setIsLoadingMore(true);
+    }
+
+    try {
+      const params = new URLSearchParams();
+      if (!reset && nextCursorRef.current) params.set('cursor', nextCursorRef.current);
+
+      params.set('limit', '10');
+      params.set('category', activeChannel);
+      params.set('sort', sortMode.toLowerCase());
+
+      const response = await fetch(`/api/forum?${params.toString()}`);
+      logForumFetchMetrics('/api/forum', response);
+      if (!response.ok) throw new Error('Failed to fetch');
+
+      const data = await response.json();
+      const newPosts = Array.isArray(data) ? data : (data.items || []);
+      const newCursor = Array.isArray(data) ? null : data.nextCursor;
+
+      if (reset) {
+        setPosts(newPosts);
+      } else {
+        setPosts((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const uniqueNewPosts = newPosts.filter((p: ForumPost) => !existingIds.has(p.id));
+          return [...prev, ...uniqueNewPosts];
+        });
+      }
+
+      nextCursorRef.current = newCursor;
+      hasMoreRef.current = newPosts.length > 0 && !!newCursor;
+      setHasMore(hasMoreRef.current);
+    } catch (error) {
+      console.error(error);
+      if (!reset) {
+        hasMoreRef.current = false;
+        setHasMore(false);
+      }
+    } finally {
+      if (reset) setIsLoadingInitial(false);
+      else {
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+      }
+    }
+  }, [activeChannel, sortMode]);
+
   // Reset Feed when Channel/Sort changes
   useEffect(() => {
+    if (!hasBootstrappedInitialFeed.current) {
+      hasBootstrappedInitialFeed.current = true;
+      if (initialPosts.length > 0) {
+        return;
+      }
+    }
+
     setPosts([]);
-    setNextCursor(null);
+    nextCursorRef.current = null;
+    hasMoreRef.current = true;
+    isLoadingMoreRef.current = false;
     setHasMore(true);
+    setIsLoadingMore(false);
     setIsLoadingInitial(true);
     
     // Kleines Timeout damit State sicher resettet ist bevor fetch läuft
@@ -412,11 +570,45 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
       fetchPosts({ reset: true });
     }, 0);
     return () => clearTimeout(timer);
-  }, [activeChannel, sortMode]);
+  }, [activeChannel, fetchPosts, initialPosts.length, sortMode]);
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!initialMetrics || !shouldLogForumPerf || typeof window === 'undefined') {
+      return;
+    }
+
+    const navigationEntry = performance.getEntriesByType('navigation')[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+
+    logForumPerf({
+      route: initialMetrics.route,
+      phase: 'hydration',
+      serverRenderMs: initialMetrics.serverRenderMs,
+      authMs: initialMetrics.authMs,
+      feedQueryMs: initialMetrics.feedQueryMs,
+      userQueryMs: initialMetrics.userQueryMs,
+      bootstrapBytes: initialMetrics.bootstrapBytes,
+      initialPostCount: initialMetrics.initialPostCount,
+      hasInitialUser: initialMetrics.hasInitialUser,
+      hasNextCursor: initialMetrics.hasNextCursor,
+      navigation: navigationEntry
+        ? {
+            type: navigationEntry.type,
+            ttfbMs: Number(navigationEntry.responseStart.toFixed(1)),
+            domContentLoadedMs: Number(navigationEntry.domContentLoadedEventEnd.toFixed(1)),
+            loadEventMs: Number(navigationEntry.loadEventEnd.toFixed(1)),
+            transferSize: navigationEntry.transferSize,
+            encodedBodySize: navigationEntry.encodedBodySize,
+            decodedBodySize: navigationEntry.decodedBodySize,
+          }
+        : null,
+    });
+  }, [initialMetrics, logForumPerf, shouldLogForumPerf]);
 
   useEffect(() => {
     const updateEmojiPickerSize = () => {
@@ -452,75 +644,44 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
     }
   }, [isInView, hasMore, isLoadingMore, isLoadingInitial, posts.length, fetchPosts]);
 
-  async function fetchPosts(options: { reset?: boolean, silent?: boolean } = {}) {
-    const { reset = false, silent = false } = options;
-    
-    if (!reset && (isLoadingMore || !hasMore)) return;
-
-    if (reset) setIsLoadingInitial(true);
-    else if (!silent) setIsLoadingMore(true);
-
-    try {
-      const params = new URLSearchParams();
-      // Wenn wir resetten, nutzen wir keinen Cursor. Wenn wir nachladen, nutzen wir den gespeicherten nextCursor.
-      // WICHTIG: nextCursor darf nicht null sein, wenn reset=false ist, außer beim allerersten load (was durch isLoadingInitial abgefangen wird)
-      if (!reset && nextCursor) params.set('cursor', nextCursor);
-      
-      params.set('limit', '10');
-      params.set('category', activeChannel);
-      params.set('sort', sortMode.toLowerCase());
-
-      const response = await fetch(`/api/forum?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch');
-      
-      const data = await response.json();
-      // Prüfen ob die API die neue Struktur { items, nextCursor } zurückgibt
-      // Fallback falls API noch alte Struktur liefert (array)
-      const newPosts = Array.isArray(data) ? data : (data.items || []);
-      const newCursor = Array.isArray(data) ? null : data.nextCursor;
-
-      if (reset) {
-        setPosts(newPosts);
-      } else {
-        setPosts(prev => {
-          const existingIds = new Set(prev.map(p => p.id));
-          const uniqueNewPosts = newPosts.filter((p: ForumPost) => !existingIds.has(p.id));
-          return [...prev, ...uniqueNewPosts];
-        });
-      }
-
-      setNextCursor(newCursor);
-      // Wenn Array leer oder kein Cursor, dann sind wir am Ende
-      setHasMore(newPosts.length > 0 && !!newCursor);
-
-    } catch (error) {
-      console.error(error);
-      // Prevent request storms when the network/server is unstable.
-      if (!reset) {
-        setHasMore(false);
-      }
-    } finally {
-      if (reset) setIsLoadingInitial(false);
-      else setIsLoadingMore(false);
-    }
-  }
-
   useEffect(() => {
     if (!initialUser) fetchUser();
     // fetchPosts wird initial durch den useEffect([activeChannel, sortMode]) getriggert, da diese default gesetzt sind
   }, [initialUser]);
 
   useEffect(() => {
-    if (user && !forumVentureIdState) {
-      fetchForumVentureId();
-    }
-  }, [user?.id, forumVentureIdState]);
+    if (!user) return;
 
-  useEffect(() => {
-    if (user && notifications.length === 0) {
-      fetchNotifications();
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+    const win = typeof window !== 'undefined' ? window : null;
+
+    const run = async () => {
+      if (cancelled) return;
+      await fetchNotifications();
+    };
+
+    if (win && 'requestIdleCallback' in win) {
+      idleId = win.requestIdleCallback(() => {
+        void run();
+      }, { timeout: 1500 });
+    } else if (win) {
+      timeoutId = setTimeout(() => {
+        void run();
+      }, 600);
     }
-  }, [notifications.length, user?.id]);
+
+    return () => {
+      cancelled = true;
+      if (win && idleId !== null && 'cancelIdleCallback' in win) {
+        win.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [user?.id]);
 
   const fetchNotifications = async () => {
     try {
@@ -632,8 +793,14 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
     }
   };
 
-  const toggleComments = (postId: string) => {
-    setExpandedPosts(prev => ({ ...prev, [postId]: !prev[postId] }));
+  const toggleComments = async (postId: string) => {
+    const willExpand = !expandedPosts[postId];
+    setExpandedPosts((prev) => ({ ...prev, [postId]: willExpand }));
+
+    if (willExpand) {
+      void ensureForumVentureId();
+      await loadCommentsForPost(postId);
+    }
   };
 
   const handleCommentSubmit = async (postId: string) => {
@@ -655,7 +822,8 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
       const aiComments = data?.aiComment ? [data.aiComment] : [];
       setPosts(prev => prev.map(post => post.id === postId ? {
         ...post,
-        comments: [...(post.comments || []), data, ...aiComments],
+        commentCount: getCommentCount(post) + 1 + aiComments.length,
+        comments: post.commentsLoaded ? [...(post.comments || []), data, ...aiComments] : (post.comments || []),
       } : post));
       setCommentStatus(prev => ({ ...prev, [postId]: '' }));
       setCommentDrafts(prev => ({ ...prev, [postId]: '' }));
@@ -754,10 +922,31 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
         body: JSON.stringify({ id: commentId }),
       });
       if (!response.ok) throw new Error('Delete failed');
-      setPosts(prev => prev.map(post => post.id === postId ? {
-        ...post,
-        comments: (post.comments || []).filter(comment => comment.id !== commentId),
-      } : post));
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (post.id !== postId) return post;
+
+          const loadedComments = post.comments || [];
+          const idsToRemove = new Set<string>([commentId]);
+          let changed = true;
+
+          while (changed) {
+            changed = false;
+            for (const comment of loadedComments) {
+              if (comment.parentId && idsToRemove.has(comment.parentId) && !idsToRemove.has(comment.id)) {
+                idsToRemove.add(comment.id);
+                changed = true;
+              }
+            }
+          }
+
+          return {
+            ...post,
+            commentCount: Math.max(0, getCommentCount(post) - idsToRemove.size),
+            comments: loadedComments.filter((comment) => !idsToRemove.has(comment.id)),
+          };
+        })
+      );
     } catch (error) {
       console.error('Comment delete error:', error);
       setCommentStatus(prev => ({ ...prev, [postId]: 'Kommentar konnte nicht gelöscht werden.' }));
@@ -765,6 +954,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
   };
 
   const startEdit = (post: ForumPost) => {
+    void ensureForumVentureId();
     setEditingPost(post.id);
     setEditContent(post.content);
     setIsPreview(false);
@@ -772,6 +962,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
   };
 
   const startNewPost = () => {
+    void ensureForumVentureId();
     setEditingPost('NEW');
     setModerationWarning(null);
   };
@@ -817,7 +1008,8 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
       if (data.comment) {
         setPosts(prev => prev.map(p => p.id === post.id ? {
           ...p,
-          comments: [...(p.comments || []), data.comment]
+          commentCount: getCommentCount(p) + 1,
+          comments: p.commentsLoaded ? [...(p.comments || []), data.comment] : (p.comments || []),
         } : p));
       }
     } catch (error) {
@@ -1408,7 +1600,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                               expandedPosts[post.id] ? 'text-white' : 'text-white/40 hover:text-white'
                             }`}
                           >
-                            <MessageSquare className="w-3.5 h-3.5" /> {post.comments?.length || 0} Comments
+                            <MessageSquare className="w-3.5 h-3.5" /> {getCommentCount(post)} Comments
                           </button>
                           <div className="relative">
                             <button
@@ -1487,7 +1679,7 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                             className={`flex items-center gap-2 ${expandedPosts[post.id] ? 'text-white' : 'text-white/40 hover:text-white'}`}
                           >
                             <MessageCircle className="w-4 h-4" />
-                            {post.comments?.length || 0}
+                            {getCommentCount(post)}
                           </button>
                           <button
                             onClick={() => handleShare(post.id)}
@@ -1552,7 +1744,11 @@ export default function Forum({ initialPosts, initialUser, forumVentureId }: For
                         {expandedPosts[post.id] && (
                           <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 space-y-4">
                             <div className="space-y-3">
-                              {(post.comments || []).length === 0 ? (
+                              {commentsLoading[post.id] ? (
+                                <div className="py-6 text-center text-[10px] uppercase tracking-widest text-white/30">
+                                  Kommentare laden ...
+                                </div>
+                              ) : (post.comments || []).length === 0 ? (
                                 <p className="text-xs text-white/30 uppercase tracking-widest font-bold">Noch keine Kommentare.</p>
                               ) : (() => {
                                 const { roots, nodes } = buildCommentTree(post.comments || []);

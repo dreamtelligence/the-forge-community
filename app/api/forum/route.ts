@@ -6,12 +6,16 @@ import { ensureProfileSlug } from '@/lib/profile';
 import { assignFounderNumberIfMissing } from '@/lib/founder-number';
 import { syncUserAchievements } from '@/lib/achievements';
 import { RateLimiters } from '@/lib/rate-limit';
+import { getForumFeed } from '@/lib/forum-feed';
+import { createForumJsonResponse } from '@/lib/forum-performance';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET(request: Request) {
+  const routeStart = performance.now();
   const session = await auth();
+  const afterAuth = performance.now();
   const { searchParams } = new URL(request.url);
   const cursor = searchParams.get('cursor');
   const limit = Math.min(Number(searchParams.get('limit')) || 10, 50);
@@ -19,120 +23,48 @@ export async function GET(request: Request) {
   const sort = searchParams.get('sort') || 'new'; // 'new', 'top', 'hot'
 
   try {
-    const where: any = {};
-    if (category && category !== 'All' && category !== 'Popular') {
-      where.category = category;
-    }
-
-    let orderBy: any = { createdAt: 'desc' };
-    if (sort === 'top') {
-      orderBy = { likes: 'desc' };
-    }
-
-    const posts = await prisma.forumPost.findMany({
-      take: limit + 1, // Fetch one more to know if there is a next page
-      cursor: cursor ? { id: cursor } : undefined,
-      skip: cursor ? 1 : 0,
-      where,
-      orderBy,
-      include: {
-        author: {
-          select: {
-            id: true,
-            image: true,
-            profileSlug: true,
-            name: true,
-            founderNumber: true,
-          },
-        },
-        comments: {
-          orderBy: { createdAt: 'asc' },
-          select: {
-            id: true,
-            authorId: true,
-            parentId: true,
-            authorName: true,
-            author: {
-              select: {
-                id: true,
-                image: true,
-                profileSlug: true,
-                founderNumber: true,
-                name: true,
-              },
-            },
-            content: true,
-            likes: true,
-            createdAt: true
-          }
-        }
-      }
+    const feedStart = performance.now();
+    const feed = await getForumFeed({
+      viewerEmail: session?.user?.email || null,
+      cursor,
+      limit,
+      category,
+      sort,
+      commentsMode: 'preview',
+      previewRootComments: 1,
     });
+    const afterFeed = performance.now();
 
-    let nextCursor: string | undefined = undefined;
-    if (posts.length > limit) {
-      nextCursor = posts[posts.length - 1].id;
-    }
-
-    // If user is logged in, attach their existing votes
-    let userVotes: Map<string, number> = new Map();
-    let commentVotes: Map<string, number> = new Map();
-    if (session?.user?.email) {
-      const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
-        select: {
-          forumVotes: { 
-            where: { postId: { in: posts.map(p => p.id) } },
-            select: { postId: true, voteType: true } 
-          },
-          forumCommentVotes: { 
-            where: { commentId: { in: posts.flatMap(p => p.comments.map(c => c.id)) } },
-            select: { commentId: true, voteType: true } 
-          }
-        }
-      });
-      userVotes = new Map((user?.forumVotes || []).map(vote => [vote.postId, vote.voteType]));
-      commentVotes = new Map((user?.forumCommentVotes || []).map(vote => [vote.commentId, vote.voteType]));
-    }
-
-    const postsWithVotes = posts.map(post => {
-      return ({
-      id: post.id,
-      authorId: post.authorId,
-      author: post.author?.name || post.authorName,
-      authorImage: post.author?.image || null,
-      authorSlug: post.author?.profileSlug || null,
-      founderNumber: post.author?.founderNumber ?? post.founderNumber ?? 0,
-      content: post.content,
-      category: post.category,
-      likes: post.likes,
-      createdTime: post.createdAt.toISOString(),
-      comments: post.comments.map(comment => ({
-        id: comment.id,
-        authorId: comment.authorId,
-        parentId: comment.parentId,
-        author: comment.author?.name || comment.authorName,
-        authorImage: comment.author?.image || null,
-        authorSlug: comment.author?.profileSlug || null,
-        founderNumber: comment.author?.founderNumber || 0,
-        content: comment.content,
-        likes: comment.likes,
-        time: comment.createdAt.toISOString(),
-        userVote: commentVotes.get(comment.id) || 0
-      })),
-      userVote: userVotes.get(post.id) || 0
-    });
-    });
-
-    return NextResponse.json({
-      items: postsWithVotes,
-      nextCursor
+    return createForumJsonResponse(feed, {
+      route: '/api/forum',
+      durationMs: afterFeed - routeStart,
+      steps: [
+        { name: 'auth', durationMs: afterAuth - routeStart },
+        { name: 'feed', durationMs: afterFeed - feedStart },
+      ],
+      details: {
+        itemCount: feed.items.length,
+        hasNextCursor: Boolean(feed.nextCursor),
+        category: category || 'All',
+        sort,
+        limit,
+      },
     });
   } catch (error) {
     console.error('Error fetching forum posts:', error);
-    return NextResponse.json(
+    return createForumJsonResponse(
       { error: 'Failed to fetch forum posts' },
-      { status: 500 }
+      {
+        route: '/api/forum',
+        status: 500,
+        durationMs: performance.now() - routeStart,
+        steps: [{ name: 'auth', durationMs: afterAuth - routeStart }],
+        details: {
+          category: category || 'All',
+          sort,
+          limit,
+        },
+      }
     );
   }
 }
