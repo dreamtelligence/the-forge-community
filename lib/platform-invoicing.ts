@@ -3,9 +3,13 @@ import { renderInvoicePdfBuffer } from '@/lib/invoice-pdf';
 import { put } from '@vercel/blob';
 import { getOrCreatePlatformTaxProfile } from '@/lib/platform-tax-profile';
 import {
+  createPlatformLedgerEntry,
+  recordFinanceAuditLog,
+} from '@/lib/finance-ledger';
+import {
+  FinanceAuditAction,
+  FinanceAuditEntityType,
   PlatformInvoiceStatus,
-  PlatformLedgerDirection,
-  PlatformLedgerSource,
   Prisma,
 } from '@prisma/client';
 import type { PrismaClient } from '@prisma/client';
@@ -39,6 +43,122 @@ interface CreateCreditPurchaseInvoiceParams {
   customerName?: string;
   customerAddress?: AddressInput | null;
   customerCountry?: string | null;
+}
+
+const SYSTEM_FINANCE_ACTOR = 'system:platform-finance';
+
+function buildInvoiceAuditState(invoice: {
+  id: string;
+  profileId: string;
+  invoiceNumber: string;
+  status: string;
+  issueDate: Date;
+  serviceDate?: Date | null;
+  servicePeriodStart?: Date | null;
+  servicePeriodEnd?: Date | null;
+  buyerName: string;
+  buyerEmail?: string | null;
+  buyerCountry?: string | null;
+  currency: string;
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  total: number;
+  paidAt?: Date | null;
+  pdfUrl?: string | null;
+  finalizedAt?: Date | null;
+  immutableLockedAt?: Date | null;
+}) {
+  return {
+    id: invoice.id,
+    profileId: invoice.profileId,
+    invoiceNumber: invoice.invoiceNumber,
+    status: invoice.status,
+    issueDate: invoice.issueDate.toISOString(),
+    serviceDate: invoice.serviceDate?.toISOString() ?? null,
+    servicePeriodStart: invoice.servicePeriodStart?.toISOString() ?? null,
+    servicePeriodEnd: invoice.servicePeriodEnd?.toISOString() ?? null,
+    buyerName: invoice.buyerName,
+    buyerEmail: invoice.buyerEmail ?? null,
+    buyerCountry: invoice.buyerCountry ?? null,
+    currency: invoice.currency,
+    subtotal: invoice.subtotal,
+    taxRate: invoice.taxRate,
+    taxAmount: invoice.taxAmount,
+    total: invoice.total,
+    paidAt: invoice.paidAt?.toISOString() ?? null,
+    pdfUrl: invoice.pdfUrl ?? null,
+    finalizedAt: invoice.finalizedAt?.toISOString() ?? null,
+    immutableLockedAt: invoice.immutableLockedAt?.toISOString() ?? null,
+  };
+}
+
+function buildCreditPurchaseAuditState(purchase: {
+  id: string;
+  profileId: string;
+  userId: string;
+  credits: number;
+  currency: string;
+  amountNet: number;
+  taxAmount: number;
+  amountGross: number;
+  invoiceId?: string | null;
+  stripePaymentIntentId?: string | null;
+  stripeChargeId?: string | null;
+  stripeInvoiceId?: string | null;
+  immutableLockedAt?: Date | null;
+  createdAt: Date;
+}) {
+  return {
+    id: purchase.id,
+    profileId: purchase.profileId,
+    userId: purchase.userId,
+    credits: purchase.credits,
+    currency: purchase.currency,
+    amountNet: purchase.amountNet,
+    taxAmount: purchase.taxAmount,
+    amountGross: purchase.amountGross,
+    invoiceId: purchase.invoiceId ?? null,
+    stripePaymentIntentId: purchase.stripePaymentIntentId ?? null,
+    stripeChargeId: purchase.stripeChargeId ?? null,
+    stripeInvoiceId: purchase.stripeInvoiceId ?? null,
+    immutableLockedAt: purchase.immutableLockedAt?.toISOString() ?? null,
+    createdAt: purchase.createdAt.toISOString(),
+  };
+}
+
+function buildDocumentAuditState(document: {
+  id: string;
+  profileId: string;
+  type: string;
+  title: string;
+  documentUrl: string;
+  mimeType?: string | null;
+  size?: number | null;
+  sha256?: string | null;
+  issuedAt?: Date | null;
+  retentionUntil?: Date | null;
+  invoiceId?: string | null;
+  ledgerEntryId?: string | null;
+  immutableLockedAt?: Date | null;
+  createdAt: Date;
+}) {
+  return {
+    id: document.id,
+    profileId: document.profileId,
+    type: document.type,
+    title: document.title,
+    documentUrl: document.documentUrl,
+    mimeType: document.mimeType ?? null,
+    size: document.size ?? null,
+    sha256: document.sha256 ?? null,
+    issuedAt: document.issuedAt?.toISOString() ?? null,
+    retentionUntil: document.retentionUntil?.toISOString() ?? null,
+    invoiceId: document.invoiceId ?? null,
+    ledgerEntryId: document.ledgerEntryId ?? null,
+    immutableLockedAt: document.immutableLockedAt?.toISOString() ?? null,
+    createdAt: document.createdAt.toISOString(),
+  };
 }
 
 export async function createCreditPurchaseInvoice(params: CreateCreditPurchaseInvoiceParams) {
@@ -76,6 +196,7 @@ export async function createCreditPurchaseInvoice(params: CreateCreditPurchaseIn
 
   // Get or create Platform Tax Profile (for founder/admin)
   const profile = await getOrCreatePlatformTaxProfile();
+  const financeRequestId = stripePaymentIntentId || stripeInvoiceId || `credit-purchase:${userId}:${amountCents}`;
 
   // Create invoice, ledger entry, and purchase record in transaction
   const result = await prisma.$transaction(async (tx) => {
@@ -103,8 +224,21 @@ export async function createCreditPurchaseInvoice(params: CreateCreditPurchaseIn
       paidAt: new Date(),
     });
 
+    await recordFinanceAuditLog({
+      db: tx,
+      entityType: FinanceAuditEntityType.PLATFORM_INVOICE,
+      entityId: invoice.id,
+      action: FinanceAuditAction.CREATED,
+      actorEmail: SYSTEM_FINANCE_ACTOR,
+      requestId: financeRequestId,
+      afterState: buildInvoiceAuditState(invoice),
+      metadata: {
+        flow: 'credit-purchase',
+      },
+    });
+
     // 2. Create Invoice Line Item
-    const lineItem = await tx.platformInvoiceLine.create({
+    await tx.platformInvoiceLine.create({
       data: {
         invoiceId: invoice.id,
         description: `${credits} AI Credits`,
@@ -134,30 +268,45 @@ export async function createCreditPurchaseInvoice(params: CreateCreditPurchaseIn
       },
     });
 
-    // 4. Create Ledger Entry (EoR Booking)
-    const ledgerEntry = await tx.platformLedgerEntry.create({
-      data: {
-        profileId: profile.id,
-        direction: PlatformLedgerDirection.INCOME,
-        source: PlatformLedgerSource.CREDIT_PURCHASE,
-        sourceId: purchase.id,
-        description: `Credit Purchase: ${credits} Credits`,
-        bookedAt: new Date(),
-        amountNet: amountGross,
-        taxAmount: 0,
-        amountGross,
-        currency: currency.toUpperCase(),
-        invoiceId: invoice.id,
-        userId,
-        metadata: {
-          credits,
-          stripePaymentIntentId,
-          stripeChargeId,
-        },
+    await recordFinanceAuditLog({
+      db: tx,
+      entityType: FinanceAuditEntityType.PLATFORM_CREDIT_PURCHASE,
+      entityId: purchase.id,
+      action: FinanceAuditAction.CREATED,
+      actorEmail: SYSTEM_FINANCE_ACTOR,
+      requestId: financeRequestId,
+      afterState: buildCreditPurchaseAuditState(purchase),
+      metadata: {
+        credits,
       },
     });
 
-    return { invoice, lineItem, purchase, ledgerEntry };
+    // Every money-moving write goes through the append-only ledger helper so
+    // later corrections become explicit reversal entries instead of silent edits.
+    const ledgerEntry = await createPlatformLedgerEntry({
+      db: tx,
+      profileId: profile.id,
+      direction: 'INCOME',
+      source: 'CREDIT_PURCHASE',
+      sourceId: purchase.id,
+      description: `Credit Purchase: ${credits} Credits`,
+      bookedAt: new Date(),
+      amountNet: amountGross,
+      taxAmount: 0,
+      amountGross,
+      currency: currency.toUpperCase(),
+      invoiceId: invoice.id,
+      userId,
+      actorEmail: SYSTEM_FINANCE_ACTOR,
+      requestId: financeRequestId,
+      metadata: {
+        credits,
+        stripePaymentIntentId,
+        stripeChargeId,
+      },
+    });
+
+    return { invoice, purchase, ledgerEntry };
   });
 
   await finalizeInvoiceArtifacts({
@@ -361,12 +510,32 @@ async function finalizeInvoiceArtifacts({
   const sha256 = createHash('sha256').update(pdfPayload).digest('hex');
   const retentionUntil = new Date(invoice.issueDate);
   retentionUntil.setFullYear(retentionUntil.getFullYear() + 10);
+  const financeRequestId =
+    invoice.stripeInvoiceId || invoice.stripePaymentIntentId || `invoice-finalize:${invoice.id}`;
+  const beforeFinalize = buildInvoiceAuditState(invoice);
 
-  await prisma.platformInvoice.update({
+  const finalizedInvoice = await prisma.platformInvoice.update({
     where: { id: invoice.id },
     data: {
       pdfUrl: blob.url,
       snapshot: snapshot ?? undefined,
+      finalizedAt: new Date(),
+      immutableLockedAt: new Date(),
+    },
+  });
+
+  await recordFinanceAuditLog({
+    db: prisma,
+    entityType: FinanceAuditEntityType.PLATFORM_INVOICE,
+    entityId: invoice.id,
+    action: FinanceAuditAction.FINALIZED,
+    actorEmail: SYSTEM_FINANCE_ACTOR,
+    requestId: financeRequestId,
+    beforeState: beforeFinalize,
+    afterState: buildInvoiceAuditState(finalizedInvoice),
+    metadata: {
+      pdfUrl: blob.url,
+      sha256,
     },
   });
 
@@ -378,7 +547,7 @@ async function finalizeInvoiceArtifacts({
   });
 
   if (!existingDoc) {
-    await prisma.platformDocument.create({
+    const document = await prisma.platformDocument.create({
       data: {
         profileId,
         type: 'INVOICE',
@@ -390,6 +559,19 @@ async function finalizeInvoiceArtifacts({
         issuedAt: invoice.issueDate,
         retentionUntil,
         invoiceId: invoice.id,
+      },
+    });
+
+    await recordFinanceAuditLog({
+      db: prisma,
+      entityType: FinanceAuditEntityType.PLATFORM_DOCUMENT,
+      entityId: document.id,
+      action: FinanceAuditAction.STORED,
+      actorEmail: SYSTEM_FINANCE_ACTOR,
+      requestId: financeRequestId,
+      afterState: buildDocumentAuditState(document),
+      metadata: {
+        invoiceNumber: invoice.invoiceNumber,
       },
     });
   }
@@ -437,6 +619,7 @@ export async function createSubscriptionInvoice(params: {
 
   const amountGross = amountCents / 100;
   const profile = await getOrCreatePlatformTaxProfile();
+  const financeRequestId = stripeInvoiceId || `subscription:${userId}:${amountCents}`;
 
   const result = await prisma.$transaction(async (tx) => {
     // 1. Create Invoice
@@ -462,8 +645,21 @@ export async function createSubscriptionInvoice(params: {
       paidAt: new Date(),
     });
 
+    await recordFinanceAuditLog({
+      db: tx,
+      entityType: FinanceAuditEntityType.PLATFORM_INVOICE,
+      entityId: invoice.id,
+      action: FinanceAuditAction.CREATED,
+      actorEmail: SYSTEM_FINANCE_ACTOR,
+      requestId: financeRequestId,
+      afterState: buildInvoiceAuditState(invoice),
+      metadata: {
+        flow: 'subscription',
+      },
+    });
+
     // 2. Create Invoice Line Item
-    const lineItem = await tx.platformInvoiceLine.create({
+    await tx.platformInvoiceLine.create({
       data: {
         invoiceId: invoice.id,
         description:
@@ -479,32 +675,32 @@ export async function createSubscriptionInvoice(params: {
       },
     });
 
-    // 3. Create Ledger Entry (EoR Booking)
-    const ledgerEntry = await tx.platformLedgerEntry.create({
-      data: {
-        profileId: profile.id,
-        direction: PlatformLedgerDirection.INCOME,
-        source: PlatformLedgerSource.SUBSCRIPTION,
-        description:
-          credits > 0
-            ? `Subscription Revenue: ${credits} Credits`
-            : 'Subscription Revenue (usage-based)',
-        bookedAt: new Date(),
-        amountNet: amountGross,
-        taxAmount: 0,
-        amountGross,
-        currency: currency.toUpperCase(),
-        invoiceId: invoice.id,
-        userId,
-        metadata: {
-          credits,
-          stripeInvoiceId,
-          subscriptionType: 'monthly',
-        },
+    const ledgerEntry = await createPlatformLedgerEntry({
+      db: tx,
+      profileId: profile.id,
+      direction: 'INCOME',
+      source: 'SUBSCRIPTION',
+      description:
+        credits > 0
+          ? `Subscription Revenue: ${credits} Credits`
+          : 'Subscription Revenue (usage-based)',
+      bookedAt: new Date(),
+      amountNet: amountGross,
+      taxAmount: 0,
+      amountGross,
+      currency: currency.toUpperCase(),
+      invoiceId: invoice.id,
+      userId,
+      actorEmail: SYSTEM_FINANCE_ACTOR,
+      requestId: financeRequestId,
+      metadata: {
+        credits,
+        stripeInvoiceId,
+        subscriptionType: 'monthly',
       },
     });
 
-    return { invoice, lineItem, ledgerEntry };
+    return { invoice, ledgerEntry };
   });
 
   await finalizeInvoiceArtifacts({

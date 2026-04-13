@@ -206,6 +206,19 @@ Stand: 16.02.2026
 
 ## 📝 Changelog
 
+### Update Note — 13.04.2026
+
+- **Platform Finance gehärtet:** Das Ledger wurde in Richtung append-only Finanzjournal ausgebaut. `PlatformLedgerEntry`, `PlatformInvoice` und `PlatformDocument` sind jetzt fachlich auf Unveränderbarkeit ausgelegt, Korrekturen laufen über explizite Reversal-/Storno-Buchungen statt über stille Mutationen.
+- **Reversal-Logik ergänzt:** Neue Ledger-Felder wie `reversesEntryId`, Storno-Ketten und ein Admin-Reversal-Endpoint machen fachliche Gegenbuchungen nachvollziehbar und auditierbar.
+- **Finance Audit Log eingeführt:** Zentrale Audit-Events für Rechnungserstellung, Ledger-Buchungen, Korrekturbuchungen, Dokumenten-Finalisierung, Exporte und Stripe-Webhooks dokumentieren Auslöser, Request-IDs und Zustandsänderungen.
+- **Invoice- und Purchase-Flows auf append-only umgestellt:** Credit-Purchase- und Subscription-Invoicing schreiben Ledger- und Audit-Einträge jetzt über dedizierte Finance-Services statt über verstreute Einzelwrites.
+- **Usage-Kosten im Ledger sichtbar gemacht:** AI-Nutzung bucht Providerkosten zusätzlich als `EXPENSE`-Ledger-Einträge und hängt diese mit `PlatformCreditUsage` sowie dem Finance-Audit zusammen.
+- **Stripe-Webhooks für Reconciliation vorbereitet:** Verarbeitete Stripe-Events schreiben jetzt präzisere Audit- und Grant-Metadaten, damit Checkout, Invoice, Subscription und Grants später sauber gegeneinander abgeglichen werden können.
+- **Reconciliation-/Integrity-Report ergänzt:** Ein neuer Admin-Report prüft automatisch Inkonsistenzen zwischen Stripe-Webhook, Invoice, Credit Purchase, Energy Transaction, Credit Usage und Ledger, z. B. fehlende Ledger-Einträge, fehlende PDFs/Belege oder fehlende Credit-Grants.
+- **Admin-Finance-Oberfläche ausgebaut:** Die Admin-Seite zeigt jetzt Guardrails, Reversal-Status, Audit-Trail, Integrity-Summary und offene Findings; zusätzlich existiert ein JSON-Endpoint für den Reconciliation-Report.
+- **Datenbank-Migration ergänzt:** Die Prisma-/SQL-Migration `20260413173000_finance_immutability_audit` erweitert das Schema um Reversal-Felder, `FinanceAuditLog` und DB-Guardrails für append-only Finance-Tabellen.
+- **Verifiziert:** `npx prisma generate`, gezielter ESLint-Lauf und `npm run build` liefen erfolgreich durch. Die Migration wurde bewusst nicht automatisiert aus dem Repo heraus ausgerollt, sondern separat gegen die Ziel-Datenbank angewendet.
+
 Die vollständige Änderungshistorie wurde nach `CHANGELOG.md` ausgelagert, damit die README schneller erfassbar bleibt.
 
 - Vollständige Historie: [`CHANGELOG.md`](CHANGELOG.md)

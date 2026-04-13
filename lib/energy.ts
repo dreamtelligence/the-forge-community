@@ -1,8 +1,17 @@
 import { prisma } from '@/lib/prisma';
 import { BILLING_V2_ENABLED, usageChargeFromMetadata } from '@/lib/billing-v2';
+import {
+  createPlatformLedgerEntry,
+  recordFinanceAuditLog,
+} from '@/lib/finance-ledger';
 import { resolvePlatformAccess } from '@/lib/platform-access';
 import { getOrCreatePlatformTaxProfile } from '@/lib/platform-tax-profile';
-import type { Prisma } from '@prisma/client';
+import { generateUUID } from '@/lib/utils/uuid';
+import {
+  FinanceAuditAction,
+  FinanceAuditEntityType,
+  type Prisma,
+} from '@prisma/client';
 
 export type TokenUsage = {
   promptTokens?: number;
@@ -106,9 +115,48 @@ const recordUsageSettlement = async (params: {
   if (existing) return null;
 
   const breakdown = usageChargeFromMetadata(finalCredits, mergedMetadata);
+  const usageMetadata = {
+    ...mergedMetadata,
+    providerCostEur: breakdown.providerCostEur,
+    providerCostUsd: breakdown.providerCostUsd,
+    platformFeeEur: breakdown.platformFeeEur,
+    totalChargeEur: breakdown.chargedTotalEur,
+    platformFeePercent: breakdown.feePercent,
+    platformFeeFixedEur: breakdown.fixedFeeEur,
+    fxRate: breakdown.fxRate,
+    pricingDeltaEur: breakdown.pricingDeltaEur,
+    pricingVersion: 'billing_v2',
+  };
+  const usageId = generateUUID();
+  const expenseLedgerEntry =
+    breakdown.providerCostEur > 0
+      ? await createPlatformLedgerEntry({
+          db: tx,
+          profileId,
+          direction: 'EXPENSE',
+          source: 'CREDIT_USAGE',
+          sourceId: usageId,
+          description: `AI provider cost: ${reservation.feature || 'usage'}`,
+          amountNet: breakdown.providerCostEur,
+          taxAmount: 0,
+          amountGross: breakdown.providerCostEur,
+          currency: 'EUR',
+          userId: reservation.userId,
+          actorEmail: 'system:energy-settlement',
+          requestId: reservation.id,
+          metadata: {
+            ...usageMetadata,
+            settlementTransactionId: reservation.id,
+          },
+          auditMetadata: {
+            linkedUsageId: usageId,
+          },
+        })
+      : null;
 
   const usage = await tx.platformCreditUsage.create({
     data: {
+      id: usageId,
       profileId,
       userId: reservation.userId,
       energyTransactionId: reservation.id,
@@ -118,23 +166,41 @@ const recordUsageSettlement = async (params: {
       feature: reservation.feature || undefined,
       costAmount: breakdown.chargedTotalEur,
       currency: 'EUR',
-      metadata: {
-        ...mergedMetadata,
-        providerCostEur: breakdown.providerCostEur,
-        providerCostUsd: breakdown.providerCostUsd,
-        platformFeeEur: breakdown.platformFeeEur,
-        totalChargeEur: breakdown.chargedTotalEur,
-        platformFeePercent: breakdown.feePercent,
-        platformFeeFixedEur: breakdown.fixedFeeEur,
-        fxRate: breakdown.fxRate,
-        pricingDeltaEur: breakdown.pricingDeltaEur,
-        pricingVersion: 'billing_v2',
-      },
+      ledgerEntryId: expenseLedgerEntry?.id || undefined,
+      metadata: usageMetadata,
     },
     select: {
       id: true,
       costAmount: true,
       metadata: true,
+      ledgerEntryId: true,
+    },
+  });
+
+  await recordFinanceAuditLog({
+    db: tx,
+    entityType: FinanceAuditEntityType.PLATFORM_CREDIT_USAGE,
+    entityId: usage.id,
+    action: FinanceAuditAction.CREATED,
+    actorEmail: 'system:energy-settlement',
+    requestId: reservation.id,
+    afterState: {
+      id: usage.id,
+      profileId,
+      userId: reservation.userId,
+      energyTransactionId: reservation.id,
+      credits: finalCredits,
+      provider: provider || null,
+      model: model || null,
+      feature: reservation.feature || null,
+      costAmount: breakdown.chargedTotalEur,
+      ledgerEntryId: usage.ledgerEntryId ?? null,
+      metadata: usage.metadata,
+    },
+    metadata: {
+      providerCostEur: breakdown.providerCostEur,
+      platformFeeEur: breakdown.platformFeeEur,
+      linkedLedgerEntryId: expenseLedgerEntry?.id ?? null,
     },
   });
 

@@ -1,9 +1,11 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { recordFinanceAuditLog } from '@/lib/finance-ledger';
 import { stripe } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import { createCreditPurchaseInvoice, createSubscriptionInvoice } from '@/lib/platform-invoicing';
 import { trackServerError } from '@/lib/error-tracking';
+import { FinanceAuditAction, FinanceAuditEntityType } from '@prisma/client';
 import Stripe from 'stripe';
 
 /**
@@ -67,6 +69,37 @@ const resolveCheckoutType = (
   if (productType === 'platform_access') return 'subscription';
   if (productType === 'ai_credits') return 'credits';
   return null;
+};
+
+const extractStripeReferenceId = (value: unknown) => {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && 'id' in value && typeof value.id === 'string') {
+    return value.id;
+  }
+  return null;
+};
+
+const buildWebhookAuditState = (event: Stripe.Event) => {
+  const object = event.data.object as Stripe.Event.Data.Object & {
+    id?: string;
+    object?: string;
+    payment_intent?: string | { id?: string };
+    invoice?: string | { id?: string };
+    subscription?: string | { id?: string };
+    customer?: string | { id?: string };
+  };
+
+  return {
+    eventId: event.id,
+    eventType: event.type,
+    livemode: event.livemode,
+    objectId: typeof object?.id === 'string' ? object.id : null,
+    objectType: typeof object?.object === 'string' ? object.object : null,
+    stripePaymentIntentId: extractStripeReferenceId(object?.payment_intent),
+    stripeInvoiceId: extractStripeReferenceId(object?.invoice),
+    stripeSubscriptionId: extractStripeReferenceId(object?.subscription),
+    stripeCustomerId: extractStripeReferenceId(object?.customer),
+  };
 };
 
 export async function POST(req: Request) {
@@ -189,6 +222,19 @@ export async function POST(req: Request) {
     await prisma.webhookEvent.update({
       where: { eventId: event.id },
       data: { processedAt: new Date() },
+    });
+
+    await recordFinanceAuditLog({
+      db: prisma,
+      entityType: FinanceAuditEntityType.STRIPE_WEBHOOK,
+      entityId: event.id,
+      action: FinanceAuditAction.PROCESSED,
+      actorEmail: 'system:stripe-webhook',
+      requestId: event.id,
+      afterState: buildWebhookAuditState(event),
+      metadata: {
+        eventType: event.type,
+      },
     });
 
     console.log(`[WEBHOOK] ✅ Successfully processed: ${event.id}`);
@@ -318,6 +364,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
             status: 'SETTLED',
             feature: 'credit-purchase',
             requestId,
+            metadata: {
+              stripeSessionId: session.id,
+              stripePaymentIntentId:
+                typeof session.payment_intent === 'string' ? session.payment_intent : null,
+              stripeInvoiceId: typeof session.invoice === 'string' ? session.invoice : null,
+              priceId,
+            },
           },
         });
 
@@ -450,6 +503,12 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
             status: 'SETTLED',
             feature: 'monthly-subscription-credits',
             requestId,
+            metadata: {
+              stripeInvoiceId: invoice.id,
+              stripeSubscriptionId: subscriptionId,
+              billingReason,
+              priceId,
+            },
           },
         });
 

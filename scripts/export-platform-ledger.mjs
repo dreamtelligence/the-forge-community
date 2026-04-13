@@ -2,6 +2,7 @@ import { sql } from '@vercel/postgres';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
+import { randomUUID } from 'crypto';
 
 const envLocal = path.resolve(process.cwd(), '.env.local');
 const envPath = path.resolve(process.cwd(), '.env');
@@ -100,5 +101,34 @@ for (const row of rows.rows) {
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, lines.join('\n'), 'utf-8');
+
+await sql`
+  INSERT INTO "FinanceAuditLog" (
+    "id",
+    "entityType",
+    "entityId",
+    "action",
+    "actorEmail",
+    "requestId",
+    "metadata",
+    "createdAt"
+  )
+  VALUES (
+    ${randomUUID()},
+    'PLATFORM_LEDGER_EXPORT'::"FinanceAuditEntityType",
+    ${outPath},
+    'EXPORTED'::"FinanceAuditAction",
+    'system:platform-ledger-export',
+    ${`platform-ledger-export:${new Date().toISOString()}`},
+    ${JSON.stringify({
+      outPath,
+      rowCount: rows.rows.length,
+      profileId: profileId || null,
+      from: from || null,
+      to: to || null,
+    })}::jsonb,
+    NOW()
+  )
+`;
 
 console.log(`✅ Exported ${rows.rows.length} ledger rows to ${outPath}`);
