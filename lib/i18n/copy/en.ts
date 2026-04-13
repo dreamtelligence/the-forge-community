@@ -27,9 +27,9 @@ const copy = {
   },
   services: {
     title: 'Services',
-    count: '(16)',
+    count: '(20)',
     tabs: ['Briefing', 'Build', 'Launch', 'Scale', 'Shop'],
-    helper: 'AI‑powered, squad‑ready and built into the Forge workspace, including WMS, Trend Radar, API Keys and BYOK.',
+    helper: 'AI-powered, squad-ready and built into the Forge workspace, including Trend Hunter, AI News, Competitor Watchdog, WMS, API Keys and BYOK.',
     items: [
       {
         id: '01',
@@ -46,7 +46,7 @@ const copy = {
       {
         id: '03',
         title: 'Decision Hall',
-        description: 'Transparent voting on roadmap, budgets and milestones.',
+        description: 'Transparent squad voting on roadmap, budgets, priorities and milestones so decisions do not disappear in chat threads.',
         tab: 'Briefing',
       },
       {
@@ -69,60 +69,84 @@ const copy = {
       },
       {
         id: '07',
+        title: 'Trend Hunter & Research',
+        description: 'Use live web research to surface growing product opportunities, supplier leads and evidence-backed market signals.',
+        tab: 'Build',
+      },
+      {
+        id: '08',
         title: 'Legal Studio',
         description: 'Generate NDA, co-founder, service and supplier contract drafts from templates. Documents move through draft, review, sent and signed stages.',
         tab: 'Build',
       },
       {
-        id: '08',
+        id: '09',
+        title: 'Contract Scan',
+        description: 'Analyze contract PDFs for cost traps, risky clauses and missing details, then get counter-offers plus a ready email draft.',
+        tab: 'Build',
+      },
+      {
+        id: '10',
         title: 'Campaigns & Content',
         description: 'Set up campaigns with goals, budget and timeline, then generate matching posts, ads and newsletters as ready drafts.',
         tab: 'Launch',
       },
       {
-        id: '09',
+        id: '11',
         title: 'Media Generation',
         description: 'Create image, video and voice assets in Avatar Studio, Veo 3.1 and the prompt tab; everything auto-saves to your library.',
         tab: 'Launch',
       },
       {
-        id: '10',
+        id: '12',
         title: 'Export & Delivery',
         description: 'Export copy as files and use media assets directly for shop, social and ads.',
         tab: 'Launch',
       },
       {
-        id: '11',
+        id: '13',
         title: 'Venture Ops',
-        description: 'Run tasks, status, phases, budget and alerts in one dashboard, with transparent team decisions in Decision Hall.',
+        description: 'Run tasks, status, phases, budget and alerts in one dashboard, with decisions, priorities and approvals handled transparently in Decision Hall.',
         tab: 'Scale',
       },
       {
-        id: '12',
+        id: '14',
+        title: 'Competitor Watchdog',
+        description: 'Scan competitors automatically, detect price and offer changes, and track critical market movement per venture.',
+        tab: 'Scale',
+      },
+      {
+        id: '15',
+        title: 'AI News & Signal Feed',
+        description: 'Get daily AI news, model releases and relevant tool updates directly inside the forum instead of across ten tabs.',
+        tab: 'Scale',
+      },
+      {
+        id: '16',
         title: 'Integrations',
         description: 'Connect Notion, Slack, DocuSign, or use API keys for Zapier, Make, n8n and your own workflows.',
         tab: 'Scale',
       },
       {
-        id: '13',
+        id: '17',
         title: 'Community & Knowledge',
         description: 'Use forum, threads, DMs and AI communication for fast feedback and shared team knowledge.',
         tab: 'Scale',
       },
       {
-        id: '16',
+        id: '18',
         title: 'Forge Academy',
         description: 'Hands-on playbooks with real examples, e.g. "Forge Studio Guide", "AI Venture Playbook 2026", and "Legal Guide (DE/EU)".',
         tab: 'Scale',
       },
       {
-        id: '14',
+        id: '19',
         title: 'Warehouse Management (WMS)',
         description: 'Manage inbound, inventory, bin locations, picking, shipping and returns, including reorder prompts and a daily ops digest.',
         tab: 'Scale',
       },
       {
-        id: '15',
+        id: '20',
         title: 'Venture Shop',
         description: 'View the demo shop to see how brand, assets and copy perform live.',
         href: '/demo-shop',
@@ -147,6 +171,64 @@ const copy = {
       'We connect founders, brand and execution into a clear build system—structured, fast and measurable through launch and scale.',
     cta: 'Get started',
   },
+  marketIntelligence: {
+    eyebrow: 'Market intelligence',
+    title: 'Research, signals and decision support inside the same workspace.',
+    description:
+      'Trend Hunter, AI News, Competitor Watchdog and Contract Scan pull market movement, model updates and contract risk into Forge instead of leaving them scattered across open tabs.',
+    boardLabel: 'Intelligence stack',
+    boardIntro:
+      'Four operating surfaces that tie research, monitoring and validation directly to your venture workflow.',
+    boardTag: '',
+    cards: [
+      {
+        title: 'Trend Hunter',
+        description:
+          'Surfaces rising product opportunities through live web signals, search trends and platform momentum instead of guesswork.',
+        meta: 'live research',
+      },
+      {
+        title: 'AI News Feed',
+        description:
+          'Brings daily model releases, tool updates and relevant AI news directly into the forum and team context.',
+        meta: 'daily signal',
+      },
+      {
+        title: 'Competitor Watchdog',
+        description:
+          'Scans competitors for price, offer and assortment changes and highlights real movement instead of manual screenshots.',
+        meta: 'change detection',
+      },
+      {
+        title: 'Contract Scan',
+        description:
+          'Analyzes contract PDFs for cost traps, unclear terms and risky clauses, then returns concrete negotiation options.',
+        meta: 'pdf analysis',
+      },
+    ],
+    workflowTitle: 'What lands in the workflow',
+    workflowItems: [
+      'Trend reports with source links instead of generic hype lists',
+      'Daily AI news posts in the forum for the whole squad',
+      'Change summaries generated from competitor scans',
+      'Risk score, counter-offer and email draft from contract PDFs',
+    ],
+    sourceLabel: 'Signal sources',
+    sources: ['Web research', 'Forum feed', 'Competitor scans', 'PDF analysis', 'Venture context'],
+    panels: [
+      {
+        label: 'Forum layer',
+        title: 'AI news every morning',
+        body: 'Important model and tool updates do not disappear in chat threads. They land documented inside Forge.',
+      },
+      {
+        label: 'Founder use case',
+        title: 'From PDF to counter-offer',
+        body: 'Contracts are not just summarized. They are reviewed for commercial risk and negotiation leverage.',
+      },
+    ],
+    cta: 'Access',
+  },
   categoryScroll: {
     header: 'B2B',
     footer: 'Categories',
@@ -156,7 +238,7 @@ const copy = {
     paragraph1:
       'Branding, legal, marketing and sourcing run through Forge on one thread. You start with Brand DNA and turn it into copy, creatives and clear campaigns. In parallel, NDAs, contracts and secure processes are created—without legal chaos.',
     paragraph2:
-      'Each step feeds the next: what you define automatically flows into assets, decisions and supply workflows. Result: faster from concept to launch, measurable on the way to scale.',
+      'Each step feeds the next: what you define automatically flows into assets, decisions, market scans and supply workflows. Result: faster from concept to launch, measurable on the way to scale.',
     bullets: [
       'Brand DNA -> voice, style guide, assets',
       'Marketing -> campaigns, ads, social, media',
@@ -222,19 +304,19 @@ const copy = {
         {
           id: '01',
           title: 'Squad System',
-          description: 'Found together: find co‑founders, build teams and assign clear roles.',
+          description: 'Found together: find co-founders, build teams, assign clear roles and avoid leaving key decisions to one person.',
           images: ['/images/project-1.jpg', '/images/project-2.jpg', '/images/project-3.jpg', '/images/project-4.jpg'],
         },
         {
           id: '02',
           title: 'Decision Hall',
-          description: 'Transparent voting for roadmap, budget and milestones—like real squads.',
+          description: 'Transparent squad voting for roadmap, budget, priorities and milestones—like real teams instead of ad-hoc chat decisions.',
           images: ['/images/mission-1.jpg', '/images/mission-2.jpg', '/images/mission-3.jpg', '/images/hero-fashion.jpg'],
         },
         {
           id: '03',
           title: 'Squad Wallet',
-          description: 'Budget tracking and transaction history for maximum financial transparency.',
+          description: 'Budget tracking, transaction history and a clear basis for shared budget decisions inside the team.',
           images: ['/images/article-1.jpg', '/images/article-2.jpg', '/images/3ff7b622-be00-433d-b735-7e46c1763b80.jpg.avif', '/images/article-4.jpg'],
         },
         {
@@ -269,6 +351,18 @@ const copy = {
           description: 'NDAs, co‑founder agreements and contract checks—fast and compliant.',
           images: ['/images/location-1.jpg', '/images/location-2.jpg', '/images/location-3.jpg', '/images/location-4.jpg'],
         },
+        {
+          id: '05',
+          title: 'Trend Hunter',
+          description: 'Live web data for product trends, search signals and platform opportunities instead of guesswork.',
+          images: ['/images/project-1.jpg', '/images/project-2.jpg', '/images/project-3.jpg', '/images/project-4.jpg'],
+        },
+        {
+          id: '06',
+          title: 'Contract Scan',
+          description: 'Upload a contract PDF to review commercial risks, cost traps and negotiation options.',
+          images: ['/images/location-1.jpg', '/images/location-2.jpg', '/images/location-3.jpg', '/images/location-4.jpg'],
+        },
       ],
       Services: [
         {
@@ -285,8 +379,8 @@ const copy = {
         },
         {
           id: '03',
-          title: 'Notion Sync',
-          description: 'Notion, Slack and DocuSign workflows live—plus exports and team flow.',
+          title: 'Integrations Layer',
+          description: 'Notion, Slack and DocuSign workflows live—plus exports, notifications, provider keys and team flow.',
           images: ['/images/article-1.jpg', '/images/article-2.jpg', '/images/3ff7b622-be00-433d-b735-7e46c1763b80.jpg.avif', '/images/article-4.jpg'],
         },
         {
@@ -294,6 +388,12 @@ const copy = {
           title: 'Music & Sounds',
           description: 'Soundstripe integration for songs & SFX directly in Forge (preview & search).',
           images: ['/images/location-1.jpg', '/images/location-2.jpg', '/images/location-3.jpg', '/images/location-4.jpg'],
+        },
+        {
+          id: '05',
+          title: 'AI News & Watchdog',
+          description: 'Daily AI news in the forum plus competitor monitoring with auto scans and change detection per venture.',
+          images: ['/images/mission-1.jpg', '/images/mission-2.jpg', '/images/mission-3.jpg', '/images/hero-fashion.jpg'],
         },
       ],
       Growth: [
@@ -320,6 +420,12 @@ const copy = {
           title: 'Scalable Infrastructure',
           description: 'Vercel + Postgres + Stripe + Blob—multi‑tenant architecture with roles, RLS, limits and clear audit paths.',
           images: ['/images/location-1.jpg', '/images/location-2.jpg', '/images/location-3.jpg', '/images/location-4.jpg'],
+        },
+        {
+          id: '05',
+          title: 'Academy & Playbooks',
+          description: 'Practical guides, trainings and step-by-step courses for build, launch, AI content and legal execution.',
+          images: ['/images/article-1.jpg', '/images/article-2.jpg', '/images/3ff7b622-be00-433d-b735-7e46c1763b80.jpg.avif', '/images/article-4.jpg'],
         },
       ],
     },
@@ -433,7 +539,7 @@ const copy = {
         id: '02',
         question: 'How is money managed in squads?',
         answer:
-          'Each squad manages its own budget and revenue. You define your own rules for contributions, spending, and profit splits; the platform provides the infrastructure but does not interfere with internal agreements.',
+          'Each squad manages its own budget and revenue. You define your own rules for contributions, spending, and profit splits, and you can vote on roadmap, budgets, priorities and milestones directly inside the squad; the platform provides the infrastructure but does not interfere with internal agreements.',
       },
       {
         id: '03',
@@ -449,48 +555,54 @@ const copy = {
       },
       {
         id: '05',
+        question: 'Does the system include market, trend and news research?',
+        answer:
+          'Yes. Trend Hunter analyzes live web data for product opportunities, Competitor Watchdog scans rivals for changes, AI News posts daily model and tool updates into the forum, and Contract Scan reviews contract PDFs for risk and cost issues.',
+      },
+      {
+        id: '06',
         question: 'How do I publish my assets?',
         answer:
           'You export finished assets - images, videos, copy, PDFs - and publish them yourself to shop, social, or ads. No auto-posting, full control.',
       },
       {
-        id: '06',
+        id: '07',
         question: 'Do I own the content?',
         answer:
           'Yes, fully. You keep all rights. We only process your content technically so the platform works - storage and delivery. Nothing more.',
       },
       {
-        id: '07',
+        id: '08',
         question: 'What does the platform cost?',
         answer:
           'Platform access is EUR 49.00/month and can be canceled monthly. What an agency often charges for branding alone gives you one month of access to all studios here. AI usage is billed separately based on real consumption - via credits or your own API key (BYOK).',
       },
       {
-        id: '08',
+        id: '09',
         question: 'Is this actually working or still half-finished?',
         answer:
           'The platform is in productive use. Forge3D - a real 3D printing manufacturer - was built inside Stake & Scale from product idea to financial planning. This is not a demo project, but a live reference case.',
       },
       {
-        id: '09',
+        id: '10',
         question: 'How is my data protected?',
         answer:
           'Encrypted authentication, role-based access, tenant isolation, and traceable logs. Your data is fully isolated from other users.',
       },
       {
-        id: '10',
+        id: '11',
         question: 'How fast can I get started?',
         answer:
           'Within minutes. Request a magic link, create your venture in the wizard, start your blueprint, and begin directly in the studios. No onboarding call, no waiting.',
       },
       {
-        id: '11',
+        id: '12',
         question: 'What happens to my data if I cancel?',
         answer:
           'Your content remains yours. You can export assets; retention, archiving, and deletion follow the privacy policy and contract terms.',
       },
       {
-        id: '12',
+        id: '13',
         question: 'How does payment work?',
         answer:
           'Via Stripe. Platform access is monthly, AI usage is transparent by consumption, and credits are available as one-time purchases - no hidden costs.',
@@ -506,7 +618,7 @@ const copy = {
     leftTitleLines: ['Launch your venture', 'in under 5 minutes.'],
     leftBody: 'Request a magic link, find a squad, start the blueprint—and jump straight into the studios.',
     leftBullets: [
-      'AI workflows for brand, marketing & sourcing in one place',
+      'AI workflows for brand, marketing, sourcing, research & legal in one place',
       'Venture ops: tasks, roadmaps, decisions & team flow',
       '100% ownership, no VCs',
       'Operational security: access controls, limits, and transparent processes',

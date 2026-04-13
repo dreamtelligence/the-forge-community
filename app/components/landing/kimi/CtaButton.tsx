@@ -42,7 +42,11 @@ export default function CtaButton({
 
   const classes = cn(base, sizes[size], variants[variant], className);
 
-  const content = <span className="relative z-10">{label}</span>;
+  const content = (
+    <span className="relative z-10 inline-flex items-center justify-center leading-none translate-y-[0.5px]">
+      {label}
+    </span>
+  );
 
   if (href) {
     if (href.startsWith('#') || href.startsWith('mailto:')) {
@@ -65,5 +69,4 @@ export default function CtaButton({
     </button>
   );
 }
-
 

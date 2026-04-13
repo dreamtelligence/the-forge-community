@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useSpring, useTransform, type MotionValue } from 'framer-motion';
 import { useRef } from 'react';
 import CtaButton from '@/app/components/landing/kimi/CtaButton';
 import { useI18n } from '@/app/components/i18n/I18nProvider';
@@ -24,10 +24,16 @@ export default function Testimonials() {
     avatar: string;
   }>;
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress: rawScrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start start', 'end end'],
+    offset: ['start start', 'end start'],
   });
+  const scrollYProgress = useSpring(rawScrollYProgress, {
+    stiffness: 110,
+    damping: 26,
+    mass: 0.4,
+  });
+  const marqueeItems = Array.from({ length: 6 }, () => copy.testimonials.marquee as string);
 
   return (
     <section ref={containerRef} className="relative overflow-visible">
@@ -73,14 +79,17 @@ export default function Testimonials() {
       </div>
 
       {/* Desktop View: Flying Cards Effect */}
-      <div className="hidden lg:block relative" style={{ height: `${220 + testimonials.length * 70}vh` }}>
+      <div className="hidden lg:block relative" style={{ height: `${280 + testimonials.length * 90}vh` }}>
         <div className="sticky top-0 h-screen w-full bg-black flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
             <div className="w-full overflow-hidden">
               <div className="marquee-track text-white/95 font-bold tracking-tight">
-                <span className="marquee-text">{copy.testimonials.marquee} — {copy.testimonials.marquee}</span>
-                <span className="marquee-text">{copy.testimonials.marquee}  —</span>
-                <span className="marquee-text">{copy.testimonials.marquee}  —</span>
+                {[...marqueeItems, ...marqueeItems].map((item, index) => (
+                  <span key={`${item}-${index}`} className="marquee-text">
+                    {item}
+                    <span className="mx-10 opacity-55">—</span>
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -110,19 +119,20 @@ export default function Testimonials() {
           <style jsx>{`
             .marquee-track {
               display: flex;
-              gap: 6rem;
               width: max-content;
               font-size: clamp(3rem, 12vw, 9rem);
               white-space: nowrap;
-              animation: marquee 16s linear infinite;
+              will-change: transform;
+              animation: marquee 22s linear infinite;
             }
             .marquee-text {
               display: inline-flex;
               align-items: center;
+              flex: 0 0 auto;
             }
             @keyframes marquee {
-              0% { transform: translateX(0%); }
-              100% { transform: translateX(-33%); }
+              0% { transform: translate3d(0, 0, 0); }
+              100% { transform: translate3d(-50%, 0, 0); }
             }
           `}</style>
         </div>
@@ -141,7 +151,7 @@ interface FlyingTestimonialCardProps {
   };
   index: number;
   position: { x: string; rotate: number };
-  scrollYProgress: ReturnType<typeof useScroll>['scrollYProgress'];
+  scrollYProgress: MotionValue<number>;
   totalCards: number;
 }
 
@@ -152,16 +162,17 @@ function FlyingTestimonialCard({
   scrollYProgress,
   totalCards 
 }: FlyingTestimonialCardProps) {
-  const segment = 0.9 / totalCards;
-  const start = 0.05 + index * segment;
+  const segment = 0.86 / totalCards;
+  const start = 0.06 + index * segment;
+  const settle = start + segment * 0.18;
   const mid = start + segment * 0.5;
-  const end = start + segment * 1.1;
+  const end = start + segment * 0.92;
 
-  const translateY = useTransform(scrollYProgress, [start, mid, end], ['140%', '0%', '-140%']);
+  const translateY = useTransform(scrollYProgress, [start, mid, end], ['135%', '0%', '-135%']);
 
   const opacity = useTransform(
     scrollYProgress,
-    [start, start + 0.03, end - 0.03, end],
+    [start, settle, end - segment * 0.14, end],
     [0, 1, 1, 0]
   );
 
@@ -233,7 +244,7 @@ function ScrollIndicator({
   total 
 }: { 
   index: number; 
-  scrollYProgress: ReturnType<typeof useScroll>['scrollYProgress'];
+  scrollYProgress: MotionValue<number>;
   total: number;
 }) {
   const segmentSize = 1 / total;

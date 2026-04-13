@@ -5,6 +5,7 @@ import LaunchHero from '@/app/components/LaunchHero';
 import B2BSourcing from '@/app/components/landing/kimi/B2BSourcing';
 import Marketing from '@/app/components/landing/kimi/Marketing';
 import Services from '@/app/components/landing/kimi/Services';
+import MarketIntelligence from '@/app/components/landing/kimi/MarketIntelligence';
 import Mission from '@/app/components/landing/kimi/Mission';
 import CategoryScroll from '@/app/components/landing/kimi/CategoryScroll';
 import Practice from '@/app/components/landing/kimi/Practice';
@@ -29,6 +30,7 @@ export default function HomePage({ locale, copy }: { locale: Locale; copy: Recor
             <B2BSourcing />
             <Marketing />
             <Services />
+            <MarketIntelligence />
             <Mission />
             <CategoryScroll />
             <Practice />
