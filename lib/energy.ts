@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { BILLING_V2_ENABLED, usageChargeFromMetadata } from '@/lib/billing-v2';
+import { resolvePlatformAccess } from '@/lib/platform-access';
 import { getOrCreatePlatformTaxProfile } from '@/lib/platform-tax-profile';
 import type { Prisma } from '@prisma/client';
 
@@ -275,16 +276,11 @@ const isAdminQuotaBypassEnabled = async (userId: string) => {
 export async function getUserTier(userId: string): Promise<'free' | 'paid'> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { subscriptionTier: true, subscriptionStatus: true, role: true },
+    select: { founderNumber: true, subscriptionTier: true, subscriptionStatus: true, role: true },
   });
 
   if (!user) return 'free';
-  if (user.role === 'ADMIN') return 'paid';
-
-  const isActive = user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing';
-  const isPaidTier = user.subscriptionTier === 'pro' || user.subscriptionTier === 'enterprise';
-
-  return isActive && isPaidTier ? 'paid' : 'free';
+  return resolvePlatformAccess(user).hasPlatformAccess ? 'paid' : 'free';
 }
 
 /**

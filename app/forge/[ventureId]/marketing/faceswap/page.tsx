@@ -57,7 +57,7 @@ export default function FaceSwapPage() {
           .catch(() => null);
 
         if (!mounted) return;
-        const tier = billingRes?.subscriptionTier;
+        const tier = billingRes?.effectiveSubscriptionTier ?? billingRes?.subscriptionTier;
         if (tier === 'enterprise') {
           setTierLabel('Enterprise');
         } else if (tier === 'pro') {

@@ -6,16 +6,19 @@ interface BillingOverviewProps {
   credits: number;
   subscriptionStatus: string | null;
   subscriptionTier: string;
+  accessSource?: 'none' | 'promo' | 'stripe' | 'admin';
 }
 
 export function BillingOverview({
   credits,
   subscriptionStatus,
-  subscriptionTier
+  subscriptionTier,
+  accessSource = 'none',
 }: BillingOverviewProps) {
   const isActive = subscriptionStatus === 'active';
   const isPastDue = subscriptionStatus === 'past_due';
   const isCancelled = subscriptionStatus === 'cancelled';
+  const isPromo = accessSource === 'promo';
 
   return (
     <div className="grid md:grid-cols-3 gap-6">
@@ -63,7 +66,9 @@ export function BillingOverview({
                     : 'text-white'
             }`}>
               {isActive
-                ? 'Aktiv'
+                ? isPromo
+                  ? 'Gratis aktiv'
+                  : 'Aktiv'
                 : isPastDue
                   ? 'Zahlung fällig'
                   : isCancelled
@@ -73,7 +78,7 @@ export function BillingOverview({
           </div>
         </div>
         <div className="text-xs text-white/40">
-          {isActive && 'Dein Abo ist aktiv'}
+          {isActive && (isPromo ? 'Früher Zugang ohne aktives Stripe-Abo' : 'Dein Abo ist aktiv')}
           {isPastDue && 'Bitte aktualisiere deine Zahlungsmethode'}
           {isCancelled && 'Abo läuft aus, keine weitere Abbuchung'}
           {!isActive && !isPastDue && !isCancelled && 'Kein aktives Abonnement'}
@@ -97,7 +102,7 @@ export function BillingOverview({
         </div>
         <div className="text-xs text-white/40">
           {subscriptionTier === 'founder' && 'Free Tier'}
-          {subscriptionTier === 'pro' && 'Pro 49,00€/Monat + usage-basiert'}
+          {subscriptionTier === 'pro' && (isPromo ? 'Pro Intro Access' : 'Pro 49,00€/Monat + usage-basiert')}
           {subscriptionTier === 'enterprise' && 'Enterprise'}
         </div>
       </div>

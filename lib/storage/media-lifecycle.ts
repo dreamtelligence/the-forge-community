@@ -14,6 +14,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { del } from '@vercel/blob';
+import { resolvePlatformAccess } from '@/lib/platform-access';
 
 /**
  * Cleanup configuration
@@ -59,33 +60,25 @@ type CleanupEligibility = {
 };
 
 type OwnerPlan = {
+  founderNumber?: number | null;
   subscriptionTier?: string | null;
   subscriptionStatus?: string | null;
   role?: string | null;
 };
 
-const isActivePaid = (plan: OwnerPlan) => {
-  const status = plan.subscriptionStatus;
-  const tier = plan.subscriptionTier;
-  const isActive = status === 'active' || status === 'trialing';
-  return isActive && (tier === 'pro' || tier === 'enterprise');
-};
+const isActivePaid = (plan: OwnerPlan) => resolvePlatformAccess(plan).hasPlatformAccess;
 
 export function resolveRetentionDays(plan: OwnerPlan): number | null {
-  if (plan.role === 'ADMIN') {
+  const access = resolvePlatformAccess(plan);
+
+  if (access.effectiveSubscriptionTier === 'enterprise') {
     return LIFECYCLE_CONFIG.RETENTION_DAYS_ENTERPRISE <= 0
       ? null
       : LIFECYCLE_CONFIG.RETENTION_DAYS_ENTERPRISE;
   }
 
-  const tier = plan.subscriptionTier || 'founder';
   if (isActivePaid(plan)) {
-    if (tier === 'enterprise') {
-      return LIFECYCLE_CONFIG.RETENTION_DAYS_ENTERPRISE <= 0
-        ? null
-        : LIFECYCLE_CONFIG.RETENTION_DAYS_ENTERPRISE;
-    }
-    if (tier === 'pro') {
+    if (access.effectiveSubscriptionTier === 'pro') {
       return LIFECYCLE_CONFIG.RETENTION_DAYS_PRO <= 0
         ? null
         : LIFECYCLE_CONFIG.RETENTION_DAYS_PRO;
@@ -248,6 +241,7 @@ export async function cleanupOldMediaAssets(options?: {
         ventureId: true,
         owner: {
           select: {
+            founderNumber: true,
             subscriptionTier: true,
             subscriptionStatus: true,
             role: true,
@@ -386,6 +380,7 @@ export async function getCleanupStats(): Promise<{
       size: true,
       owner: {
         select: {
+          founderNumber: true,
           subscriptionTier: true,
           subscriptionStatus: true,
           role: true,

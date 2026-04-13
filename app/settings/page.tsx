@@ -82,11 +82,13 @@ export default function SettingsPage() {
     subscriptionStatus: string | null;
     subscriptionTier: string;
     subscriptionEndsAt: string | null;
+    platformAccessSource: 'none' | 'promo' | 'stripe' | 'admin';
   }>({
     credits: 0,
     subscriptionStatus: null,
     subscriptionTier: 'founder',
     subscriptionEndsAt: null,
+    platformAccessSource: 'none',
   });
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -138,9 +140,10 @@ export default function SettingsPage() {
         if (mounted) {
           setBillingSummary({
             credits: payload?.credits ?? 0,
-            subscriptionStatus: payload?.subscriptionStatus ?? null,
-            subscriptionTier: payload?.subscriptionTier ?? 'founder',
+            subscriptionStatus: payload?.effectiveSubscriptionStatus ?? payload?.subscriptionStatus ?? null,
+            subscriptionTier: payload?.effectiveSubscriptionTier ?? payload?.subscriptionTier ?? 'founder',
             subscriptionEndsAt: payload?.subscriptionEndsAt ?? null,
+            platformAccessSource: payload?.platformAccessSource ?? 'none',
           });
         }
       } catch (error) {
@@ -253,7 +256,9 @@ export default function SettingsPage() {
                   {billingLoading
                     ? '...'
                     : billingSummary.subscriptionStatus === 'active'
-                      ? 'Aktiv'
+                      ? billingSummary.platformAccessSource === 'promo'
+                        ? 'Gratis aktiv'
+                        : 'Aktiv'
                       : billingSummary.subscriptionStatus === 'past_due'
                         ? 'Zahlung fällig'
                         : billingSummary.subscriptionStatus === 'cancelled'
@@ -273,6 +278,11 @@ export default function SettingsPage() {
                 <div className="mt-2 text-lg font-semibold text-white capitalize">
                   {billingLoading ? '...' : billingSummary.subscriptionTier === 'founder' ? 'Free' : billingSummary.subscriptionTier}
                 </div>
+                {!billingLoading && billingSummary.platformAccessSource === 'promo' && (
+                  <div className="mt-1 text-xs text-white/40">
+                    Intro Access
+                  </div>
+                )}
               </div>
             </div>
             <div className="px-6 pb-6 flex flex-col md:flex-row gap-3">

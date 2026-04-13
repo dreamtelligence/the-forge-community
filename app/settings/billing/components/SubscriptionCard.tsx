@@ -4,24 +4,34 @@ import { useState } from 'react';
 import { CreditCard, X, ArrowUpCircle, Loader2 } from 'lucide-react';
 
 interface SubscriptionCardProps {
+  founderNumber?: number | null;
   subscriptionStatus: string | null;
   subscriptionTier: string;
   subscriptionEndsAt: Date | null;
+  accessSource?: 'none' | 'promo' | 'stripe' | 'admin';
+  introFreePlatformAccessLimit?: number;
 }
 
 export function SubscriptionCard({
+  founderNumber,
   subscriptionStatus,
   subscriptionTier,
-  subscriptionEndsAt
+  subscriptionEndsAt,
+  accessSource = 'none',
+  introFreePlatformAccessLimit = 100,
 }: SubscriptionCardProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const isPastDue = subscriptionStatus === 'past_due';
   const isCancelled = subscriptionStatus === 'cancelled';
+  const isPromoAccess = accessSource === 'promo';
+  const isManagedByStripe = accessSource === 'stripe';
+  const isAdminAccess = accessSource === 'admin';
   const hasActiveSubscription =
-    subscriptionStatus === 'active' ||
+    (subscriptionStatus === 'active' && !isPromoAccess && !isAdminAccess) ||
     (isCancelled && subscriptionEndsAt && new Date(subscriptionEndsAt) > new Date());
+  const hasPositiveAccess = isPromoAccess || isAdminAccess || hasActiveSubscription;
   const subscriptionEndsAtLabel = subscriptionEndsAt
     ? new Intl.DateTimeFormat('de-DE', {
         year: 'numeric',
@@ -97,10 +107,10 @@ export function SubscriptionCard({
     <div className="glass-card rounded-2xl border border-white/10 p-8">
       <div className="flex items-center gap-3 mb-6">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-          hasActiveSubscription ? 'bg-green-500/10' : isPastDue ? 'bg-red-500/10' : 'bg-white/5'
+          hasPositiveAccess ? 'bg-green-500/10' : isPastDue ? 'bg-red-500/10' : 'bg-white/5'
         }`}>
           <CreditCard className={`w-6 h-6 ${
-            hasActiveSubscription ? 'text-green-500' : isPastDue ? 'text-red-500' : 'text-white/40'
+            hasPositiveAccess ? 'text-green-500' : isPastDue ? 'text-red-500' : 'text-white/40'
           }`} />
         </div>
         <div>
@@ -108,7 +118,11 @@ export function SubscriptionCard({
             Abonnement
           </div>
           <h2 className="text-2xl font-instrument-serif text-white">
-            {hasActiveSubscription
+            {isPromoAccess
+              ? 'Intro Access'
+              : isAdminAccess
+                ? 'Admin Access'
+                : hasActiveSubscription
               ? isCancelled
                 ? 'Kündigung geplant'
                 : 'Pro Plan'
@@ -119,7 +133,41 @@ export function SubscriptionCard({
         </div>
       </div>
 
-      {hasActiveSubscription && (
+      {isPromoAccess && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-white/40">Status</span>
+            <span className="font-medium text-green-500">Gratis freigeschaltet</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-white/40">Plan</span>
+            <span className="text-white capitalize">{subscriptionTier}</span>
+          </div>
+          <div className="text-sm text-white/60">
+            Founder #{founderNumber ?? '000'} gehört zu den ersten {introFreePlatformAccessLimit} Nutzern und kann
+            die Plattform aktuell kostenlos verwenden. Stripe und Checkout bleiben unverändert verfügbar, sind für
+            diesen Zugang aber nicht nötig.
+          </div>
+        </div>
+      )}
+
+      {isAdminAccess && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-white/40">Status</span>
+            <span className="font-medium text-green-500">Admin</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-white/40">Plan</span>
+            <span className="text-white capitalize">{subscriptionTier}</span>
+          </div>
+          <div className="text-sm text-white/60">
+            Admin-Zugriff ist freigeschaltet. Billing-Portal und Kündigung sind hier nicht relevant.
+          </div>
+        </div>
+      )}
+
+      {hasActiveSubscription && isManagedByStripe && (
         <div className="space-y-4">
           <div className="flex items-center justify-between text-sm">
             <span className="text-white/40">Status</span>
@@ -170,7 +218,7 @@ export function SubscriptionCard({
         </div>
       )}
 
-      {isPastDue && (
+      {isPastDue && isManagedByStripe && (
         <div className="space-y-4">
           <p className="text-sm text-red-400">
             Deine letzte Zahlung ist fehlgeschlagen. Bitte aktualisiere deine Zahlungsmethode.
@@ -189,7 +237,7 @@ export function SubscriptionCard({
         </div>
       )}
 
-      {!hasActiveSubscription && !isPastDue && (
+      {!hasActiveSubscription && !isPastDue && !isPromoAccess && !isAdminAccess && (
         <div className="space-y-4">
           <p className="text-sm text-white/60">
             Upgrade auf Pro für 49,00€/Monat. KI-Usage wird transparent separat berechnet.

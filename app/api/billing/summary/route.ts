@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { parseUsageBreakdownFromMetadata } from '@/lib/billing-v2';
+import { resolvePlatformAccess } from '@/lib/platform-access';
 
 export async function GET() {
   const session = await auth();
@@ -15,6 +16,8 @@ export async function GET() {
     select: {
       id: true,
       credits: true,
+      founderNumber: true,
+      role: true,
       subscriptionStatus: true,
       subscriptionTier: true,
       subscriptionEndsAt: true,
@@ -24,6 +27,8 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
+
+  const access = resolvePlatformAccess(user);
 
   const usageFrom = new Date();
   usageFrom.setDate(usageFrom.getDate() - 30);
@@ -55,6 +60,13 @@ export async function GET() {
 
   return NextResponse.json({
     credits: user.credits,
+    founderNumber: access.founderNumber,
+    hasPlatformAccess: access.hasPlatformAccess,
+    effectiveSubscriptionStatus: access.effectiveSubscriptionStatus,
+    effectiveSubscriptionTier: access.effectiveSubscriptionTier,
+    platformAccessSource: access.source,
+    isIntroOffer: access.isIntroOffer,
+    introFreePlatformAccessLimit: access.introFreePlatformAccessLimit,
     subscriptionStatus: user.subscriptionStatus,
     subscriptionTier: user.subscriptionTier,
     subscriptionEndsAt: user.subscriptionEndsAt,

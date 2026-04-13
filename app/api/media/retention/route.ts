@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { LIFECYCLE_CONFIG, resolveRetentionDays } from '@/lib/storage/media-lifecycle';
+import { resolvePlatformAccess } from '@/lib/platform-access';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -15,6 +16,7 @@ export async function GET() {
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: {
+      founderNumber: true,
       subscriptionTier: true,
       subscriptionStatus: true,
       role: true,
@@ -26,9 +28,10 @@ export async function GET() {
   }
 
   const currentRetentionDays = resolveRetentionDays(user);
+  const access = resolvePlatformAccess(user);
 
   return NextResponse.json({
-    currentTier: user.role === 'ADMIN' ? 'enterprise' : user.subscriptionTier || 'founder',
+    currentTier: access.effectiveSubscriptionTier,
     currentRetentionDays,
     tiers: {
       free: LIFECYCLE_CONFIG.RETENTION_DAYS_FREE,

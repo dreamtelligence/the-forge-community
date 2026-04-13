@@ -77,18 +77,13 @@ export default function LipSyncPage() {
     let mounted = true;
     const loadTier = async () => {
       try {
-        const [meRes, billingRes] = await Promise.all([
-          fetch('/api/me').then(res => (res.ok ? res.json() : null)).catch(() => null),
-          fetch('/api/billing/summary').then(res => (res.ok ? res.json() : null)).catch(() => null),
-        ]);
+        const billingRes = await fetch('/api/billing/summary')
+          .then(res => (res.ok ? res.json() : null))
+          .catch(() => null);
 
         if (!mounted) return;
-        const role = meRes?.role;
-        const status = billingRes?.subscriptionStatus;
-        const tier = billingRes?.subscriptionTier;
-        const active = status === 'active' || status === 'trialing';
-        const paidTier = tier === 'pro' || tier === 'enterprise';
-        const paid = role === 'ADMIN' || (active && paidTier);
+        const tier = billingRes?.effectiveSubscriptionTier ?? billingRes?.subscriptionTier;
+        const paid = Boolean(billingRes?.hasPlatformAccess);
 
         setIsPaid(paid);
         if (!paid) {

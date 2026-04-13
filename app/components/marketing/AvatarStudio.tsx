@@ -51,9 +51,10 @@ export function AvatarStudio({ ventureId }: AvatarStudioProps) {
   useEffect(() => {
     const loadTier = async () => {
       const res = await fetch('/api/billing/summary').then(r => r.json()).catch(() => null);
-      const paid = res?.subscriptionTier === 'pro' || res?.subscriptionTier === 'enterprise';
+      const paid = Boolean(res?.hasPlatformAccess);
+      const tier = res?.effectiveSubscriptionTier ?? res?.subscriptionTier;
       setIsPaid(paid);
-      setTierLabel(paid ? 'Pro' : 'Free');
+      setTierLabel(tier === 'enterprise' ? 'Enterprise' : paid ? 'Pro' : 'Free');
     };
     loadTier();
     return () => {

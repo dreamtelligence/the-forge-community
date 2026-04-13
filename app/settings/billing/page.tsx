@@ -9,6 +9,7 @@ import { CreditBalanceCard } from './components/CreditBalanceCard';
 import { InvoiceList } from './components/InvoiceList';
 import { UsageBreakdownCard } from './components/UsageBreakdownCard';
 import { parseUsageBreakdownFromMetadata } from '@/lib/billing-v2';
+import { resolvePlatformAccess } from '@/lib/platform-access';
 
 export default async function BillingPage() {
   const session = await auth();
@@ -24,7 +25,10 @@ export default async function BillingPage() {
       name: true,
       email: true,
       credits: true,
+      founderNumber: true,
       stripeCustomerId: true,
+      stripeSubscriptionId: true,
+      role: true,
       subscriptionStatus: true,
       subscriptionTier: true,
       subscriptionEndsAt: true,
@@ -39,6 +43,8 @@ export default async function BillingPage() {
   if (!user) {
     redirect('/login');
   }
+
+  const access = resolvePlatformAccess(user);
 
   const recentGrants = user.energyTransactions.map((grant) => ({
     id: grant.id,
@@ -139,15 +145,19 @@ export default async function BillingPage() {
           {/* Overview Cards */}
           <BillingOverview
             credits={user.credits}
-            subscriptionStatus={user.subscriptionStatus}
-            subscriptionTier={user.subscriptionTier}
+            subscriptionStatus={access.effectiveSubscriptionStatus}
+            subscriptionTier={access.effectiveSubscriptionTier}
+            accessSource={access.source}
           />
 
           {/* Subscription Management */}
           <SubscriptionCard
-            subscriptionStatus={user.subscriptionStatus}
-            subscriptionTier={user.subscriptionTier}
+            founderNumber={access.founderNumber}
+            subscriptionStatus={access.effectiveSubscriptionStatus}
+            subscriptionTier={access.effectiveSubscriptionTier}
             subscriptionEndsAt={user.subscriptionEndsAt}
+            accessSource={access.source}
+            introFreePlatformAccessLimit={access.introFreePlatformAccessLimit}
           />
 
           {/* Credit Balance & Purchase */}
