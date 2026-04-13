@@ -2,23 +2,15 @@
 
 import { FormEvent, Suspense, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, CheckCircle2, Mail, Shield } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useI18n } from '@/app/components/i18n/I18nProvider';
-import {
-  getBetaApplicationEmail,
-  getClosedBetaLoginMessage,
-  isPublicLoginEnabled,
-} from '@/lib/beta-access';
 import { isCaseworkerCredentialsEnabled } from '@/lib/caseworker-login';
-
-type Locale = 'de' | 'en';
 
 function mapAuthError(
   code: string | null,
-  locale: Locale,
   fallback: string,
   verificationError: string
 ): string | null {
@@ -30,12 +22,6 @@ function mapAuthError(
     return verificationError;
   }
 
-  if (code === 'BetaAccess' || code === 'AccessDenied') {
-    return locale === 'en'
-      ? 'Your email is not approved for closed beta access.'
-      : 'Deine E-Mail ist nicht für den Closed-Beta-Zugang freigeschaltet.';
-  }
-
   return fallback;
 }
 
@@ -43,9 +29,6 @@ function LoginForm() {
   const { copy, link, locale } = useI18n();
   const searchParams = useSearchParams();
   const loginCopy = copy?.login ?? {};
-  const betaEmail = getBetaApplicationEmail();
-  const publicLoginEnabled = isPublicLoginEnabled();
-  const closedBetaMessage = getClosedBetaLoginMessage(locale);
 
   const [email, setEmail] = useState(searchParams.get('email') ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +44,6 @@ function LoginForm() {
     () =>
       mapAuthError(
         searchParams.get('error'),
-        locale,
         loginCopy.errorGeneric || 'Something went wrong.',
         loginCopy.errorVerification || 'Verification failed.'
       ),
@@ -96,7 +78,6 @@ function LoginForm() {
       if (result?.error) {
         const message = mapAuthError(
           result.error,
-          locale,
           loginCopy.errorGeneric || 'Something went wrong.',
           loginCopy.errorVerification || 'Verification failed.'
         );
@@ -168,18 +149,6 @@ function LoginForm() {
         <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
 
         <form onSubmit={handleEmailSubmit} className="relative z-10 space-y-6">
-          {!publicLoginEnabled && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-xs text-red-300 leading-relaxed uppercase tracking-wider">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>
-                {closedBetaMessage}{' '}
-                {locale === 'en'
-                  ? 'Approved admin/caseworker addresses can still request a login link.'
-                  : 'Freigeschaltete Admin-/Sachbearbeiter-Adressen können sich trotzdem einloggen.'}
-              </span>
-            </div>
-          )}
-
           {effectiveError && (
             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-xs text-red-300 leading-relaxed">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -275,21 +244,6 @@ function LoginForm() {
             </form>
           </div>
         )}
-
-        <div className="mt-10 text-center relative z-10 border-t border-white/5 pt-8">
-          <p className="text-xs text-white/30 uppercase tracking-widest font-bold">
-            {loginCopy.applyPrompt}{' '}
-            <Link href={link('/#apply')} className="text-[#FF9900] hover:underline ml-2 whitespace-nowrap">
-              {loginCopy.applyCta}
-            </Link>
-          </p>
-          <p className="mt-4 inline-flex items-center gap-2 text-[10px] text-white/40 uppercase tracking-[0.2em]">
-            <Mail className="h-3.5 w-3.5" />
-            <a href={`mailto:${betaEmail}`} className="text-[#FF9900] hover:underline">
-              {betaEmail}
-            </a>
-          </p>
-        </div>
       </div>
 
       <div className="mt-12 text-center flex items-center justify-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-white/20">

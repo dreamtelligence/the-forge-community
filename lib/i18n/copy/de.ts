@@ -549,8 +549,8 @@ const copy = {
   },
   login: {
     title: 'Founder-Login',
-    subtitle: 'Exklusiver Zugang für Operatoren.',
-    emailLabel: 'Identitäts-Token (E-Mail)',
+    subtitle: 'Melde dich per Magic Link an.',
+    emailLabel: 'E-Mail-Adresse',
     emailPlaceholder: 'founder@stakeandscale.de',
     submitIdle: 'Magic Link anfordern',
     submitLoading: 'Übertrage...',

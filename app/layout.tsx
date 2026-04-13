@@ -3,7 +3,6 @@ import { Providers } from "@/app/components/Providers";
 import StructuredData from "@/app/components/StructuredData";
 import { CookieBanner } from "@/components/cookie-banner";
 import Script from "next/script";
-import Link from "next/link";
 import "./globals.css";
 import { siteConfig } from "@/lib/seo";
 import { cookies } from "next/headers";
@@ -129,10 +128,6 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   const locale = cookieStore.get('forge_locale')?.value === 'en' ? 'en' : 'de';
-  const legalWarningText =
-    locale === 'en'
-      ? 'Legal notice: IP infringements and unauthorized imitation of essential parts of this platform are pursued.'
-      : 'Rechtlicher Hinweis: Schutzrechtsverletzungen und unzulässige Nachahmung wesentlicher Teile dieser Plattform werden verfolgt.';
 
   return (
     <html lang={locale}>
@@ -209,20 +204,6 @@ export default async function RootLayout({
         <Providers>
           {children}
         </Providers>
-        <div className="border-t border-amber-300/30 bg-amber-300/10">
-          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-100 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <p className="leading-relaxed">{legalWarningText}</p>
-            <div className="flex items-center gap-3 text-[10px]">
-              <Link href="/legal/agb" className="underline decoration-amber-200/60 underline-offset-4 hover:text-white">
-                {locale === 'en' ? 'Terms' : 'AGB'}
-              </Link>
-              <span className="opacity-50">•</span>
-              <Link href="/legal/impressum" className="underline decoration-amber-200/60 underline-offset-4 hover:text-white">
-                {locale === 'en' ? 'Imprint' : 'Impressum'}
-              </Link>
-            </div>
-          </div>
-        </div>
         <CookieBanner />
       </body>
     </html>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CtaButton from '@/app/components/landing/kimi/CtaButton';
 import { cn } from '@/lib/utils';
@@ -48,11 +48,18 @@ export default function Pricing() {
   const { copy, link, locale } = useI18n();
   const tabs = copy?.pricing?.tabs ?? [];
   const loginPlan = copy?.pricing?.loginPlan ?? {};
-  const membershipPlan = copy?.pricing?.membershipPlan ?? {};
   const creditPacks = copy?.pricing?.creditPacks ?? [];
   const creditsCopy = copy?.pricing?.credits ?? {};
   const transparencyCopy = copy?.pricing?.transparency ?? {};
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]['id']>(tabs[0]?.id || 'login');
+  const visibleTabs = useMemo(
+    () => tabs.filter((tab: { id: string }) => tab.id !== 'membership'),
+    [tabs]
+  );
+  const landingSubheadline =
+    locale === 'en'
+      ? 'Start free, buy credits when you need usage, and see costs transparently before each job.'
+      : 'Starte kostenlos, buche Credits bei Bedarf und sieh die Kosten vor jedem Job transparent ein.';
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]['id']>(visibleTabs[0]?.id || 'login');
 
   return (
     <section id="pricing" className="py-20 lg:py-24 bg-black relative overflow-hidden">
@@ -79,14 +86,14 @@ export default function Pricing() {
             transition={{ delay: 0.1 }}
             className="text-white/40 mt-4 max-w-xl mx-auto text-base"
           >
-            {copy?.pricing?.subheadline}
+            {landingSubheadline}
           </motion.p>
         </div>
 
         {/* Tab Switcher */}
         <div className="mb-12 -mx-6 px-6 overflow-x-auto md:overflow-visible md:flex md:justify-center [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="inline-flex min-w-max rounded-xl bg-white/[0.03] p-1 border border-white/5 backdrop-blur-md">
-            {tabs.map((tab: { id: string; label: string }) => (
+            {visibleTabs.map((tab: { id: string; label: string }) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -146,57 +153,6 @@ export default function Pricing() {
                       locale={locale}
                       wrapperClassName="w-full"
                       className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-transparent px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all duration-300"
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'membership' && (
-              <motion.div 
-                key="membership"
-                initial={{ opacity: 0, scale: 0.99 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.01 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="max-w-lg mx-auto"
-              >
-                <div className="relative p-8 lg:p-10 rounded-[2rem] border border-royal/20 bg-white/[0.04] backdrop-blur-2xl shadow-[0_0_60px_-20px_rgba(255,153,0,0.1)] group">
-                  {membershipPlan.badge && (
-                    <div className="absolute -top-3 right-8">
-                      <span className="text-[8px] font-black uppercase tracking-[0.25em] bg-royal text-white px-4 py-1.5 rounded-full shadow-xl">
-                        {membershipPlan.badge}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="relative z-10">
-                    <div className="mb-8">
-                      <div className="flex items-baseline gap-2 mb-3">
-                        <span className="text-5xl font-bold text-white tracking-tighter">{membershipPlan.price}€</span>
-                        <span className="text-white/30 text-base tracking-[0.15em] uppercase font-light">{membershipPlan.period}</span>
-                      </div>
-                      <h3 className="text-white text-2xl font-semibold mb-2 tracking-tight">{membershipPlan.name}</h3>
-                      <p className="text-white/40 text-sm leading-relaxed">{membershipPlan.description}</p>
-                    </div>
-
-                    <div className="h-px w-full bg-gradient-to-r from-royal/20 via-royal/10 to-transparent mb-8" />
-
-                    <ul className="space-y-4 mb-10">
-                      {membershipPlan.features?.map((feature: string) => (
-                        <li key={feature} className="flex items-center gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-royal/40 shadow-[0_0_8px_rgba(255,153,0,0.4)]" />
-                          <span className="text-white/80 text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <CtaButton
-                      href={link(membershipPlan.href)}
-                      label={membershipPlan.cta}
-                      variant="primary"
-                      size="md"
-                      className="w-full py-6 text-[10px] uppercase tracking-[0.2em] font-black bg-white text-black hover:bg-neutral-200 border-none shadow-[0_15px_30px_-10px_rgba(255,255,255,0.15)]"
                     />
                   </div>
                 </div>

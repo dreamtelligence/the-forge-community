@@ -1,20 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { useI18n } from '@/app/components/i18n/I18nProvider';
 import BetaLoginButton from '@/app/components/ui/BetaLoginButton';
-import {
-  getClosedBetaLoginMessage,
-  getClosedBetaLoginShortLabel,
-} from '@/lib/beta-access';
 
 export default function SignupCard() {
   const { copy, link, locale } = useI18n();
-  const betaMessage = getClosedBetaLoginMessage(locale);
-  const betaShortLabel = getClosedBetaLoginShortLabel(locale);
-  const [errorMessage, setErrorMessage] = useState(betaMessage);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [sentToEmail, setSentToEmail] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     agreeToTerms: false,
@@ -28,9 +25,43 @@ export default function SignupCard() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(betaMessage);
+
+    const normalizedEmail = formData.email.trim();
+    if (!formData.agreeToTerms) {
+      setErrorMessage(copy?.signup?.errorTerms || 'Bitte akzeptiere die Nutzungsbedingungen.');
+      setSentToEmail(null);
+      return;
+    }
+
+    if (!normalizedEmail || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const result = await signIn('resend', {
+        email: normalizedEmail,
+        redirect: false,
+        callbackUrl: '/forum',
+      });
+
+      if (result?.error) {
+        setErrorMessage(copy?.signup?.errorSend || 'Fehler beim Senden des Magic Links.');
+        setSentToEmail(null);
+        return;
+      }
+
+      setSentToEmail(normalizedEmail);
+    } catch {
+      setErrorMessage(copy?.signup?.errorSystem || 'Ein Systemfehler ist aufgetreten.');
+      setSentToEmail(null);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,7 +113,16 @@ export default function SignupCard() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email Field */}
+          {sentToEmail && (
+            <div className="flex items-center gap-2 text-green-300 text-xs font-semibold bg-green-500/10 border border-green-500/20 p-3 rounded-lg">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>
+                {copy?.signup?.successTitle || 'Link gesendet'}: {copy?.signup?.successBody || 'Prüfe deinen Posteingang für den Zugriff.'}{' '}
+                <span className="text-green-200">{sentToEmail}</span>
+              </span>
+            </div>
+          )}
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-white/70 mb-2">
               {copy?.signup?.emailLabel}
@@ -94,13 +134,12 @@ export default function SignupCard() {
               value={formData.email}
               onChange={handleInputChange}
               placeholder={copy?.signup?.emailPlaceholder}
-              disabled
-              className="w-full cursor-not-allowed px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white/50 outline-none transition-all placeholder:text-white/20"
+              autoComplete="email"
+              className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white outline-none transition-all placeholder:text-white/20 focus:border-[#FF9900]/60"
               required
             />
           </div>
 
-          {/* Terms Checkbox */}
           <div className="flex items-center space-x-3">
             <input
               type="checkbox"
@@ -108,11 +147,10 @@ export default function SignupCard() {
               name="agreeToTerms"
               checked={formData.agreeToTerms}
               onChange={handleInputChange}
-              disabled
-              className="w-4 h-4 bg-white/5 border-white/20 text-royal rounded opacity-40"
+              className="w-4 h-4 bg-white/5 border-white/20 text-royal rounded"
               required
             />
-            <label htmlFor="agreeToTerms" className="text-sm text-white/50">
+            <label htmlFor="agreeToTerms" className="text-sm text-white/70">
               {copy?.signup?.termsPrefix}{' '}
               <Link href={link('/legal/agb')} className="text-white font-medium hover:underline">
                 {copy?.signup?.termsLink}
@@ -127,14 +165,16 @@ export default function SignupCard() {
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
-            disabled
-            title={betaMessage}
-            className="w-full cursor-not-allowed bg-white/10 text-white/60 py-4 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+            disabled={isSubmitting || !formData.email.trim()}
+            className="w-full bg-[#FF9900] text-black py-4 px-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {betaShortLabel}
+            {isSubmitting
+              ? locale === 'en'
+                ? 'Sending...'
+                : 'Sende...'
+              : copy?.signup?.submit}
           </button>
         </form>
       </div>

@@ -148,7 +148,6 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   debug: process.env.NODE_ENV === 'development',
   providers,
   callbacks: {
-    // Closed beta access control is enforced here.
     ...authConfig.callbacks,
     async signIn({ user }) {
       if (!user?.email) return false;

@@ -1,10 +1,7 @@
 const DEFAULT_BETA_APPLICATION_EMAIL = 'info@stakeandscale.de';
 
 export function isPublicLoginEnabled(): boolean {
-  return (
-    process.env.PUBLIC_LOGIN_ENABLED === '1' ||
-    process.env.NEXT_PUBLIC_PUBLIC_LOGIN_ENABLED === '1'
-  );
+  return true;
 }
 
 export function isPublicLoginDisabled(): boolean {
@@ -16,13 +13,12 @@ export function getBetaApplicationEmail(): string {
 }
 
 export function getClosedBetaLoginMessage(locale: 'de' | 'en' = 'de'): string {
-  const email = getBetaApplicationEmail();
   if (locale === 'en') {
-    return `Closed beta: login is currently disabled. Apply via email at ${email}.`;
+    return 'Log in with your email to continue.';
   }
-  return `Geschlossene Beta: Login ist aktuell deaktiviert. Bewirb dich per E-Mail an ${email}.`;
+  return 'Logge dich mit deiner E-Mail ein, um fortzufahren.';
 }
 
 export function getClosedBetaLoginShortLabel(locale: 'de' | 'en' = 'de'): string {
-  return locale === 'en' ? 'Closed Beta' : 'Beta geschlossen';
+  return locale === 'en' ? 'Log in' : 'Login';
 }
