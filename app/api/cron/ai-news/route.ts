@@ -42,7 +42,38 @@ const ALLOWED_DOMAINS = [
   'azure.microsoft.com',
   'nvidia.com',
   'x.ai',
-  'arxiv.org'
+  'arxiv.org',
+  'cnbc.com',
+  'reuters.com',
+  'techcrunch.com',
+  'theverge.com',
+  'venturebeat.com',
+  'arstechnica.com',
+  'wired.com',
+  'semafor.com',
+  'bloomberg.com',
+  'ft.com',
+  'zdnet.com'
+];
+const PRIMARY_SEARCH_QUERY = [
+  'AI news new model release',
+  'OpenAI Anthropic Google DeepMind Meta Llama Mistral xAI model',
+  'AI safety policy regulation model release',
+  'AI research paper breakthrough',
+  'AI agent tool release'
+].join(' ');
+const OFFICIAL_SOURCE_QUERIES = [
+  'site:openai.com OpenAI model release OR research OR launch',
+  'site:anthropic.com Claude model release OR research OR launch',
+  'site:ai.google.dev Gemini release OR model OR launch',
+  'site:deepmind.google DeepMind Gemini research OR launch',
+  'site:about.meta.com Meta Llama AI release OR research',
+  'site:x.ai Grok model release OR launch',
+  'site:mistral.ai Mistral model release OR launch',
+  'site:cohere.com Cohere model release OR launch',
+  'site:huggingface.co Hugging Face release OR research',
+  'site:nvidia.com AI model release OR research',
+  'site:microsoft.com Copilot AI model release OR research'
 ];
 
 const getBerlinParts = (date = new Date()) => {
@@ -70,6 +101,23 @@ const buildContext = (items: Array<{ title: string; url: string; snippet: string
       return `[${index + 1}] ${item.title}${published}\n${item.url}\n${item.snippet}`.trim();
     })
     .join('\n\n');
+
+const runSearchQueries = async (queries: string[], count: number) => {
+  const settled = await Promise.allSettled(queries.map((query) => braveSearch(query, count)));
+  const successful = settled.filter(
+    (result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof braveSearch>>> =>
+      result.status === 'fulfilled'
+  );
+
+  if (successful.length === 0) {
+    const firstFailure = settled.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected'
+    );
+    throw firstFailure?.reason ?? new Error('Brave Search returned no results');
+  }
+
+  return successful.flatMap((result) => result.value.results || []);
+};
 
 const parseJson = (value: string) => {
   if (!value) return null;
@@ -151,33 +199,26 @@ const isRecent = (published?: string | null, maxHours = MAX_AGE_HOURS) => {
   return hours <= maxHours;
 };
 
-const enforceUmlauts = (value: string) => {
-  if (!value) return value;
-  const urls: string[] = [];
-  const withoutUrls = value.replace(/https?:\/\/[^\s)]+/g, (match) => {
-    const id = urls.length;
-    urls.push(match);
-    return `__URL_${id}__`;
-  });
-
-  let output = withoutUrls
-    .replace(/AE/g, 'Ä')
-    .replace(/OE/g, 'Ö')
-    .replace(/UE/g, 'Ü')
-    .replace(/Ae/g, 'Ä')
-    .replace(/Oe/g, 'Ö')
-    .replace(/Ue/g, 'Ü')
-    .replace(/ae/g, 'ä')
-    .replace(/oe/g, 'ö')
-    .replace(/ue/g, 'ü');
-
-  output = output.replace(/__URL_(\d+)__/g, (match, id) => urls[Number(id)] ?? match);
-  return output;
-};
-
 const stripHtml = (value: string) => {
   if (!value) return value;
   return value.replace(/<[^>]*>/g, '').trim();
+};
+
+const filterNewsResults = (
+  rawResults: Array<{ title: string; url: string; snippet: string; published?: string | null }>,
+  recentUrls: Set<string>
+) => {
+  const dedupe = new Set<string>();
+
+  return rawResults.filter((item) => {
+    if (!item?.url) return false;
+    if (!isAllowedSource(item.url)) return false;
+    if (!isRecent(item.published, MAX_AGE_HOURS)) return false;
+    if (recentUrls.has(item.url)) return false;
+    if (dedupe.has(item.url)) return false;
+    dedupe.add(item.url);
+    return true;
+  });
 };
 
 const buildFallbackPost = (items: Array<{ title: string; url: string; snippet: string }>) => {
@@ -194,6 +235,38 @@ const buildFallbackPost = (items: Array<{ title: string; url: string; snippet: s
   return {
     title: 'Daily AI News (Fallback)',
     body: `Kurzüberblick (Auto-Fallback, weil die AI-Antwort nicht parsebar war).\n\n${body}`
+  };
+};
+
+const proofreadGermanNewsPost = async (title: string, body: string) => {
+  const proofread = await callAI([
+    {
+      role: 'system',
+      content: `Du bist ein deutscher Schlussredakteur für AI-News.
+Korrigiere ausschließlich Rechtschreibung, Grammatik, Zeichensetzung und unnatürliche Formulierungen.
+Erhalte Ton, Aussage, Struktur, Markdown, Zitate, Quellenmarkierungen wie [1] und alle URLs exakt.
+Nutze Umlaute und ß nur dort, wo sie sprachlich korrekt sind.
+Verändere keine Eigennamen, Produktnamen oder Fakten.
+Gib NUR gültiges JSON zurück:
+{
+  "title": string,
+  "body": string
+}`
+    },
+    {
+      role: 'user',
+      content: JSON.stringify({ title, body })
+    }
+  ], { maxTokens: 1600, temperature: 0 });
+
+  const parsed = parseJson(proofread.content);
+  if (!parsed) {
+    return { title, body };
+  }
+
+  return {
+    title: String(parsed.title || title).trim(),
+    body: String(parsed.body || body).trim(),
   };
 };
 
@@ -238,16 +311,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const query = [
-      'AI news new model release',
-      'OpenAI Anthropic Google DeepMind Meta Llama Mistral xAI model',
-      'AI safety policy regulation model release',
-      'AI research paper breakthrough',
-      'AI agent tool release'
-    ].join(' ');
-
-    const search = await braveSearch(query, 12);
-    const rawResults = search.results || [];
+    const rawResults = await runSearchQueries([PRIMARY_SEARCH_QUERY], 12);
 
     const recentUrls = new Set<string>();
     for (const post of recentPosts) {
@@ -257,18 +321,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const dedupe = new Set<string>();
-    const results = rawResults.filter((item) => {
-      if (!item?.url) return false;
-      if (!isAllowedSource(item.url)) return false;
-      if (!isRecent(item.published, MAX_AGE_HOURS)) return false;
-      if (recentUrls.has(item.url)) return false;
-      if (dedupe.has(item.url)) return false;
-      dedupe.add(item.url);
-      return true;
-    });
+    let results = filterNewsResults(rawResults, recentUrls);
 
     if (results.length === 0) {
+      const officialRawResults = await runSearchQueries(OFFICIAL_SOURCE_QUERIES, 4);
+      results = filterNewsResults(officialRawResults, recentUrls);
+    }
+
+    if (results.length === 0) {
+      console.info('[Cron] AI news skipped after source filtering', {
+        rawResults: rawResults.length,
+        allowedDomains: ALLOWED_DOMAINS.length,
+        maxAgeHours: MAX_AGE_HOURS,
+      });
       return NextResponse.json({
         success: true,
         skipped: true,
@@ -279,8 +344,9 @@ export async function GET(request: NextRequest) {
     const context = buildContext(results);
 
     const systemPrompt = `Du bist Orion Daily, ein frecher, junger, mutiger AI-News-Host.
-Schreibe auf Deutsch. Verwende KEINE ue/oe/ae Schreibweise; nutze Umlaute oder umschreibe.
-Entscheide selbst, ob heute eine kurze News reicht oder ein laengerer Report noetig ist.
+Schreibe idiomatisches, korrektes Deutsch mit natürlicher Rechtschreibung.
+Nutze Umlaute und ß nur dort, wo sie sprachlich korrekt sind. Erfinde keine Umlaute in Wörtern wie "neu", "Steuerung" oder "Freude".
+Entscheide selbst, ob heute eine kurze News reicht oder ein längerer Report nötig ist.
 Wenn die Newslage schwach ist oder nichts Wichtiges passiert ist, setze hasImportant=false.
 Wenn du postest: Ziel ist ca. 5 Minuten Lesezeit, aber nur wenn genug Material da ist.
 Format: Markdown, klare Sections, knackige Headlines.
@@ -327,7 +393,7 @@ Kein Markdown, keine Codeblocks.`;
 
     if (!parsed || typeof parsed.hasImportant !== 'boolean') {
       const fallback = buildFallbackPost(results);
-      const content = `# ${enforceUmlauts(fallback.title)}\n\n${enforceUmlauts(fallback.body)}`.trim();
+      const content = `# ${fallback.title}\n\n${fallback.body}`.trim();
       const post = await prisma.forumPost.create({
         data: {
           authorName: AUTHOR_NAME,
@@ -354,12 +420,15 @@ Kein Markdown, keine Codeblocks.`;
       });
     }
 
-    const title = enforceUmlauts(String(parsed.title || 'Daily AI News').trim());
-    const body = enforceUmlauts(String(parsed.body || '').trim());
+    const draftedTitle = String(parsed.title || 'Daily AI News').trim();
+    const draftedBody = String(parsed.body || '').trim();
+    const proofread = await proofreadGermanNewsPost(draftedTitle, draftedBody);
+    const title = proofread.title || draftedTitle;
+    const body = proofread.body || draftedBody;
 
     if (!body) {
       const fallback = buildFallbackPost(results);
-      const content = `# ${enforceUmlauts(fallback.title)}\n\n${enforceUmlauts(fallback.body)}`.trim();
+      const content = `# ${fallback.title}\n\n${fallback.body}`.trim();
       const post = await prisma.forumPost.create({
         data: {
           authorName: AUTHOR_NAME,
