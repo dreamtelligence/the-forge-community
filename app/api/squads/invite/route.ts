@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { sendDirectMessage } from '@/lib/direct-messages';
+import { sendNotification } from '@/lib/notifications';
+import { getSquadVisibility } from '@/lib/squad-visibility';
 import { runSerializableTransaction } from '@/lib/transaction-retry';
 
 export async function POST(request: Request) {
@@ -14,6 +16,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const squadId = String(body.squad_id ?? '');
     const identifier = String(body.identifier ?? '').trim();
+    const message = typeof body.message === 'string' ? body.message.trim().slice(0, 1000) : '';
 
     if (!squadId || !identifier) {
       return NextResponse.json({ error: 'Missing squad_id or identifier' }, { status: 400 });
@@ -49,6 +52,7 @@ export async function POST(request: Request) {
         select: {
           id: true,
           name: true,
+          status: true,
           maxMembers: true,
           members: {
             where: { leftAt: null },
@@ -61,6 +65,10 @@ export async function POST(request: Request) {
         throw new Error('SQUAD_NOT_FOUND');
       }
 
+      if (currentSquad.status === 'archived') {
+        throw new Error('SQUAD_NOT_FOUND');
+      }
+
       const leadMembership = currentSquad.members.find(
         (member) => member.userId === lead.id && member.role === 'LEAD'
       );
@@ -68,7 +76,29 @@ export async function POST(request: Request) {
         throw new Error('NOT_LEAD');
       }
 
+      const visibility = await getSquadVisibility(
+        currentSquad.id,
+        {
+          is_public: true,
+          is_accepting_members: currentSquad.members.length < currentSquad.maxMembers,
+        },
+        tx
+      );
+
+      const pendingInvites = visibility.is_public
+        ? 0
+        : await tx.squadInvite.count({
+            where: {
+              squadId,
+              status: 'PENDING',
+            },
+          });
+
       if (currentSquad.members.length >= currentSquad.maxMembers) {
+        throw new Error('SQUAD_FULL');
+      }
+
+      if (!visibility.is_public && currentSquad.members.length + pendingInvites >= currentSquad.maxMembers) {
         throw new Error('SQUAD_FULL');
       }
 
@@ -84,35 +114,47 @@ export async function POST(request: Request) {
         throw new Error('ALREADY_MEMBER');
       }
 
-      if (existingMember) {
-        await tx.squadMember.update({
-          where: { id: existingMember.id },
-          data: {
-            leftAt: null,
-            role: 'MEMBER',
-          },
-        });
-      } else {
-        await tx.squadMember.create({
-          data: {
+      const invite = await tx.squadInvite.upsert({
+        where: {
+          squadId_invitedUserId: {
             squadId,
-            userId: invitee.id,
-            role: 'MEMBER',
+            invitedUserId: invitee.id,
           },
-        });
-      }
+        },
+        update: {
+          invitedById: lead.id,
+          status: 'PENDING',
+          message: message || null,
+          expiresAt: null,
+          respondedAt: null,
+        },
+        create: {
+          squadId,
+          invitedUserId: invitee.id,
+          invitedById: lead.id,
+          status: 'PENDING',
+          message: message || null,
+        },
+        select: {
+          id: true,
+        },
+      });
 
       return {
         id: currentSquad.id,
         name: currentSquad.name,
+        inviteId: invite.id,
       };
     });
 
     const dmContent = [
-      `Du wurdest in den Squad "${squad.name}" eingeladen.`,
+      `Du hast eine Einladung für den Squad "${squad.name}" erhalten.`,
       `Lead: ${lead.email}`,
+      message ? `Nachricht: ${message}` : null,
       `Squad Link: /squads/${squad.id}`,
-    ].join('\n');
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     try {
       await sendDirectMessage({
@@ -124,7 +166,27 @@ export async function POST(request: Request) {
       console.error('Failed to send invite DM:', error);
     }
 
-    return NextResponse.json({ success: true });
+    try {
+      await sendNotification({
+        recipientId: invitee.id,
+        actorId: lead.id,
+        type: 'SYSTEM',
+        title: `Neue Squad-Einladung: ${squad.name}`,
+        message: message || `${lead.email} hat dich in einen Squad eingeladen.`,
+        link: `/squads/${squad.id}`,
+      });
+    } catch (error) {
+      console.error('Failed to send invite notification:', error);
+    }
+
+    return NextResponse.json({
+      success: true,
+      status: 'pending',
+      invite: {
+        id: squad.inviteId,
+        squad_id: squad.id,
+      },
+    });
   } catch (error: any) {
     if (error instanceof Error && error.message === 'SQUAD_NOT_FOUND') {
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });

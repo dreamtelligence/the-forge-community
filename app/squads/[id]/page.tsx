@@ -28,6 +28,8 @@ interface Squad {
   is_public: boolean;
   is_accepting_members: boolean;
   is_member: boolean;
+  has_pending_invite: boolean;
+  invite_id?: string | null;
   user_role?: string;
   members: Member[];
 }
@@ -92,8 +94,10 @@ export default function SquadDetailPage() {
   const [, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [inviteActionLoading, setInviteActionLoading] = useState<'accept' | 'decline' | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinError, setJoinError] = useState('');
+  const [inviteActionError, setInviteActionError] = useState('');
   const [applicationSent, setApplicationSent] = useState(false);
 
   const fetchSquadDetails = useCallback(async () => {
@@ -140,10 +144,43 @@ export default function SquadDetailPage() {
 
       setShowJoinModal(false);
       setApplicationSent(true);
+      await fetchSquadDetails();
     } catch (err: any) {
       setJoinError(err.message || 'Beitritt konnte nicht durchgeführt werden');
     } finally {
       setJoining(false);
+    }
+  }
+
+  async function handleInvitationAction(action: 'accept' | 'decline') {
+    if (!squad?.invite_id) return;
+
+    setInviteActionLoading(action);
+    setInviteActionError('');
+
+    try {
+      const res = await fetch(`/api/squads/invitations/${squad.invite_id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Einladung konnte nicht aktualisiert werden');
+      }
+
+      if (action === 'decline') {
+        router.push('/squads');
+        return;
+      }
+
+      setApplicationSent(true);
+      await fetchSquadDetails();
+    } catch (err: any) {
+      setInviteActionError(err.message || 'Einladung konnte nicht aktualisiert werden');
+    } finally {
+      setInviteActionLoading(null);
     }
   }
 
@@ -167,6 +204,7 @@ export default function SquadDetailPage() {
   const isLead = squad.user_role === 'lead';
   const isPublic = squad.is_public ?? true;
   const canApply = !squad.is_member
+    && !squad.has_pending_invite
     && (squad.is_accepting_members ?? true)
     && isPublic;
 
@@ -209,10 +247,39 @@ export default function SquadDetailPage() {
                     Privat
                   </span>
                 )}
+                {squad.has_pending_invite && !squad.is_member && (
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-[var(--accent)] text-xs font-bold uppercase tracking-widest">
+                    <UserPlus className="w-3 h-3" />
+                    Einladung offen
+                  </span>
+                )}
               </div>
             </div>
 
             <div className="flex flex-col gap-3">
+              {squad.has_pending_invite && !squad.is_member && (
+                <>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleInvitationAction('accept')}
+                    disabled={inviteActionLoading !== null}
+                    className="btn-shimmer bg-[var(--accent)] text-[var(--accent-foreground)] px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-[var(--accent)]/20 disabled:opacity-60"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    {inviteActionLoading === 'accept' ? 'Nehme an...' : 'Einladung annehmen'}
+                  </motion.button>
+                  <button
+                    type="button"
+                    onClick={() => handleInvitationAction('decline')}
+                    disabled={inviteActionLoading !== null}
+                    className="px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 border border-white/10 hover:border-white/20 text-white/60 hover:text-white transition-all disabled:opacity-60"
+                  >
+                    {inviteActionLoading === 'decline' ? 'Lehne ab...' : 'Einladung ablehnen'}
+                  </button>
+                </>
+              )}
+
               {canApply && !applicationSent && (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -230,7 +297,7 @@ export default function SquadDetailPage() {
 
               {applicationSent && (
                 <div className="px-8 py-4 rounded-xl border border-white/10 text-white/60 text-xs font-bold uppercase tracking-[0.2em] text-center">
-                  Beitritt erfolgreich
+                  {squad.has_pending_invite ? 'Einladung angenommen' : 'Beitritt erfolgreich'}
                 </div>
               )}
 
@@ -245,6 +312,12 @@ export default function SquadDetailPage() {
             </div>
           </div>
         </div>
+
+        {inviteActionError && (
+          <div className="mb-8 rounded-2xl border border-red-500/20 bg-red-500/10 px-6 py-4 text-sm text-red-300">
+            {inviteActionError}
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
@@ -318,20 +391,22 @@ export default function SquadDetailPage() {
             )}
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-4">
-              <QuickActionCard
-                icon={MessageSquare}
-                label="Squad Forum"
-                description="Private Diskussionen"
-                href={`/forum?squad=${squadId}`}
-              />
-              <QuickActionCard
-                icon={FileText}
-                label="Dokumente"
-                description="Geteilte Ressourcen"
-                href={`/resources?squad=${squadId}`}
-              />
-            </div>
+            {squad.is_member && (
+              <div className="grid grid-cols-2 gap-4">
+                <QuickActionCard
+                  icon={MessageSquare}
+                  label="Squad Forum"
+                  description="Private Diskussionen"
+                  href={`/forum?squad=${squadId}`}
+                />
+                <QuickActionCard
+                  icon={FileText}
+                  label="Dokumente"
+                  description="Geteilte Ressourcen"
+                  href={`/resources?squad=${squadId}`}
+                />
+              </div>
+            )}
           </div>
 
           {/* Right Column - Info & Actions */}
@@ -370,12 +445,14 @@ export default function SquadDetailPage() {
                     />
                   </div>
 
-                  <Link href={`/ventures/${venture.id}`}>
-                    <button className="w-full mt-4 bg-white text-black py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[var(--accent)] transition-all flex items-center justify-center gap-2 group">
-                      Venture öffnen
-                      <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                    </button>
-                  </Link>
+                  {squad.is_member && (
+                    <Link href={`/ventures/${venture.id}`}>
+                      <button className="w-full mt-4 bg-white text-black py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[var(--accent)] transition-all flex items-center justify-center gap-2 group">
+                        Venture öffnen
+                        <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                      </button>
+                    </Link>
+                  )}
                 </div>
               </div>
             ) : (

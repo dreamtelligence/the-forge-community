@@ -70,6 +70,14 @@ enum SquadRole {
   GUEST   // Observer only (limited access)
 }
 
+enum SquadInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELED
+  EXPIRED
+}
+
 // ============================================
 // ADMIN SYSTEM - Applications
 // ============================================
@@ -162,6 +170,8 @@ model User {
 
   // Relations
   squadMemberships SquadMember[]
+  receivedSquadInvites SquadInvite[] @relation("ReceivedSquadInvites")
+  sentSquadInvites SquadInvite[] @relation("SentSquadInvites")
 
   voteResponses VoteResponse[]
   roadmapVotes  RoadmapVote[]
@@ -398,6 +408,7 @@ model Squad {
   wallet      SquadWallet?
 
   members     SquadMember[]
+  invites     SquadInvite[]
   roadmaps    RoadmapItem[]
   decisions   Decision[]
   ventures    Venture[]
@@ -476,6 +487,26 @@ model SquadMember {
   @@index([userId])
   @@index([squadId])
   @@index([role])
+}
+
+model SquadInvite {
+  id            String            @id @default(cuid())
+  squadId        String
+  squad          Squad             @relation(fields: [squadId], references: [id], onDelete: Cascade)
+  invitedUserId  String
+  invitedUser    User              @relation("ReceivedSquadInvites", fields: [invitedUserId], references: [id], onDelete: Cascade)
+  invitedById    String
+  invitedBy      User              @relation("SentSquadInvites", fields: [invitedById], references: [id], onDelete: Cascade)
+  status         SquadInviteStatus @default(PENDING)
+  message        String?           @db.Text
+  expiresAt      DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  respondedAt    DateTime?
+
+  @@unique([squadId, invitedUserId])
+  @@index([invitedUserId, status])
+  @@index([squadId, status])
 }
 
 model RoadmapItem {

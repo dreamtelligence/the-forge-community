@@ -96,6 +96,18 @@ export async function POST(request: Request) {
         });
       }
 
+      await tx.squadInvite.updateMany({
+        where: {
+          squadId,
+          invitedUserId: user.id,
+          status: 'PENDING',
+        },
+        data: {
+          status: 'ACCEPTED',
+          respondedAt: new Date(),
+        },
+      });
+
       return {
         squad: {
           id: squad.id,

@@ -21,6 +21,26 @@ interface Squad {
   is_accepting_members: boolean;
   slots_available?: number;
   my_role?: string;
+  is_invited?: boolean;
+  invite_id?: string | null;
+}
+
+interface SquadInvitation {
+  id: string;
+  created_at: string;
+  message?: string | null;
+  squad: {
+    id: string;
+    name: string;
+    mission?: string | null;
+    status: string;
+    squad_type: string;
+  };
+  invited_by: {
+    id: string;
+    name?: string | null;
+    email: string;
+  };
 }
 
 const statusConfig: Record<string, { color: string, label: string, icon: any }> = {
@@ -38,7 +58,9 @@ export default function SquadsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [applyTarget, setApplyTarget] = useState<Squad | null>(null);
   const [inviteTarget, setInviteTarget] = useState<Squad | null>(null);
-  const [appliedSquadIds, setAppliedSquadIds] = useState<string[]>([]);
+  const [joinedSquadIds, setJoinedSquadIds] = useState<string[]>([]);
+  const [invitations, setInvitations] = useState<SquadInvitation[]>([]);
+  const [invitationAction, setInvitationAction] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchSquads = useCallback(async () => {
@@ -56,9 +78,27 @@ export default function SquadsPage() {
     }
   }, [filter]);
 
+  const fetchInvitations = useCallback(async () => {
+    try {
+      const res = await fetch('/api/squads/invitations');
+      if (!res.ok) {
+        throw new Error('Einladungen konnten nicht geladen werden');
+      }
+
+      const data = await res.json();
+      setInvitations(data.invitations || []);
+    } catch (error) {
+      console.error('Error fetching squad invitations:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchSquads();
   }, [fetchSquads]);
+
+  useEffect(() => {
+    fetchInvitations();
+  }, [fetchInvitations]);
 
   const showNotice = (type: 'success' | 'error', message: string) => {
     setNotice({ type, message });
@@ -100,6 +140,38 @@ export default function SquadsPage() {
     }
   };
 
+  const handleInvitationAction = async (
+    invitationId: string,
+    action: 'accept' | 'decline'
+  ) => {
+    setInvitationAction(invitationId);
+
+    try {
+      const res = await fetch(`/api/squads/invitations/${invitationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Einladung konnte nicht aktualisiert werden');
+      }
+
+      setInvitations((prev) => prev.filter((invite) => invite.id !== invitationId));
+      await fetchSquads();
+      showNotice(
+        'success',
+        action === 'accept' ? 'Einladung angenommen.' : 'Einladung abgelehnt.'
+      );
+    } catch (error: any) {
+      console.error('Invitation update failed:', error);
+      showNotice('error', error.message || 'Einladung konnte nicht aktualisiert werden.');
+    } finally {
+      setInvitationAction(null);
+    }
+  };
+
   const filteredSquads = squads.filter(squad =>
     squad.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     squad.mission?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -119,8 +191,8 @@ export default function SquadsPage() {
           const slotsAvailable = typeof squad.slots_available === 'number'
             ? squad.slots_available
             : squad.max_members - squad.current_members;
-          const canApply = !isMySquadView && squad.is_public && squad.is_accepting_members && slotsAvailable > 0;
-          const hasApplied = appliedSquadIds.includes(squad.id);
+          const canJoinDirectly = !isMySquadView && squad.is_public && squad.is_accepting_members && slotsAvailable > 0;
+          const hasJoined = joinedSquadIds.includes(squad.id);
           const showLeadControls = filter === 'my-squads' && squad.my_role === 'lead';
 
           return (
@@ -143,6 +215,11 @@ export default function SquadsPage() {
                     <Icon className="w-3 h-3" />
                     {config.label}
                   </span>
+                  {squad.is_invited && !squad.my_role && (
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-(--accent)/30 bg-(--accent)/10 text-(--accent) text-[9px] font-black uppercase tracking-widest">
+                      Eingeladen
+                    </span>
+                  )}
                   {squad.is_public ? (
                     <Globe className="w-4 h-4 text-green-400" />
                   ) : (
@@ -193,9 +270,11 @@ export default function SquadsPage() {
                     ))}
                   </div>
                   <div className="flex justify-between text-[9px] font-black uppercase tracking-[0.2em] text-white/30">
-                    <span>Bewerbungen</span>
-                    <span className={squad.is_accepting_members ? 'text-emerald-400' : 'text-white/40'}>
-                      {squad.is_accepting_members ? 'Offen' : 'Geschlossen'}
+                    <span>Aufnahme</span>
+                    <span className={squad.is_public && squad.is_accepting_members ? 'text-emerald-400' : 'text-white/40'}>
+                      {squad.is_public
+                        ? squad.is_accepting_members ? 'Offen' : 'Geschlossen'
+                        : 'Nur per Einladung'}
                     </span>
                   </div>
                 </div>
@@ -224,8 +303,8 @@ export default function SquadsPage() {
                     </div>
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <div className="text-xs font-semibold text-white">Bewerbungen offen</div>
-                        <div className="text-[10px] text-white/40">Neue Founder zulassen.</div>
+                        <div className="text-xs font-semibold text-white">Direkter Beitritt offen</div>
+                        <div className="text-[10px] text-white/40">Neue Founder öffentlich zulassen.</div>
                       </div>
                       <button
                         type="button"
@@ -254,20 +333,20 @@ export default function SquadsPage() {
               </div>
 
               <div className="p-10 pt-0 relative z-10 mt-auto">
-                {canApply ? (
+                {canJoinDirectly ? (
                   <button
                     type="button"
-                    disabled={hasApplied}
+                    disabled={hasJoined}
                     onClick={() => setApplyTarget(squad)}
                     className="w-full bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-(--accent) transition-all duration-500 shadow-2xl active:scale-[0.98] flex justify-center items-center gap-3 group/btn disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {hasApplied ? 'Bewerbung gesendet' : 'Bewerben'}
-                    {!hasApplied && <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />}
+                    {hasJoined ? 'Beitritt erfolgt' : 'Beitreten'}
+                    {!hasJoined && <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />}
                   </button>
                 ) : (
                   <Link href={`/squads/${squad.id}`}>
                     <button className="w-full bg-white text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-(--accent) transition-all duration-500 shadow-2xl active:scale-[0.98] flex justify-center items-center gap-3 group/btn">
-                      Details ansehen
+                      {squad.is_invited && !squad.my_role ? 'Einladung prüfen' : 'Details ansehen'}
                       <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                     </button>
                   </Link>
@@ -363,6 +442,72 @@ export default function SquadsPage() {
           </div>
         )}
 
+        {invitations.length > 0 && (
+          <section className="mb-12 rounded-[2rem] border border-(--accent)/20 bg-(--accent)/6 p-8">
+            <div className="flex flex-col gap-2 mb-6">
+              <h2 className="text-2xl font-instrument-serif text-white">Offene Einladungen</h2>
+              <p className="text-xs text-white/50 uppercase tracking-[0.3em]">
+                Private Squads, die auf deine Antwort warten
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {invitations.map((invite) => (
+                <div
+                  key={invite.id}
+                  className="rounded-[1.5rem] border border-white/10 bg-black/20 p-6"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <div className="text-[10px] font-black uppercase tracking-[0.3em] text-(--accent) mb-2">
+                        Squad Einladung
+                      </div>
+                      <h3 className="text-2xl font-instrument-serif text-white">
+                        {invite.squad.name}
+                      </h3>
+                    </div>
+                    <Link
+                      href={`/squads/${invite.squad.id}`}
+                      className="text-xs font-bold uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors"
+                    >
+                      Öffnen
+                    </Link>
+                  </div>
+
+                  <p className="text-sm text-white/60 mb-4">
+                    {invite.squad.mission || 'Keine Mission definiert.'}
+                  </p>
+
+                  <div className="space-y-2 mb-5 text-xs text-white/50">
+                    <div>Lead: {invite.invited_by.name || invite.invited_by.email}</div>
+                    <div>Eingegangen: {new Date(invite.created_at).toLocaleDateString('de-DE')}</div>
+                    {invite.message && <div>Nachricht: {invite.message}</div>}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      disabled={invitationAction === invite.id}
+                      onClick={() => handleInvitationAction(invite.id, 'accept')}
+                      className="flex-1 rounded-xl bg-(--accent) px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-(--accent-foreground) disabled:opacity-60"
+                    >
+                      {invitationAction === invite.id ? 'Läuft...' : 'Annehmen'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={invitationAction === invite.id}
+                      onClick={() => handleInvitationAction(invite.id, 'decline')}
+                      className="flex-1 rounded-xl border border-white/10 px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-white/60 hover:text-white disabled:opacity-60"
+                    >
+                      Ablehnen
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {loading ? (
           <div className="grid md:grid-cols-3 gap-8">
             {[1,2,3].map(i => (
@@ -392,7 +537,7 @@ export default function SquadsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-3xl font-instrument-serif text-white">Öffentliche Squads</h2>
-                  <p className="text-xs text-white/40 uppercase tracking-[0.3em]">Offen für Bewerbungen & Sichtbar im Markt</p>
+                  <p className="text-xs text-white/40 uppercase tracking-[0.3em]">Direkt beitretbar & sichtbar im Markt</p>
                 </div>
               </div>
               {publicSquads.length === 0 ? (
@@ -433,9 +578,10 @@ export default function SquadsPage() {
           squad={applyTarget}
           onClose={() => setApplyTarget(null)}
           onApplied={(squadId) => {
-            setAppliedSquadIds(prev => (prev.includes(squadId) ? prev : [...prev, squadId]));
-            showNotice('success', 'Bewerbung gesendet.');
+            setJoinedSquadIds(prev => (prev.includes(squadId) ? prev : [...prev, squadId]));
+            showNotice('success', 'Beitritt erfolgreich.');
             setApplyTarget(null);
+            fetchSquads();
           }}
         />
         <InviteModal
@@ -669,12 +815,12 @@ function ApplyModal({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Bewerbung konnte nicht gesendet werden');
+        throw new Error(data.error || 'Beitritt konnte nicht durchgeführt werden');
       }
 
       onApplied(squad.id);
     } catch (err: any) {
-      setError(err.message || 'Bewerbung konnte nicht gesendet werden');
+      setError(err.message || 'Beitritt konnte nicht durchgeführt werden');
     } finally {
       setLoading(false);
     }
@@ -697,8 +843,8 @@ function ApplyModal({
       >
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-instrument-serif text-white mb-2">Bewerbung senden</h2>
-            <p className="text-white/40 text-xs uppercase tracking-[0.3em]">An den Squad Lead</p>
+            <h2 className="text-3xl font-instrument-serif text-white mb-2">Direkt beitreten</h2>
+            <p className="text-white/40 text-xs uppercase tracking-[0.3em]">Öffentlicher Squad</p>
           </div>
           <button
             onClick={onClose}
@@ -747,7 +893,7 @@ function ApplyModal({
               disabled={loading}
               className="flex-1 btn-shimmer bg-(--accent) text-(--accent-foreground) px-6 py-4 rounded-xl font-bold text-sm uppercase tracking-widest disabled:opacity-50 shadow-lg shadow-(--accent)/20"
             >
-              {loading ? 'Sende...' : 'Bewerbung senden'}
+              {loading ? 'Trete bei...' : 'Jetzt beitreten'}
             </button>
           </div>
         </form>
@@ -766,12 +912,14 @@ function InviteModal({
   onInvited: () => void;
 }) {
   const [identifier, setIdentifier] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (squad) {
       setIdentifier('');
+      setMessage('');
       setLoading(false);
       setError('');
     }
@@ -788,7 +936,11 @@ function InviteModal({
       const res = await fetch('/api/squads/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ squad_id: squad.id, identifier: identifier.trim() })
+        body: JSON.stringify({
+          squad_id: squad.id,
+          identifier: identifier.trim(),
+          message: message.trim(),
+        })
       });
 
       const data = await res.json();
@@ -823,7 +975,7 @@ function InviteModal({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-instrument-serif text-white mb-2">Founder einladen</h2>
-            <p className="text-white/40 text-xs uppercase tracking-[0.3em]">Direkt ins Squad</p>
+            <p className="text-white/40 text-xs uppercase tracking-[0.3em]">Einladung mit Bestätigung</p>
           </div>
           <button
             onClick={onClose}
@@ -850,6 +1002,19 @@ function InviteModal({
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="founder@email.com oder user_id"
               className="w-full bg-(--background) border border-(--border) rounded-xl px-4 py-4 text-white placeholder:text-white/30 focus:outline-none focus:border-(--accent) transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
+              Nachricht (optional)
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={3}
+              className="w-full bg-(--background) border border-(--border) rounded-xl px-4 py-4 text-white placeholder:text-white/30 focus:outline-none focus:border-(--accent) transition-all resize-none"
+              placeholder="Warum passt die Person in dieses Squad?"
             />
           </div>
 

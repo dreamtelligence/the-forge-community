@@ -72,8 +72,21 @@ export async function GET(
     };
     const visibility = await getSquadVisibility(squad.id, defaults);
     const isMember = squad.members.some(m => m.userId === user.id);
+    const pendingInvite = await prisma.squadInvite.findUnique({
+      where: {
+        squadId_invitedUserId: {
+          squadId: squad.id,
+          invitedUserId: user.id,
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+    const hasPendingInvite = pendingInvite?.status === 'PENDING';
 
-    if (!visibility.is_public && !isMember) {
+    if (!visibility.is_public && !isMember && !hasPendingInvite) {
       return NextResponse.json({ error: 'Squad not found' }, { status: 404 });
     }
 
@@ -137,6 +150,8 @@ export async function GET(
         is_accepting_members: visibility.is_accepting_members,
         member_count: currentMembers,
         is_member: isMember,
+        has_pending_invite: hasPendingInvite,
+        invite_id: hasPendingInvite ? pendingInvite?.id ?? null : null,
         user_role: userMember?.role?.toLowerCase() || null,
       },
       venture: venture

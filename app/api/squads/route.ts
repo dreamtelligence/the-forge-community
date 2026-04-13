@@ -33,6 +33,20 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    const pendingInvites = await prisma.squadInvite.findMany({
+      where: {
+        invitedUserId: user.id,
+        status: 'PENDING',
+      },
+      select: {
+        id: true,
+        squadId: true,
+      },
+    });
+    const inviteBySquadId = new Map(
+      pendingInvites.map((invite) => [invite.squadId, invite.id])
+    );
+
     const squadsRaw = await prisma.squad.findMany({
       where: {
         status: { not: 'archived' },
@@ -80,6 +94,7 @@ export async function GET(request: Request) {
         const lead = squad.members.find((member) => member.role === 'LEAD') ?? squad.members[0];
         const myMembership = squad.members.find((member) => member.userId === user.id);
         const visibility = visibilityBySquad[squad.id] ?? defaultsBySquad[squad.id];
+        const pendingInviteId = inviteBySquadId.get(squad.id) ?? null;
 
         return {
           id: squad.id,
@@ -95,6 +110,8 @@ export async function GET(request: Request) {
           is_accepting_members: visibility.is_accepting_members,
           slots_available: slotsAvailable,
           my_role: myMembership ? toUiRole(myMembership.role) : null,
+          is_invited: Boolean(pendingInviteId),
+          invite_id: pendingInviteId,
           member_count: currentMembers,
         };
       })
@@ -104,7 +121,7 @@ export async function GET(request: Request) {
         }
 
         if (filter === 'all') {
-          return squad.is_public || Boolean(squad.my_role);
+          return squad.is_public || Boolean(squad.my_role) || squad.is_invited;
         }
 
         const openByStatus = squad.status === 'forming' || squad.status === 'building';
