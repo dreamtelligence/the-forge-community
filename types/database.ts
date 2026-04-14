@@ -1,6 +1,6 @@
 // ==========================================
 // THE FORGE - Database Types (V2.0)
-// Auto-generated from DATABASE-SCHEMA-V2.sql
+// Auto-generated from docs/archive/db/manual_sql/DATABASE-SCHEMA-V2.sql
 // ==========================================
 
 export type SquadStatus = 'forming' | 'planning' | 'building' | 'launched' | 'archived';

@@ -19,6 +19,7 @@ Ein Deployable, aber keine beliebige Suppe:
 - Langlaufende Media-/Provider-Routen brauchen explizit `runtime = 'nodejs'` und `maxDuration`
 - `prisma/migrations/` ist die deploybare Prisma-Historie
 - `prisma/manual_sql/` enthält nur manuelle SQL-Supplements mit eindeutigen Prefixen
+- `scripts/` ist nach Zweck in Unterordner wie `architecture`, `db`, `seed`, `tests` und `ops` gegliedert
 - Legacy-Dateien wie `page_old.tsx`, versteckte Finder-Artefakte und chaotische Public-Pfade werden geblockt
 
 ## Wichtige Kommandos

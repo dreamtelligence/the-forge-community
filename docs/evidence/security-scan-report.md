@@ -18,14 +18,14 @@ Nachweis eines reproduzierbaren Security-Baseline-Scans fuer die technische Anla
 
 | ID | Schwere | Befund | Status | Beleg |
 |---|---|---|---|---|
-| SEC-F-01 | Hoch | Hardcoded Resend API Key in `scripts/test-email.js` | `FIXED (Code)` / `OPEN (Rotation)` | `scripts/test-email.js`, `docs/evidence/03_security/2026-02-18_100549_literal-credential-scan.log` |
+| SEC-F-01 | Hoch | Hardcoded Resend API Key in `scripts/tests/test-email.js` | `FIXED (Code)` / `OPEN (Rotation)` | `scripts/tests/test-email.js`, `docs/evidence/03_security/2026-02-18_100549_literal-credential-scan.log` |
 | SEC-F-02 | Mittel | Dependency-Audit nicht ausfuehrbar wegen DNS-Fehler (`registry.npmjs.org`) | `OPEN` | `docs/evidence/03_security/2026-02-18_100531_npm-audit-prod.json` |
 | SEC-F-03 | Mittel | Lint-Gate war nicht gruen (17 Fehler) als Qualitaets-/Security-Risiko | `CLOSED (2026-02-18)` | `docs/evidence/02_release/2026-02-18_153510_lint.log` |
 | SEC-F-04 | Hoch | Server-Action/Origin-Mismatch fuehrte zu 403 auf Kernflows (`/ventures`, `/ventures/new`) | `CLOSED (2026-02-18)` | `next.config.ts`, `proxy.ts`, Commits `aa3b21b`, `300efd0` |
 
 ## Durchgefuehrte Sofortmassnahmen
 
-1. `scripts/test-email.js` umgestellt auf ENV-only:
+1. `scripts/tests/test-email.js` umgestellt auf ENV-only:
    - `RESEND_API_KEY` ist nun Pflicht.
    - Empfaenger/Absender ueber `TEST_EMAIL_TO` und `TEST_EMAIL_FROM` konfigurierbar.
 2. Erneuter Literal-Credential-Scan nach Fix zeigte keine Treffer.

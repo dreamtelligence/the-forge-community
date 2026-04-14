@@ -225,9 +225,9 @@ app/api/v1/           # Versioned API
     └── generate-image/
         └── route.ts  # Example v1 endpoint
 
-migrations/
+prisma/manual_sql/
 ├── 008_add_api_key_management.sql
-└── manual/
+└── ../docs/archive/db/manual_sql/
     └── 008_api_rls_policies.sql
 ```
 

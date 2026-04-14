@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = path.resolve(__dirname, '..', '..');
 const onlyMigrations = process.argv.includes('--migrations-only');
 
 const errors = [];
@@ -50,6 +50,19 @@ const walkFiles = (relativePath = '.') => {
 
 const MANUAL_MIGRATIONS_DIR = 'prisma/manual_sql';
 const MAX_TOP_LEVEL_LIB_FILES = 10;
+const ALLOWED_SCRIPT_ROOT_ENTRIES = new Set([
+  'architecture',
+  'db',
+  'exports',
+  'founders',
+  'forum',
+  'imports',
+  'ops',
+  'python',
+  'seed',
+  'smoke-tests',
+  'tests',
+]);
 const HEAVY_NODE_ROUTES = [
   { path: 'app/api/forge/media/route.ts', requireMaxDuration: true },
   { path: 'app/api/webhooks/replicate/route.ts', requireMaxDuration: true },
@@ -117,6 +130,14 @@ const checkManualMigrationPrefixes = () => {
   }
 
   info.push(`Manuelle SQL-Migrations geprüft: ${files.length}`);
+};
+
+const checkManualSqlArchiveBoundary = () => {
+  if (pathExists('prisma/manual_sql/manual')) {
+    errors.push(
+      'Legacy-SQL-Ablage prisma/manual_sql/manual ist verboten. Archive gehören unter docs/archive/db/.'
+    );
+  }
 };
 
 const checkHeavyRoutes = () => {
@@ -199,6 +220,21 @@ const checkRepoHygiene = () => {
   }
 };
 
+const checkScriptsStructure = () => {
+  if (!pathExists('scripts')) return;
+
+  const rootEntries = listFiles('scripts').sort();
+  const invalidEntries = rootEntries.filter((entry) => !ALLOWED_SCRIPT_ROOT_ENTRIES.has(entry));
+
+  if (invalidEntries.length > 0) {
+    errors.push(
+      `scripts/ Root darf nur klar gruppierte Unterordner enthalten: ${invalidEntries.join(', ')}`
+    );
+  }
+
+  info.push(`Top-Level-Ordner in scripts/: ${rootEntries.length}`);
+};
+
 const checkPublicAssetConventions = () => {
   if (!pathExists('public')) return;
 
@@ -244,12 +280,14 @@ const checkWarehouseBoundary = () => {
 };
 
 checkManualMigrationPrefixes();
+checkManualSqlArchiveBoundary();
 
 if (!onlyMigrations) {
   checkHeavyRoutes();
   checkLibBoundary();
   checkRepoHygiene();
   checkPublicAssetConventions();
+  checkScriptsStructure();
   checkWarehouseBoundary();
 }
 

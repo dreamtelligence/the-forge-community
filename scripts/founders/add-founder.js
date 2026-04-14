@@ -1,5 +1,5 @@
 // Script um einen Founder direkt zur Datenbank hinzuzufügen
-// Usage: node scripts/add-founder.js "Name" "email@example.com"
+// Usage: node scripts/founders/add-founder.js "Name" "email@example.com"
 
 import { PrismaClient } from '@prisma/client';
 
@@ -56,7 +56,7 @@ const name = process.argv[2];
 const email = process.argv[3];
 
 if (!name || !email) {
-  console.log('Usage: node scripts/add-founder.js "Name" "email@example.com"');
+  console.log('Usage: node scripts/founders/add-founder.js "Name" "email@example.com"');
   process.exit(1);
 }
 

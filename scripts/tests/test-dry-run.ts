@@ -1,5 +1,10 @@
 
-import { buildFormData, fetchBlobForForm, normalizeSessionCookie, safeJsonParse } from './smoke-tests/utils';
+import {
+  buildFormData,
+  fetchBlobForForm,
+  normalizeSessionCookie,
+  safeJsonParse,
+} from '../smoke-tests/utils';
 
 // Types
 interface TestResult {

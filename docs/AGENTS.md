@@ -45,11 +45,6 @@ the-forge-community/
 │   │   ├── ventures/[id]/       # Venture-specific APIs
 │   │   ├── webhooks/            # Stripe, Replicate webhooks
 │   │   └── ...                  # Various service APIs
-│   ├── components/              # React Components
-│   │   ├── forge/              # Forge-specific components
-│   │   ├── marketing/          # Marketing studio components
-│   │   ├── sourcing/           # Sourcing studio components
-│   │   └── ui/                 # Shared UI components
 │   ├── forge/[ventureId]/       # Venture Workspace (The Forge)
 │   │   ├── brand/              # Brand DNA Studio
 │   │   ├── legal/              # Legal Studio (Contracts)
@@ -65,21 +60,19 @@ the-forge-community/
 │   ├── forum/                   # Community Forum
 │   ├── settings/                # User settings (billing, API keys)
 │   └── ...                      # Other pages
+├── components/                  # Produktnahe UI-Komponenten
 ├── shared/                      # Cross-cutting UI + integration modules
-├── lib/                         # Shared Utilities & Services
-│   ├── prisma.ts               # Database Client
-│   ├── ai.ts                   # AI Service (Gemini/Groq)
-│   ├── energy.ts               # Energy System (AI credits)
-│   ├── stripe.ts               # Stripe Integration
-│   ├── moderation.ts           # Content moderation
-│   ├── platform-invoicing.ts   # Invoice generation
-│   ├── api-keys/               # API key management
-│   ├── integrations/           # Notion, DocuSign integrations
-│   └── security/               # Rate limiting, protection
+├── lib/                         # Domain- und Service-Logik
+│   ├── warehouse/              # Warehouse/WMS boundary modules
+│   ├── billing/                # Billing and invoice logic
+│   ├── integrations/           # Notion, Slack, provider integrations
+│   ├── security/               # Rate limiting, platform protection
+│   └── ...                     # Further grouped domain modules
 ├── prisma/
-│   └── schema.prisma           # Database Schema (50+ models)
-├── migrations/                 # Manual SQL Migrations (RLS policies)
-├── scripts/                    # Utility scripts (seeding, migration)
+│   ├── schema.prisma           # Database Schema
+│   ├── migrations/            # Canonical Prisma migration history
+│   └── manual_sql/            # Manual SQL supplements
+├── scripts/                    # Grouped utility scripts (architecture/db/seed/tests/ops)
 ├── types/                      # TypeScript type definitions
 └── public/                     # Static Assets
 ```
@@ -109,9 +102,9 @@ npm run seed:platform-finance  # Seed platform finance data
 **Important**: This project uses **two database change paths**:
 
 - `prisma/migrations/` is the canonical schema migration chain and is deployed with `npm run migrate:deploy` (`prisma migrate deploy` on an unpooled connection).
-- `/migrations/` contains **manual SQL supplements** for RLS, policies, and post-deploy SQL that Prisma does not manage directly.
+- `prisma/manual_sql/` contains **manual SQL supplements** for RLS, policies, and post-deploy SQL that Prisma does not manage directly.
 
-Do not create a second competing migration history in `/migrations/`. Use unique, sortable filenames there and keep schema evolution in Prisma unless the SQL must remain manual.
+Do not create a second competing migration history outside `prisma/`. Use unique, sortable filenames in `prisma/manual_sql/` and keep schema evolution in Prisma unless the SQL must remain manual.
 
 ---
 
@@ -336,7 +329,7 @@ NEXT_PUBLIC_APP_URL="https://www.stakeandscale.de"
 npm run migrate:deploy
 
 # Or manually:
-bash scripts/migrate-unpooled.sh
+bash scripts/db/migrate-unpooled.sh
 ```
 
 ### Webhook Configuration

@@ -44,7 +44,7 @@ Referenz: OWASP Top 10 (Awareness), betriebliche Mindestkontrollen.
 | ID | Kontrolle | Nachweis (Artefakt) | Status | Owner | Zieltermin | Kommentar |
 |---|---|---|---|---|---|---|
 | SEC-09 | Keine produktiven Secrets im Repo | `docs/evidence/security-scan-report.md` | `PARTIAL` | `Owner` | `2026-02-18` | Hardcoded Resend-Key entfernt; Rotation noch ausstehend |
-| SEC-10 | Secrets nur ueber ENV/Secret-Store | `scripts/test-email.js`, Deployment-Doku | `PARTIAL` | `Owner` | `2026-02-19` | Testscript auf ENV umgestellt |
+| SEC-10 | Secrets nur ueber ENV/Secret-Store | `scripts/tests/test-email.js`, Deployment-Doku | `PARTIAL` | `Owner` | `2026-02-19` | Testscript auf ENV umgestellt |
 | SEC-11 | Dependency-Hygiene (audit/update) | Audit-Report | `OPEN` | `Owner` | `2026-02-19` | `npm audit` im Sandbox-Netz nicht erreichbar |
 | SEC-12 | Lockfile + reproduzierbarer Build | `package-lock.json`, Build-Log | `PASS` | `Codex` | `2026-02-18` | Build erfolgreich mit Logbeleg |
 
@@ -61,7 +61,7 @@ Referenz: OWASP Top 10 (Awareness), betriebliche Mindestkontrollen.
 
 | Finding-ID | Kurzbeschreibung | Schwere (L/M/H) | Risiko | Massnahme | Zieltermin | Status |
 |---|---|---|---|---|---|---|
-| `F-001` | Hardcoded Resend API Key in `scripts/test-email.js` gefunden | `H` | Credential-Missbrauch | Key aus Code entfernt, ENV-Pflicht eingebaut, Key-Rotation anstossen | `2026-02-18` | `PARTIAL` |
+| `F-001` | Hardcoded Resend API Key in `scripts/tests/test-email.js` gefunden | `H` | Credential-Missbrauch | Key aus Code entfernt, ENV-Pflicht eingebaut, Key-Rotation anstossen | `2026-02-18` | `PARTIAL` |
 | `F-002` | `npm audit` nicht erreichbar (DNS/Netzrestriktion) | `M` | Keine aktuelle CVE-Bewertung moeglich | Audit in Netzwerk mit Registry-Zugriff wiederholen | `2026-02-19` | `OPEN` |
 | `F-003` | Lint-Gate rot (17 Fehler) | `M` | Schwankende Release-Qualitaet | Fehlerabbau priorisieren, Gate wieder gruen machen | `2026-02-25` | `CLOSED (2026-02-18)` |
 | `F-004` | Server-Action/Origin-Blockierung (403 auf Ventures) | `H` | Kritische Kernflows nicht nutzbar | `allowedOrigins` und Proxy Same-Site-Origin-Freigabe deployed (`aa3b21b`, `300efd0`) | `2026-02-18` | `CLOSED` |

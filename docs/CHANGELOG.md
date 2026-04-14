@@ -42,7 +42,7 @@ Dieses Dokument enthält die vollständige Änderungshistorie, die zuvor in der 
     *   `lib/beta-access.ts`
     *   `lib/beta-access.server.ts`
 *   **Env Sync Script erweitert:**
-    *   `scripts/sync-env-to-vercel.sh` kennt jetzt auch:
+    *   `scripts/ops/sync-env-to-vercel.sh` kennt jetzt auch:
         *   `PUBLIC_LOGIN_ENABLED`
         *   `NEXT_PUBLIC_PUBLIC_LOGIN_ENABLED`
         *   `BETA_LOGIN_ALLOWLIST`

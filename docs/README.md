@@ -325,7 +325,7 @@ the-forge-community/
 │   ├── integrations/         # Notion/Slack/DocuSign Services
 │   ├── energy.ts             # Credits / Usage Accounting
 │   └── stripe.ts             # Stripe Integration
-├── scripts/                  # Seeding, Smoke Tests, Ops Automation
+├── scripts/                  # Grouped by purpose: architecture, db, seed, tests, ops
 ├── prisma/                   # Database Schema
 ├── migrations/               # Manual SQL Supplements (RLS / Post-Deploy)
 ├── types/                    # TypeScript Definitions
@@ -586,7 +586,7 @@ Die folgende Übersicht basiert auf dem tatsächlich vorhandenen Code in `app/`,
 | Votes / Decisions | **Live** | `app/forge/[ventureId]/decisions/page.tsx`, `app/api/ventures/[id]/decisions/*` |
 | Legal / Dokumente | **Live** | `app/forge/[ventureId]/legal/*`, `app/api/ventures/[id]/legal/route.ts`, `app/api/documents/route.ts` |
 | Academy / Resources | **Live** | `app/resources/page.tsx`, `app/resources/[slug]/page.tsx`, `app/api/training/*`, `app/api/resources/route.ts` |
-| Finanzamt-/Steuer-Automation | **Teilweise** | `lib/platform-tax-profile.ts`, `lib/platform-invoicing.ts`, `lib/invoice-pdf.tsx`, `scripts/export-platform-ledger.mjs`; keine direkte ELSTER-/Finanzamt-API im Repo |
+| Finanzamt-/Steuer-Automation | **Teilweise** | `lib/platform-tax-profile.ts`, `lib/platform-invoicing.ts`, `lib/invoice-pdf.tsx`, `scripts/exports/export-platform-ledger.mjs`; keine direkte ELSTER-/Finanzamt-API im Repo |
 
 ### 🚧 Teilimplementiert / bewusst noch nicht vollständig
 

@@ -12,7 +12,14 @@ async function migrateSchemaV2() {
 
   try {
     // Read the schema file
-    const schemaPath = path.resolve(process.cwd(), 'DATABASE-SCHEMA-V2.sql');
+    const schemaPath = path.resolve(
+      process.cwd(),
+      'docs',
+      'archive',
+      'db',
+      'manual_sql',
+      'DATABASE-SCHEMA-V2.sql'
+    );
     const schemaSQL = fs.readFileSync(schemaPath, 'utf-8');
 
     console.log('\n📄 Schema file loaded successfully');

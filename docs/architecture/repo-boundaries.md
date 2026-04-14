@@ -42,6 +42,7 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 ### `scripts/`
 
 - Skripte sind Betriebswerkzeuge, keine versteckte Produktlogik.
+- Root `scripts/` enthält nur klar benannte Unterordner wie `architecture/`, `db/`, `seed/`, `tests/`, `ops/`.
 - Python gehört unter `scripts/python/**`.
 - Neue Einmal-Migrations- oder Refactor-Helfer bleiben nicht dauerhaft als ungepflegte Root-Skripte liegen.
 - Öffentliche Build-/Check-Pfade werden über `package.json` und die Architektur-Checks dokumentiert.
@@ -72,6 +73,7 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 - Manuelle SQL-Supplements für RLS, Policies, Hotfixes oder DBA-nahe Post-Deploy-Schritte.
 - Diese Dateien sind nicht die kanonische Prisma-Migrationskette.
 - Dateinamen brauchen eindeutige, sortierbare Prefixe. Doppelte Nummern sind verboten.
+- Historische SQL-Snapshots oder Altdateien gehören nicht unter `prisma/manual_sql/manual`, sondern höchstens ins Archiv unter `docs/archive/db/`.
 
 ## Hygiene-Regeln
 

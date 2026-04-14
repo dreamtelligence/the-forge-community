@@ -29,7 +29,9 @@ const INPUT_PATH = path.resolve(process.cwd(), 'data', 'b2b-import.json');
 const REPORT_PATH = path.resolve(process.cwd(), 'reports', 'b2b-import-report.json');
 
 if (!fs.existsSync(INPUT_PATH)) {
-  throw new Error(`Missing input file: ${INPUT_PATH}. Run scripts/b2b-parse.mjs first.`);
+  throw new Error(
+    `Missing input file: ${INPUT_PATH}. Run scripts/imports/b2b-parse.mjs first.`
+  );
 }
 
 const pool = new pg.Pool({ connectionString: url });
