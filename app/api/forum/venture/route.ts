@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { FORUM_VENTURE_DESCRIPTION, FORUM_VENTURE_NAME } from '@/lib/forum-venture';
+import { prisma } from '@/lib/database/prisma';
+import { FORUM_VENTURE_DESCRIPTION, FORUM_VENTURE_NAME } from '@/lib/forum/venture';
 import { NextResponse } from 'next/server';
 
 export async function GET() {

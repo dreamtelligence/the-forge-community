@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { restoreGermanUmlauts } from '@/lib/text-utils';
+import { prisma } from '@/lib/database/prisma';
+import { restoreGermanUmlauts } from '@/lib/utils/text';
 
 export const dynamic = 'force-dynamic';
 

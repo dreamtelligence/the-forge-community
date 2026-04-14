@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState, type ElementType } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import Link from 'next/link';
 import { Award, MessageCircle, MessageSquare, Rocket, Loader2, UserPlus, UserCheck } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin';
+import { requireAdmin } from '@/lib/security/admin';
 
 export async function GET() {
   const adminCheck = await requireAdmin();

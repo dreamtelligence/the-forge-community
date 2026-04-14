@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { ensureProfileSlug } from '@/lib/profile';
-import { getProfileAchievements } from '@/lib/achievements';
+import { prisma } from '@/lib/database/prisma';
+import { ensureProfileSlug } from '@/lib/user/profile';
+import { getProfileAchievements } from '@/lib/user/achievements';
 
 export async function GET(
   _request: Request,

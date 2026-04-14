@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import { MessageCircle, Search, Send, Loader2, UserPlus, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 

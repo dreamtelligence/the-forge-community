@@ -12,7 +12,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { IntegrationProvider } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 export async function POST() {
   try {

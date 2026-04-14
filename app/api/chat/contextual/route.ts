@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { callAI } from '@/lib/ai';
-import { callGeminiWithTools } from '@/lib/gemini-tools';
-import { getForgePromptContext } from '@/lib/forge-knowledge';
-import { calculateTokenCredits, estimateTokens, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/energy';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
-import { braveSearch } from '@/lib/research';
+import { callGeminiWithTools } from '@/lib/ai/gemini-tools';
+import { getForgePromptContext } from '@/lib/ai/knowledge';
+import { calculateTokenCredits, estimateTokens, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/finance/energy';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { braveSearch } from '@/lib/ai/research-core';
 import { listPendingActions } from '@/lib/ai/actions';
-import { executeOrionToolCall } from '@/lib/orion-tools';
+import { executeOrionToolCall } from '@/lib/ai/orion-tools';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 const IMAGE_ANALYSIS_PROMPT = `Analysiere das Bild und liefere einen kompakten Prompt, mit dem man es in einem Text-zu-Bild-Model rekonstruieren kann.\n\nAnforderungen:\n- Beschreibe Motiv, Stil, Farben, Licht, Komposition, Kameraperspektive.\n- Keine sensiblen Attribute raten (Ethnie, Religion, Identitaet).\n- Ausgabe: 1-2 Sätze, keine Aufzählung, keine Anführungszeichen.\n\nWenn der User explizit nach etwas fragt, berücksichtige es.`;

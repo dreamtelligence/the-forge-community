@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { applyKarmaDelta, karmaDeltaFromScores } from '@/lib/karma';
+import { prisma } from '@/lib/database/prisma';
+import { applyKarmaDelta, karmaDeltaFromScores } from '@/lib/user/karma';
 
 export async function POST(request: Request) {
   const session = await auth();

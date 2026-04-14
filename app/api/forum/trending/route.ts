@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { callAI } from '@/lib/ai';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;

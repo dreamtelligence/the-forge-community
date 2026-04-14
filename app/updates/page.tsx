@@ -1,7 +1,7 @@
 'use client';
 
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import { useState, useEffect } from 'react';
 
 export default function UpdatesPage() {

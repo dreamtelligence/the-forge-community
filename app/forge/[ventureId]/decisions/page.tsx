@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { CreateDecisionModal } from '@/app/components/forge/CreateDecisionModal';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { CreateDecisionModal } from '@/components/forge/CreateDecisionModal';
 import { Gavel, Clock, User as UserIcon, Plus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';

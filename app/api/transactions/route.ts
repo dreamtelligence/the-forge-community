@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getTransactions, addTransaction } from '@/lib/notion';
-import { requireAdmin } from '@/lib/admin';
+import { getTransactions, addTransaction } from '@/lib/integrations/notion';
+import { requireAdmin } from '@/lib/security/admin';
 
 export const dynamic = 'force-dynamic';
 

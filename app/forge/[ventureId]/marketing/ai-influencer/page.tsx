@@ -3,14 +3,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { AIInfluencerNav } from '@/app/components/marketing/AIInfluencerNav';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { AIInfluencerNav } from '@/components/marketing/AIInfluencerNav';
 import { Button } from '@/shared/ui/button';
 import { Textarea } from '@/shared/ui/textarea';
 import { useAIContext } from '@/app/context/AIContext';
 import { ArrowLeft, CheckCircle2, Copy, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { CreditsTopUpModal } from '@/app/components/billing/CreditsTopUpModal';
+import { CreditsTopUpModal } from '@/components/billing/CreditsTopUpModal';
 
 interface PromptItem {
   id: string;

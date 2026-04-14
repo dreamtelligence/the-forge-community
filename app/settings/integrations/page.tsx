@@ -8,7 +8,7 @@
  */
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { redirect } from 'next/navigation';
 import IntegrationsClient from './IntegrationsClient';
 import { getUserConnections } from '@/lib/integrations/service';

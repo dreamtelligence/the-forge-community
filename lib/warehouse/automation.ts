@@ -1,6 +1,6 @@
 import { FulfillmentOrderStatus, InboundPackageStatus, ReturnStatus } from '@prisma/client';
 import { Resend } from 'resend';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 const OPEN_ORDER_STATUSES: FulfillmentOrderStatus[] = [
   FulfillmentOrderStatus.IMPORTED,

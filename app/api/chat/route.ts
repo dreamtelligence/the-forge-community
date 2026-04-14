@@ -2,10 +2,10 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { knowledgeBasePrompt } from '@/lib/knowledge-base';
-import { RateLimiters } from '@/lib/rate-limit';
-import { buildAiSdkTools } from '@/lib/orion-tools';
+import { prisma } from '@/lib/database/prisma';
+import { knowledgeBasePrompt } from '@/lib/ai/knowledge-base';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { buildAiSdkTools } from '@/lib/ai/orion-tools';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 // Configure Gemini as primary

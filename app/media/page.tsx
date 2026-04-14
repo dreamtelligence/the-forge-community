@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import MediaFeedClient from './MediaFeedClient';
 import type { MediaFeedItem } from './MediaFeedClient';
 

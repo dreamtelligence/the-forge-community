@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { LIFECYCLE_CONFIG, resolveRetentionDays } from '@/lib/storage/media-lifecycle';
-import { resolvePlatformAccess } from '@/lib/platform-access';
+import { resolvePlatformAccess } from '@/lib/security/platform-access';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

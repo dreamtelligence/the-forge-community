@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { callAI } from '@/lib/ai';
-import { getForgePromptContext } from '@/lib/forge-knowledge';
+import { getForgePromptContext } from '@/lib/ai/knowledge';
 
 export const maxDuration = 30;
 

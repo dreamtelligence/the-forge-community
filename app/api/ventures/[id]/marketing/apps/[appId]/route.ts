@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { updateForgeAppSchema } from '@/lib/forge-lab';
+import { prisma } from '@/lib/database/prisma';
+import { updateForgeAppSchema } from '@/lib/ai/lab';
 
 export async function PUT(
   request: NextRequest,

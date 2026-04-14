@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
-import { reserveEnergy, refundEnergy, settleEnergy, InsufficientEnergyError, checkDailyVideoQuota, getUserTier } from '@/lib/energy';
-import { getReplicateClientForUser } from '@/lib/provider-keys';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { reserveEnergy, refundEnergy, settleEnergy, InsufficientEnergyError, checkDailyVideoQuota, getUserTier } from '@/lib/finance/energy';
+import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
 import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 import { LIPSYNC_MODELS } from '@/lib/media-models';

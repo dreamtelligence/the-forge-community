@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
-import { isAdmin } from '@/lib/admin';
-import { getFinanceReconciliationReport } from '@/lib/finance-reconciliation';
+import { prisma } from '@/lib/database/prisma';
+import { isAdmin } from '@/lib/security/admin';
+import { getFinanceReconciliationReport } from '@/lib/finance/reconciliation';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {

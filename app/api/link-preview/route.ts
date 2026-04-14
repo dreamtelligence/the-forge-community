@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { callAI } from '@/lib/ai';
 import * as cheerio from 'cheerio';
 

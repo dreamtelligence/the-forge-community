@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { callGeminiDirect } from '@/lib/ai';
-import { InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/energy';
+import { InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/finance/energy';
 
 const CONTENT_TYPE = 'ai-influencer-prompt';
 

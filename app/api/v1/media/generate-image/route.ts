@@ -19,7 +19,7 @@ import {
   logRequestCompletion,
   formatApiError,
 } from '@/lib/api-keys/auth';
-import { reserveEnergy, settleEnergy } from '@/lib/energy';
+import { reserveEnergy, settleEnergy } from '@/lib/finance/energy';
 import { z } from 'zod';
 
 /**

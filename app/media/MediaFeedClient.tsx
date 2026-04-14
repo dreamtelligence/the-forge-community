@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import AuthGuard from '@/app/components/AuthGuard';
-import PageShell from '@/app/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
+import PageShell from '@/components/PageShell';
 import { Heart, Image as ImageIcon, Loader2, Play, Share2, Trash2 } from 'lucide-react';
-import { VideoPreview } from '@/app/components/media/VideoPreview';
-import { MediaLightbox } from '@/app/components/media/MediaLightbox';
+import { VideoPreview } from '@/components/media/VideoPreview';
+import { MediaLightbox } from '@/components/media/MediaLightbox';
 
 export type MediaFeedItem = {
   id: string;

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { reserveEnergy } from '@/lib/energy';
-import { expandPrompt } from '@/lib/ai-prompt-engine';
+import { prisma } from '@/lib/database/prisma';
+import { reserveEnergy } from '@/lib/finance/energy';
+import { expandPrompt } from '@/lib/ai/prompt-engine';
 import { IMAGE_MODELS, VIDEO_MODELS, DEFAULT_MODELS } from '@/lib/media-models';
-import { estimateVideoCredits } from '@/lib/credit-pricing';
-import { getReplicateClientForUser } from '@/lib/provider-keys';
+import { estimateVideoCredits } from '@/lib/billing/credit-pricing';
+import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // Pro models and video need time

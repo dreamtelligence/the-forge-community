@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { sendDirectMessage } from '@/lib/direct-messages';
-import { getSquadVisibility } from '@/lib/squad-visibility';
-import { runSerializableTransaction } from '@/lib/transaction-retry';
+import { prisma } from '@/lib/database/prisma';
+import { sendDirectMessage } from '@/lib/forum/direct-messages';
+import { getSquadVisibility } from '@/lib/user/squad-visibility';
+import { runSerializableTransaction } from '@/lib/utils/transaction-retry';
 
 export async function POST(request: Request) {
   const session = await auth();

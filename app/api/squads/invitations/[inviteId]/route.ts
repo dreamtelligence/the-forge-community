@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { sendNotification } from '@/lib/notifications';
-import { runSerializableTransaction } from '@/lib/transaction-retry';
+import { prisma } from '@/lib/database/prisma';
+import { sendNotification } from '@/lib/forum/notifications';
+import { runSerializableTransaction } from '@/lib/utils/transaction-retry';
 
 export async function PATCH(
   request: Request,

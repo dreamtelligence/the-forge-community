@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { researchWithAI, factCheckWithWeb, researchSupplier } from '@/lib/ai-research';
+import { researchWithAI, factCheckWithWeb, researchSupplier } from '@/lib/ai/research';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {

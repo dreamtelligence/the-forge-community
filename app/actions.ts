@@ -1,8 +1,8 @@
 'use server';
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { applyKarmaDelta } from '@/lib/karma';
+import { prisma } from '@/lib/database/prisma';
+import { applyKarmaDelta } from '@/lib/user/karma';
 import { revalidatePath } from 'next/cache';
 
 export async function getRoadmapItems() {

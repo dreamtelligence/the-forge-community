@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import {
   MessageSquare, ArrowUp, ArrowDown, Users,
   Reply, MessageCircle, Edit2, Trash2, Image as ImageIcon, Code, X,
@@ -13,17 +13,17 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
-import Prism from '@/app/components/ui/Prism';
-import { LinkPreview } from '@/app/components/LinkPreview';
-import { RelatedPosts } from '@/app/components/RelatedPosts';
-import { TrendingTopics } from '@/app/components/TrendingTopics';
+import Prism from '@/components/ui/Prism';
+import { LinkPreview } from '@/components/LinkPreview';
+import { RelatedPosts } from '@/components/RelatedPosts';
+import { TrendingTopics } from '@/components/TrendingTopics';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { PostSkeleton } from '@/app/components/PostSkeleton';
-import { ForumEditor } from '@/app/components/ForumEditor';
-import { ForumTour } from '@/app/components/onboarding/ForumTour';
-import OnboardingWizard from '@/app/components/onboarding/OnboardingWizard';
-import type { ForumInitialPageMetrics } from '@/lib/forum-performance';
+import { PostSkeleton } from '@/components/PostSkeleton';
+import { ForumEditor } from '@/components/ForumEditor';
+import { ForumTour } from '@/components/onboarding/ForumTour';
+import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
+import type { ForumInitialPageMetrics } from '@/lib/forum/performance';
 
 export interface Comment {
   id: string;

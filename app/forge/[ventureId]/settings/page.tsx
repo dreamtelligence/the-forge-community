@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { StudioShell } from '@/app/components/forge/StudioShell';
+import { StudioShell } from '@/components/forge/StudioShell';
 import { Settings, Save, AlertTriangle } from 'lucide-react';
 import type { BrandDNA } from '@prisma/client';
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { RateLimiters } from '@/lib/rate-limit';
-import { analyzeContractPdf } from '@/lib/ai-contract-scan';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { analyzeContractPdf } from '@/lib/ai/contract-scan';
 
 export const dynamic = 'force-dynamic';
 

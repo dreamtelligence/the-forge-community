@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { CampaignCard } from '@/app/components/marketing/CampaignCard';
-import { AddCampaignModal } from '@/app/components/marketing/AddCampaignModal';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { CampaignCard } from '@/components/marketing/CampaignCard';
+import { AddCampaignModal } from '@/components/marketing/AddCampaignModal';
 import { TrendingUp, Plus, BarChart3, Clock, Calendar } from 'lucide-react';
 import { useAIContext } from '@/app/context/AIContext';
 

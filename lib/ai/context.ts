@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 export async function getUserFullContext(userEmail: string) {
   const user = await prisma.user.findUnique({

@@ -1,5 +1,5 @@
 console.log('Script started');
-import { addForumPost } from '@/lib/notion';
+import { addForumPost } from '@/lib/integrations/notion';
 import dotenv from 'dotenv';
 import path from 'path';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { TemplateSelector, type Template } from '@/app/components/forge/TemplateSelector';
+import { TemplateSelector, type Template } from '@/components/forge/TemplateSelector';
 
 interface TemplateSelectorClientProps {
   templates: Template[];

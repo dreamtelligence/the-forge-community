@@ -1,15 +1,15 @@
 import { auth } from '@/auth';
 import ForumClient from './ForumClient';
-import { prisma } from '@/lib/prisma';
-import { ensureSessionUser } from '@/lib/session-user';
-import { assignFounderNumberIfMissing } from '@/lib/founder-number';
-import { ensureProfileSlug } from '@/lib/profile';
-import { getForumFeed } from '@/lib/forum-feed';
+import { prisma } from '@/lib/database/prisma';
+import { ensureSessionUser } from '@/lib/user/session';
+import { assignFounderNumberIfMissing } from '@/lib/user/founder-number';
+import { ensureProfileSlug } from '@/lib/user/profile';
+import { getForumFeed } from '@/lib/forum/feed';
 import {
   getJsonPayloadBytes,
   logForumMetric,
   type ForumInitialPageMetrics,
-} from '@/lib/forum-performance';
+} from '@/lib/forum/performance';
 
 type ForumPageSession =
   | {

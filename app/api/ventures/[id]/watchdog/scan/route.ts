@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { scanCompetitor, compareSnapshots } from '@/lib/watchdog';
-import { sendNotification } from '@/lib/notifications';
-import { reserveEnergy, settleEnergy, refundEnergy, InsufficientEnergyError } from '@/lib/energy';
+import { prisma } from '@/lib/database/prisma';
+import { scanCompetitor, compareSnapshots } from '@/lib/security/watchdog';
+import { sendNotification } from '@/lib/forum/notifications';
+import { reserveEnergy, settleEnergy, refundEnergy, InsufficientEnergyError } from '@/lib/finance/energy';
 
 export async function POST(
   _req: NextRequest,

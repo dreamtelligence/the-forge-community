@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 const STOP_WORDS = new Set([
   'und', 'oder', 'der', 'die', 'das', 'mit', 'fuer', 'für', 'von', 'im', 'in', 'am',

@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import PageShell from '@/app/components/PageShell';
+import PageShell from '@/components/PageShell';
 import { BookOpen, Search, Sparkles, Target, Zap, ArrowRight, Play, Clock, Layers, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { restoreGermanUmlauts } from '@/lib/text-utils';
+import { restoreGermanUmlauts } from '@/lib/utils/text';
 
 interface TrainingCourse {
   id: string;

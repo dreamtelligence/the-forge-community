@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { playGtaMenuSound, primeGtaMenuSound } from '@/lib/ui-sound';
+import { playGtaMenuSound, primeGtaMenuSound } from '@/lib/utils/sound';
 
 let globalUnreadCount: number | null = null;
 let lastNotifyAt = 0;

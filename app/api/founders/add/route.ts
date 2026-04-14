@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addFounder } from '@/lib/notion';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
-import { trackServerError } from '@/lib/error-tracking';
-import { verifyTurnstileToken } from '@/lib/turnstile';
+import { addFounder } from '@/lib/integrations/notion';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { trackServerError } from '@/lib/utils/error-tracking';
+import { verifyTurnstileToken } from '@/lib/security/turnstile';
 
 export async function POST(request: NextRequest) {
   try {

@@ -13,7 +13,7 @@
  * @module lib/security/ip-rate-limit
  */
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 /**
  * Rate limit result

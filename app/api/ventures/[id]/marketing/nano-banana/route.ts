@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
 import { put } from '@vercel/blob';
-import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/energy';
+import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/finance/energy';
 import { generateUUID } from '@/lib/utils/uuid';
-import { GOOGLE_AI_STUDIO_KEY_ENV_HINT, resolveGoogleAIStudioApiKey } from '@/lib/google-ai';
+import { GOOGLE_AI_STUDIO_KEY_ENV_HINT, resolveGoogleAIStudioApiKey } from '@/lib/ai/google';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -191,7 +191,7 @@ export async function POST(
     });
     reservationId = reservation.reservationId;
 
-    const { checkDailyImageQuota } = await import('@/lib/energy');
+    const { checkDailyImageQuota } = await import('@/lib/finance/energy');
     const dailyQuota = await checkDailyImageQuota(user.id);
     if (!dailyQuota.allowed) {
       await refundEnergy(reservationId, 'daily-quota-exceeded');

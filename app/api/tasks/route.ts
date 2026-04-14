@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getTasks, addTask, updateTaskStatus } from '@/lib/notion';
+import { getTasks, addTask, updateTaskStatus } from '@/lib/integrations/notion';
 
 export const dynamic = 'force-dynamic';
 

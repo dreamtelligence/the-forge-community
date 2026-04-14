@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import { Circle, Clock, CheckCircle2, AlertCircle, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 

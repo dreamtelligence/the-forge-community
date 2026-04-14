@@ -5,14 +5,14 @@
 
 import { notFound } from 'next/navigation';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import type { Template } from '@/app/components/forge/TemplateSelector';
+import { prisma } from '@/lib/database/prisma';
+import { StudioShell } from '@/components/forge/StudioShell';
+import type { Template } from '@/components/forge/TemplateSelector';
 import TemplateSelectorClient from './TemplateSelectorClient';
 import { Scale, FileText, Shield, Briefcase, Users2, Factory, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { LEGAL_DOCUMENT_TEMPLATES } from '@/types/legal';
-import ForgeAIContextSetter from '@/app/components/forge/ForgeAIContextSetter';
+import ForgeAIContextSetter from '@/components/forge/ForgeAIContextSetter';
 
 export default async function LegalStudioPage({
   params,

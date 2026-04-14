@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { redirect } from 'next/navigation';
-import { getReplicateKeyStatusForUser } from '@/lib/provider-keys';
+import { getReplicateKeyStatusForUser } from '@/lib/integrations/provider-keys';
 import ProviderKeysClient from './ProviderKeysClient';
 
 export const metadata = {

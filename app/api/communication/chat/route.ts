@@ -3,8 +3,8 @@ import { auth } from '@/auth';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText, convertToModelMessages } from 'ai';
 import { getUserFullContext } from '@/lib/ai/context';
-import { prisma } from '@/lib/prisma';
-import { buildAiSdkTools } from '@/lib/orion-tools';
+import { prisma } from '@/lib/database/prisma';
+import { buildAiSdkTools } from '@/lib/ai/orion-tools';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 const gemini = createGoogleGenerativeAI({

@@ -10,8 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { braveSearch } from '@/lib/research';
+import { prisma } from '@/lib/database/prisma';
+import { braveSearch } from '@/lib/ai/research-core';
 import { callAI } from '@/lib/ai';
 
 export const maxDuration = 60;

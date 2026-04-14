@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { StudioShell } from '@/app/components/forge/StudioShell';
+import { prisma } from '@/lib/database/prisma';
+import { StudioShell } from '@/components/forge/StudioShell';
 import { Scale, FileText, Plus, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 

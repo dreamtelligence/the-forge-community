@@ -1,15 +1,15 @@
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { redirect } from 'next/navigation';
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import { BillingOverview } from './components/BillingOverview';
 import { SubscriptionCard } from './components/SubscriptionCard';
 import { CreditBalanceCard } from './components/CreditBalanceCard';
 import { InvoiceList } from './components/InvoiceList';
 import { UsageBreakdownCard } from './components/UsageBreakdownCard';
-import { parseUsageBreakdownFromMetadata } from '@/lib/billing-v2';
-import { resolvePlatformAccess } from '@/lib/platform-access';
+import { parseUsageBreakdownFromMetadata } from '@/lib/billing/v2';
+import { resolvePlatformAccess } from '@/lib/security/platform-access';
 
 export default async function BillingPage() {
   const session = await auth();

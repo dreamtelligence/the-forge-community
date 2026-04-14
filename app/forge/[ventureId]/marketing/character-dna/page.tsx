@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { AIInfluencerNav } from '@/app/components/marketing/AIInfluencerNav';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { AIInfluencerNav } from '@/components/marketing/AIInfluencerNav';
 import { Sparkles, Upload, CheckCircle2, AlertCircle, Copy, Loader2, ArrowLeft } from 'lucide-react';
 import { useAIContext } from '@/app/context/AIContext';
 import { cn } from '@/lib/utils';
-import { CreditsTopUpModal } from '@/app/components/billing/CreditsTopUpModal';
+import { CreditsTopUpModal } from '@/components/billing/CreditsTopUpModal';
 
 export default function CharacterDNAPage() {
   const params = useParams();

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { refundEnergy } from '@/lib/energy';
+import { prisma } from '@/lib/database/prisma';
+import { refundEnergy } from '@/lib/finance/energy';
 
 export const dynamic = 'force-dynamic';
 

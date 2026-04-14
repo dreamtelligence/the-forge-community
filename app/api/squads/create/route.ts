@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { setSquadVisibility } from '@/lib/squad-visibility';
-import { runSerializableTransaction } from '@/lib/transaction-retry';
+import { prisma } from '@/lib/database/prisma';
+import { setSquadVisibility } from '@/lib/user/squad-visibility';
+import { runSerializableTransaction } from '@/lib/utils/transaction-retry';
 import type { CreateSquadRequest } from '@/types/database';
 
 function toSlug(input: string): string {

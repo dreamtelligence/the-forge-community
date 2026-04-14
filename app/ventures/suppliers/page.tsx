@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AuthGuard from '@/app/components/AuthGuard';
-import PageShell from '@/app/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
+import PageShell from '@/components/PageShell';
 import { Search, Package, MapPin, ExternalLink, TrendingUp, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 

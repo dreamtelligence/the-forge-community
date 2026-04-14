@@ -1,9 +1,9 @@
 'use server';
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { del, put } from '@vercel/blob';
-import { settleEnergy, refundEnergy } from '@/lib/energy';
+import { settleEnergy, refundEnergy } from '@/lib/finance/energy';
 import { revalidatePath } from 'next/cache';
 
 // Helper to manage media assets and storage flows

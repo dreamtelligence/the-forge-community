@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 const normalizeDecisionType = (value: unknown) => {
   const normalized = typeof value === 'string' ? value.trim().toUpperCase() : 'MULTIPLE_CHOICE';

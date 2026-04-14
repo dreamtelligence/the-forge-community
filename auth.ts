@@ -5,14 +5,14 @@ import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import type { Provider } from 'next-auth/providers';
 import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { Resend as ResendClient } from 'resend';
 import { timingSafeEqual } from 'node:crypto';
-import { assignFounderNumberIfMissing } from '@/lib/founder-number';
+import { assignFounderNumberIfMissing } from '@/lib/user/founder-number';
 import { isLoginAllowedDuringClosedBeta } from '@/lib/beta-access.server';
-import { isConfiguredAdminEmail } from '@/lib/admin-access';
+import { isConfiguredAdminEmail } from '@/lib/security/admin-access';
 import { getCaseworkerLoginEmail, isCaseworkerCredentialsEnabled } from '@/lib/caseworker-login';
-import { ensureSessionUser } from '@/lib/session-user';
+import { ensureSessionUser } from '@/lib/user/session';
 
 const resendApiKey = process.env.AUTH_RESEND_KEY;
 const resendClient = resendApiKey ? new ResendClient(resendApiKey) : null;

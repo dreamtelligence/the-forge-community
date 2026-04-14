@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

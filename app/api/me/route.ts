@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { ensureProfileSlug } from '@/lib/profile';
-import { assignFounderNumberIfMissing } from '@/lib/founder-number';
+import { prisma } from '@/lib/database/prisma';
+import { ensureProfileSlug } from '@/lib/user/profile';
+import { assignFounderNumberIfMissing } from '@/lib/user/founder-number';
 import { Prisma } from '@prisma/client';
-import { ensureSessionUser } from '@/lib/session-user';
+import { ensureSessionUser } from '@/lib/user/session';
 
 export async function GET() {
   const session = await auth();

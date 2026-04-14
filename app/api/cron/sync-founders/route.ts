@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getFounders } from '@/lib/notion';
-import { prisma } from '@/lib/prisma';
+import { getFounders } from '@/lib/integrations/notion';
+import { prisma } from '@/lib/database/prisma';
 
 
 export async function GET(request: Request) {

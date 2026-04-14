@@ -1,10 +1,10 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { recordFinanceAuditLog } from '@/lib/finance-ledger';
-import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
-import { createCreditPurchaseInvoice, createSubscriptionInvoice } from '@/lib/platform-invoicing';
-import { trackServerError } from '@/lib/error-tracking';
+import { recordFinanceAuditLog } from '@/lib/finance/ledger';
+import { stripe } from '@/lib/billing/stripe';
+import { prisma } from '@/lib/database/prisma';
+import { createCreditPurchaseInvoice, createSubscriptionInvoice } from '@/lib/billing/invoicing';
+import { trackServerError } from '@/lib/utils/error-tracking';
 import { FinanceAuditAction, FinanceAuditEntityType } from '@prisma/client';
 import Stripe from 'stripe';
 

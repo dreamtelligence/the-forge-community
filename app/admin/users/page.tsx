@@ -1,5 +1,5 @@
-import { prisma } from '@/lib/prisma';
-import { isAdmin } from '@/lib/admin';
+import { prisma } from '@/lib/database/prisma';
+import { isAdmin } from '@/lib/security/admin';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Zap, CreditCard } from 'lucide-react';

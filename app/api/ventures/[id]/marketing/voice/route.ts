@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/energy';
-import { estimateElevenLabsTtsCredits } from '@/lib/credit-pricing';
+import { prisma } from '@/lib/database/prisma';
+import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/finance/energy';
+import { estimateElevenLabsTtsCredits } from '@/lib/billing/credit-pricing';
 import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 
@@ -286,7 +286,7 @@ export async function POST(
 
     // Step 3: Check daily quota (NEW: prevent abuse)
     try {
-      const { checkDailyVoiceQuota } = await import('@/lib/energy');
+      const { checkDailyVoiceQuota } = await import('@/lib/finance/energy');
       const dailyQuota = await checkDailyVoiceQuota(user.id);
 
       if (!dailyQuota.allowed) {

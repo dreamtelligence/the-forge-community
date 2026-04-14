@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLegalCorpusStatus, syncLegalCorpus } from '@/lib/legal-corpus';
+import { getLegalCorpusStatus, syncLegalCorpus } from '@/lib/legal/corpus';
 
 export const maxDuration = 60;
 

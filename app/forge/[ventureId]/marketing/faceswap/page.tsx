@@ -3,13 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { AIInfluencerNav } from '@/app/components/marketing/AIInfluencerNav';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { AIInfluencerNav } from '@/components/marketing/AIInfluencerNav';
 import { ArrowLeft, Upload, Video, User, Zap, CheckCircle2, AlertCircle, Loader2, Play, Download } from 'lucide-react';
 import { FACESWAP_MODELS } from '@/lib/media-models';
 import { useAIContext } from '@/app/context/AIContext';
 import { cn } from '@/lib/utils';
-import { CreditsTopUpModal } from '@/app/components/billing/CreditsTopUpModal';
+import { CreditsTopUpModal } from '@/components/billing/CreditsTopUpModal';
 
 type JobStatus = 'idle' | 'uploading' | 'processing' | 'succeeded' | 'failed';
 

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { isAdmin } from '@/lib/admin';
+import { isAdmin } from '@/lib/security/admin';
 import Link from 'next/link';
 import { Shield, Users, LayoutDashboard, LogOut } from 'lucide-react';
 

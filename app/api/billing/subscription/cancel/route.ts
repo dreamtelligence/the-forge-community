@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { stripe } from '@/lib/stripe';
+import { prisma } from '@/lib/database/prisma';
+import { stripe } from '@/lib/billing/stripe';
 import { NextResponse } from 'next/server';
 
 /**

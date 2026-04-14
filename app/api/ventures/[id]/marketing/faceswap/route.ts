@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { reserveEnergy, refundEnergy, settleEnergy, InsufficientEnergyError, checkDailyVideoQuota, checkMonthlyAvatarQuota } from '@/lib/energy';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
-import { getReplicateClientForUser } from '@/lib/provider-keys';
+import { reserveEnergy, refundEnergy, settleEnergy, InsufficientEnergyError, checkDailyVideoQuota, checkMonthlyAvatarQuota } from '@/lib/finance/energy';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
 import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 import { FACESWAP_MODELS } from '@/lib/media-models';

@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { IntegrationProvider } from '@prisma/client';
 import { getConnectionByProvider, refreshAccessToken } from '@/lib/integrations/service';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { 
   sendMessage, 
   SlackTemplates,

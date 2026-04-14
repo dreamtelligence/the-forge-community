@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin';
+import { requireAdmin } from '@/lib/security/admin';
 
 /**
  * Admin API: Delete User Account

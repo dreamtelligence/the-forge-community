@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
-import ForgeAIContextSetter from '@/app/components/forge/ForgeAIContextSetter';
-import { VentureTour } from '@/app/components/onboarding/VentureTour';
+import ForgeAIContextSetter from '@/components/forge/ForgeAIContextSetter';
+import { VentureTour } from '@/components/onboarding/VentureTour';
 
 export default async function ForgeDashboardPage({
   params,

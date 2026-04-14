@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import AuthGuard from '@/app/components/AuthGuard';
-import PageShell from '@/app/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
+import PageShell from '@/components/PageShell';
 import { deleteVenture, getUserVentures } from '@/app/actions/ventures';
 import { Plus, Rocket, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 

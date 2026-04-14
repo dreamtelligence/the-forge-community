@@ -1,8 +1,8 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { assignFounderNumberIfMissing } from '@/lib/founder-number';
+import { prisma } from '@/lib/database/prisma';
+import { assignFounderNumberIfMissing } from '@/lib/user/founder-number';
 
 export async function POST(request: Request): Promise<NextResponse> {
   const session = await auth();

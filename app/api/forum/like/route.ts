@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { syncUserAchievements } from '@/lib/achievements';
-import { applyKarmaDelta, karmaDeltaFromScores } from '@/lib/karma';
-import { ensureSessionUser } from '@/lib/session-user';
+import { prisma } from '@/lib/database/prisma';
+import { syncUserAchievements } from '@/lib/user/achievements';
+import { applyKarmaDelta, karmaDeltaFromScores } from '@/lib/user/karma';
+import { ensureSessionUser } from '@/lib/user/session';
 
 export async function POST(request: Request) {
   const session = await auth();

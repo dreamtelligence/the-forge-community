@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { grantEnergy } from '@/lib/energy';
+import { prisma } from '@/lib/database/prisma';
+import { grantEnergy } from '@/lib/finance/energy';
 
 export async function POST(req: NextRequest) {
   const session = await auth();

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { StudioShell } from '@/app/components/forge/StudioShell';
+import { StudioShell } from '@/components/forge/StudioShell';
 import { 
   Factory, 
   Package, 
@@ -26,14 +26,14 @@ import {
   Sparkles,
   Radar
 } from 'lucide-react';
-import { AddSupplierModal } from '@/app/components/sourcing/AddSupplierModal';
-import { AddSampleModal } from '@/app/components/sourcing/AddSampleModal';
-import { AddOrderModal } from '@/app/components/sourcing/AddOrderModal';
-import { AISourcingModal } from '@/app/components/sourcing/AISourcingModal';
-import { DirectoryImportModal } from '@/app/components/sourcing/DirectoryImportModal';
-import WarehousePanel from '@/app/components/sourcing/WarehousePanel';
-import TrendRadar from '@/app/components/sourcing/TrendRadar';
-import { SourcingTour } from '@/app/components/onboarding/SourcingTour';
+import { AddSupplierModal } from '@/components/sourcing/AddSupplierModal';
+import { AddSampleModal } from '@/components/sourcing/AddSampleModal';
+import { AddOrderModal } from '@/components/sourcing/AddOrderModal';
+import { AISourcingModal } from '@/components/sourcing/AISourcingModal';
+import { DirectoryImportModal } from '@/components/sourcing/DirectoryImportModal';
+import WarehousePanel from '@/components/sourcing/WarehousePanel';
+import TrendRadar from '@/components/sourcing/TrendRadar';
+import { SourcingTour } from '@/components/onboarding/SourcingTour';
 
 type TabType = 'suppliers' | 'samples' | 'orders' | 'overview' | 'trends' | 'warehouse';
 

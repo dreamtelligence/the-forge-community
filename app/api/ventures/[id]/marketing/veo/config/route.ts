@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 type GenerationMode = 'text-to-video' | 'image-to-video' | 'references-to-video' | 'extend-video';
 type VeoModelKey = 'veo-3.1' | 'veo-3.1-fast';

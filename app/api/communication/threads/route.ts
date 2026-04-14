@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 const createTitle = (value: string) => {
   const cleaned = value.replace(/\s+/g, ' ').trim();

@@ -1,5 +1,5 @@
-import LaunchHero from '@/app/components/LaunchHero';
-import CircleCursor from '@/app/components/CircleCursor';
+import LaunchHero from '@/components/LaunchHero';
+import CircleCursor from '@/components/CircleCursor';
 
 export default function HeroDemoPage() {
   return (

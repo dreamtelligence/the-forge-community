@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { generateTrendReport } from '@/lib/trend-hunter';
-import { reserveEnergy, settleEnergy, refundEnergy, InsufficientEnergyError } from '@/lib/energy';
+import { prisma } from '@/lib/database/prisma';
+import { generateTrendReport } from '@/lib/ai/trend-hunter';
+import { reserveEnergy, settleEnergy, refundEnergy, InsufficientEnergyError } from '@/lib/finance/energy';
 
 export async function POST(
   req: NextRequest,

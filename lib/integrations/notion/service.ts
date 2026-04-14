@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { IntegrationProvider } from '@prisma/client';
 import { 
   refreshAccessToken,

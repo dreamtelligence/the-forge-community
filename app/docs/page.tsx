@@ -1,7 +1,7 @@
 'use client';
 
-import AuthGuard from '@/app/components/AuthGuard';
-import PageShell from '@/app/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
+import PageShell from '@/components/PageShell';
 import Link from 'next/link';
 import {
   BookOpen,

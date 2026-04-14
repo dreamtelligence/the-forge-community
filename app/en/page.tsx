@@ -1,4 +1,4 @@
-import HomePage from '@/app/components/landing/kimi/HomePage';
+import HomePage from '@/components/landing/kimi/HomePage';
 import { getCopy } from '@/lib/i18n';
 import type { Metadata } from 'next';
 

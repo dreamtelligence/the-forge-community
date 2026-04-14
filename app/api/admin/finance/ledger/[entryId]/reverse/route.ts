@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { requireAdmin } from '@/lib/admin';
-import { reversePlatformLedgerEntry } from '@/lib/finance-ledger';
-import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/security/admin';
+import { reversePlatformLedgerEntry } from '@/lib/finance/ledger';
+import { prisma } from '@/lib/database/prisma';
 
 export const dynamic = 'force-dynamic';
 

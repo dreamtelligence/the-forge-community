@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { put } from '@vercel/blob';
-import { settleEnergy, refundEnergy } from '@/lib/energy';
+import { settleEnergy, refundEnergy } from '@/lib/finance/energy';
 
 // We need the raw body for signature verification
 export const runtime = 'nodejs';

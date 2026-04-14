@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI, VideoGenerationReferenceType, GenerateVideosOperation } from '@google/genai/node';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
-import { reserveEnergy, settleEnergy, refundEnergy, checkDailyVideoQuota } from '@/lib/energy';
-import { estimateVideoCredits } from '@/lib/credit-pricing';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { reserveEnergy, settleEnergy, refundEnergy, checkDailyVideoQuota } from '@/lib/finance/energy';
+import { estimateVideoCredits } from '@/lib/billing/credit-pricing';
 import { generateUUID } from '@/lib/utils/uuid';
 import { put } from '@vercel/blob';
-import { GOOGLE_AI_STUDIO_KEY_ENV_HINT, resolveGoogleAIStudioApiKey } from '@/lib/google-ai';
+import { GOOGLE_AI_STUDIO_KEY_ENV_HINT, resolveGoogleAIStudioApiKey } from '@/lib/ai/google';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;

@@ -24,9 +24,9 @@
  * @version 1.0.0
  */
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { hashApiKey, isValidApiKeyFormat } from './crypto';
-import { consumeHourlyQuota, consumeDailyQuota } from '@/lib/energy';
+import { consumeHourlyQuota, consumeDailyQuota } from '@/lib/finance/energy';
 import type {
   ApiRequestContext,
   ApiScope,

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/energy';
-import { estimateVideoCredits } from '@/lib/credit-pricing';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
-import { getReplicateClientForUser } from '@/lib/provider-keys';
+import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/finance/energy';
+import { estimateVideoCredits } from '@/lib/billing/credit-pricing';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
 import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 
@@ -780,7 +780,7 @@ export async function POST(
     }
 
     // Step 3: Check daily quota (NEW: prevent abuse, especially for expensive video generation)
-    const { checkDailyImageQuota, checkDailyVideoQuota } = await import('@/lib/energy');
+    const { checkDailyImageQuota, checkDailyVideoQuota } = await import('@/lib/finance/energy');
     const dailyQuota = isVideoMode
       ? await checkDailyVideoQuota(user.id)
       : await checkDailyImageQuota(user.id);

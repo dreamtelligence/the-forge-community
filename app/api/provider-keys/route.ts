@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import {
   REPLICATE_PROVIDER,
   getReplicateKeyStatusForUser,
   upsertReplicateKeyForUser,
   removeReplicateKeyForUser,
-} from '@/lib/provider-keys';
-import { RateLimiters } from '@/lib/rate-limit';
+} from '@/lib/integrations/provider-keys';
+import { RateLimiters } from '@/lib/security/rate-limit';
 
 const PROVIDER_NOT_SUPPORTED_ERROR = 'Nur Replicate wird aktuell für BYOK unterstützt.';
 

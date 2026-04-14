@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import ForgeSidebar from '@/app/components/ForgeSidebar';
-import ForgeMobileNav from '@/app/components/forge/ForgeMobileNav';
+import { prisma } from '@/lib/database/prisma';
+import ForgeSidebar from '@/components/ForgeSidebar';
+import ForgeMobileNav from '@/components/forge/ForgeMobileNav';
 import { AIContextProvider } from '@/app/context/AIContext';
-import ContextAwareAiSidebar from '@/app/components/ContextAwareAiSidebar';
-import MobileTabBar from '@/app/components/MobileTabBar';
+import ContextAwareAiSidebar from '@/components/ContextAwareAiSidebar';
+import MobileTabBar from '@/components/MobileTabBar';
 
 export default async function ForgeLayout({
   children,

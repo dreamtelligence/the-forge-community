@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import PageShell from '@/app/components/PageShell';
+import PageShell from '@/components/PageShell';
 import { ChevronLeft, BookOpen, Sparkles, Clock, Layers, CheckCircle2, Share2, Bookmark, ArrowRight, Zap } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
-import { restoreGermanUmlauts } from '@/lib/text-utils';
+import { restoreGermanUmlauts } from '@/lib/utils/text';
 
 type TrainingModule = {
   id: string;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 const SOUNDSTRIPE_API_URL = process.env.SOUNDSTRIPE_API_URL || 'https://api.soundstripe.com/v1';
 const SOUNDSTRIPE_API_KEY = process.env.SOUNDSTRIPE_API_KEY;

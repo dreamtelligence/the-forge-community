@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { getWarehouseAccess } from '@/lib/warehouse/access';
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // 8MB

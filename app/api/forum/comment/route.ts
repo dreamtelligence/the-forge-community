@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { assignFounderNumberIfMissing } from '@/lib/founder-number';
-import { ensureProfileSlug } from '@/lib/profile';
-import { RateLimiters } from '@/lib/rate-limit';
+import { prisma } from '@/lib/database/prisma';
+import { assignFounderNumberIfMissing } from '@/lib/user/founder-number';
+import { ensureProfileSlug } from '@/lib/user/profile';
+import { RateLimiters } from '@/lib/security/rate-limit';
 
 export async function POST(request: Request) {
   const rateLimitResponse = await RateLimiters.forumComment(request);
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
     const actorName = user.name || 'Ein Founder';
     try {
-      const { processMentions, sendNotification } = await import('@/lib/notifications');
+      const { processMentions, sendNotification } = await import('@/lib/forum/notifications');
 
       // 1. Notify Parent Comment Author (if reply)
       if (parentId && parentAuthorId && parentAuthorId !== user.id) {

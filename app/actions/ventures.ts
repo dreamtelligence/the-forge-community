@@ -1,10 +1,10 @@
 'use server';
 
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { getTemplateByType } from '@/lib/venture-templates';
-import { isForumVenture } from '@/lib/forum-venture';
-import { isPersonalStudioVenture } from '@/lib/personal-studio';
+import { prisma } from '@/lib/database/prisma';
+import { getTemplateByType } from '@/lib/ventures/index/templates';
+import { isForumVenture } from '@/lib/forum/venture';
+import { isPersonalStudioVenture } from '@/lib/ventures/index/personal-studio';
 import { revalidatePath } from 'next/cache';
 
 export async function createVenture(data: {

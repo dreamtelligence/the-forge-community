@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import type { ModerationPolicy } from '@/lib/moderation';
+import type { ModerationPolicy } from '@/lib/security/moderation';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 const MAX_LIMIT = 100;
 
@@ -178,7 +178,7 @@ export async function POST(
       containsHardBlockWords,
       isTargetedContent,
       shouldBlockContent
-    } = await import('@/lib/moderation');
+    } = await import('@/lib/security/moderation');
     const messageCheck = await canUserPost(user.id);
     if (!messageCheck.allowed) {
       return NextResponse.json({

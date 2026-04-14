@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthGuard from '@/app/components/AuthGuard';
-import PageShell from '@/app/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
+import PageShell from '@/components/PageShell';
 import { createVenture, updateVentureStep } from '@/app/actions/ventures';
 import { ArrowRight, ArrowLeft, Check, Rocket, Package, Code, Briefcase, Camera, MoreHorizontal } from 'lucide-react';
 

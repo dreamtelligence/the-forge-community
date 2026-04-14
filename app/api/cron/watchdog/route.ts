@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { scanCompetitor, compareSnapshots } from '@/lib/watchdog';
-import { sendNotification } from '@/lib/notifications';
+import { prisma } from '@/lib/database/prisma';
+import { scanCompetitor, compareSnapshots } from '@/lib/security/watchdog';
+import { sendNotification } from '@/lib/forum/notifications';
 
 export const maxDuration = 120; // 2 minutes for Vercel
 

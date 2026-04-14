@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { PostCard } from '@/app/components/marketing/PostCard';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { PostCard } from '@/components/marketing/PostCard';
 import { TrendingUp, Target, DollarSign, Plus, ArrowLeft, LayoutTemplate } from 'lucide-react';
 import Link from 'next/link';
 import { useAIContext } from '@/app/context/AIContext';

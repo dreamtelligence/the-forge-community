@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import { motion } from 'framer-motion';
 import {
   Users, Crown, TrendingUp, Wallet, ArrowLeft,
   Settings, UserPlus, Target, Zap, MessageSquare, FileText,
   ArrowUpRight, Shield, Lock, Globe} from 'lucide-react';
 import Link from 'next/link';
-import { SquadWalletView } from '@/app/components/squads/SquadWalletView';
+import { SquadWalletView } from '@/components/squads/SquadWalletView';
 
 // ... (rest of imports)
 

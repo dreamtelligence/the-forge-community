@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import type { ModerationPolicy } from '@/lib/moderation';
+import type { ModerationPolicy } from '@/lib/security/moderation';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { ensureProfileSlug } from '@/lib/profile';
-import { assignFounderNumberIfMissing } from '@/lib/founder-number';
-import { syncUserAchievements } from '@/lib/achievements';
-import { RateLimiters } from '@/lib/rate-limit';
-import { getForumFeed } from '@/lib/forum-feed';
-import { createForumJsonResponse } from '@/lib/forum-performance';
+import { prisma } from '@/lib/database/prisma';
+import { ensureProfileSlug } from '@/lib/user/profile';
+import { assignFounderNumberIfMissing } from '@/lib/user/founder-number';
+import { syncUserAchievements } from '@/lib/user/achievements';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { getForumFeed } from '@/lib/forum/feed';
+import { createForumJsonResponse } from '@/lib/forum/performance';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
       sanitizeToxicContent,
       shouldBlockContent,
       shouldSanitizeContent
-    } = await import('@/lib/moderation');
+    } = await import('@/lib/security/moderation');
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { id: true, name: true, founderNumber: true, profileSlug: true }
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
 
     // --- NEW: Handle Mentions ---
     try {
-      const { processMentions } = await import('@/lib/notifications');
+      const { processMentions } = await import('@/lib/forum/notifications');
       await processMentions({
         text: finalContent,
         actorId: user.id,

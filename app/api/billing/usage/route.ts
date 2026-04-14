@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { parseUsageBreakdownFromMetadata } from '@/lib/billing-v2';
+import { prisma } from '@/lib/database/prisma';
+import { parseUsageBreakdownFromMetadata } from '@/lib/billing/v2';
 
 export async function GET() {
   const session = await auth();

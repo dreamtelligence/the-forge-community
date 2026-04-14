@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { put } from '@vercel/blob';
-import { InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/energy';
+import { InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/finance/energy';
 import { generateUUID } from '@/lib/utils/uuid';
-import { getReplicateClientForUser } from '@/lib/provider-keys';
+import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;

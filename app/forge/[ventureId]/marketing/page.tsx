@@ -3,15 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { CreditsTopUpModal } from '@/app/components/billing/CreditsTopUpModal';
-import { AIGenerator } from '@/app/components/forge/AIGenerator';
-import { MediaStudio } from '@/app/components/forge/MediaStudio'; // NEW
-import { DocumentExport } from '@/app/components/forge/DocumentExport';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { CreditsTopUpModal } from '@/components/billing/CreditsTopUpModal';
+import { AIGenerator } from '@/components/forge/AIGenerator';
+import { MediaStudio } from '@/components/forge/MediaStudio'; // NEW
+import { DocumentExport } from '@/components/forge/DocumentExport';
 import { Megaphone, Share2, LayoutTemplate, Mail, TrendingUp, PenTool, Image as ImageIcon, Eye } from 'lucide-react';
 import type { BrandDNA } from '@prisma/client';
 import { useAIContext } from '@/app/context/AIContext';
-import CompetitorWatchdog from '@/app/components/marketing/CompetitorWatchdog';
+import CompetitorWatchdog from '@/components/marketing/CompetitorWatchdog';
 
 const CONTENT_TYPES = [
   { id: 'instagram', name: 'Instagram Post', icon: <Share2 className="w-4 h-4" /> },

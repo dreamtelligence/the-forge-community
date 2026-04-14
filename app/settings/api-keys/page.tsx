@@ -14,9 +14,9 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { isForumVenture } from '@/lib/forum-venture';
-import { isPersonalStudioVenture } from '@/lib/personal-studio';
+import { prisma } from '@/lib/database/prisma';
+import { isForumVenture } from '@/lib/forum/venture';
+import { isPersonalStudioVenture } from '@/lib/ventures/index/personal-studio';
 import ApiKeysClient from './ApiKeysClient';
 import type { ApiKeyListItem } from '@/lib/api-keys/types';
 import { ArrowLeft } from 'lucide-react';

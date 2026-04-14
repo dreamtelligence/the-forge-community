@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 export type WarehouseAccessResult =
   | { ok: true; userId: string }

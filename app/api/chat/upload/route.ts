@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { RateLimiters } from '@/lib/rate-limit';
+import { prisma } from '@/lib/database/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
 
 const MAX_UPLOAD_BYTES = 300 * 1024 * 1024; // 300MB
 const MAX_FILES = 5;

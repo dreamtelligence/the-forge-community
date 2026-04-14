@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { ForumAIActions } from '@/lib/ai';
-import { RateLimiters } from '@/lib/rate-limit';
-import { prisma } from '@/lib/prisma';
+import { RateLimiters } from '@/lib/security/rate-limit';
+import { prisma } from '@/lib/database/prisma';
 
 export const maxDuration = 30;
 

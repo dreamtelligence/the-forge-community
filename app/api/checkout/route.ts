@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { stripe } from '@/lib/stripe';
-import { prisma } from '@/lib/prisma';
+import { stripe } from '@/lib/billing/stripe';
+import { prisma } from '@/lib/database/prisma';
 
 /**
  * Stripe Checkout Session Creator

@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { getForumCommentsForPost } from '@/lib/forum-feed';
-import { createForumJsonResponse } from '@/lib/forum-performance';
+import { prisma } from '@/lib/database/prisma';
+import { getForumCommentsForPost } from '@/lib/forum/feed';
+import { createForumJsonResponse } from '@/lib/forum/performance';
 
 export async function GET(request: Request) {
   const routeStart = performance.now();

@@ -1,5 +1,5 @@
 import { Wallet } from 'lucide-react';
-import ForgeAIContextSetter from '@/app/components/forge/ForgeAIContextSetter';
+import ForgeAIContextSetter from '@/components/forge/ForgeAIContextSetter';
 
 export default function AdminPage() {
   return (

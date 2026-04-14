@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import PageShell from '@/app/components/PageShell';
-import AuthGuard from '@/app/components/AuthGuard';
+import PageShell from '@/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
 import { BorderBeam } from '@/shared/ui/border-beam';
 import { Hero195 } from '@/shared/ui/hero-195';
 import {

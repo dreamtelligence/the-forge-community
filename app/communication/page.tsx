@@ -1,4 +1,4 @@
-import PageShell from '@/app/components/PageShell';
+import PageShell from '@/components/PageShell';
 import CommunicationClient from './CommunicationClient';
 
 export default function CommunicationPage() {

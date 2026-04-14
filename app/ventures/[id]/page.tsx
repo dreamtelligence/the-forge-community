@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import AuthGuard from '@/app/components/AuthGuard';
-import PageShell from '@/app/components/PageShell';
+import AuthGuard from '@/components/AuthGuard';
+import PageShell from '@/components/PageShell';
 import { deleteVenture, getVenture, updateVentureTask, addVentureCost, getVentureCosts } from '@/app/actions/ventures';
 import { Calendar, CheckCircle2, Circle, AlertCircle, Plus, DollarSign, Clock, Zap, Trash2 } from 'lucide-react';
 import Link from 'next/link';

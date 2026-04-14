@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Save, Sparkles, Plus, Trash2 } from 'lucide-react';
 import { useAIContext } from '@/app/context/AIContext';
-import BrandKitExport from '@/app/components/brand/BrandKitExport';
+import BrandKitExport from '@/components/brand/BrandKitExport';
 
 interface BrandDNA {
   id?: string;

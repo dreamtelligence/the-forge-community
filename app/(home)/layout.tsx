@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { generateMetadata as seoGenerateMetadata, pageSeo } from "@/lib/seo";
+import { generateMetadata as seoGenerateMetadata, pageSeo } from "@/lib/utils/seo";
 
 export const metadata: Metadata = seoGenerateMetadata(
   pageSeo.home.title,

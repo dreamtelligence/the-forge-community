@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import PageShell from '@/app/components/PageShell';
+import PageShell from '@/components/PageShell';
 import { Calendar as CalendarIcon, Video, Clock, ExternalLink } from 'lucide-react';
 
 interface Event {

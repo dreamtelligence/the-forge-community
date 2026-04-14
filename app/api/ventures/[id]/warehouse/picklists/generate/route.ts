@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { FulfillmentOrderStatus, PickListStatus } from '@prisma/client';
 import { getWarehouseAccess, isAssignableWarehouseOperator } from '@/lib/warehouse/access';
 import { canTransitionOrderStatus, orderStatusTimestampsPatch } from '@/lib/warehouse/transitions';

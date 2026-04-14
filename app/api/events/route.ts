@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getEvents, addEvent } from '@/lib/notion';
+import { getEvents, addEvent } from '@/lib/integrations/notion';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { getSquadVisibility } from '@/lib/squad-visibility';
+import { prisma } from '@/lib/database/prisma';
+import { getSquadVisibility } from '@/lib/user/squad-visibility';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

@@ -7,11 +7,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { AIGenerator } from '@/app/components/forge/AIGenerator';
-import { DocumentExport } from '@/app/components/forge/DocumentExport';
+import { AIGenerator } from '@/components/forge/AIGenerator';
+import { DocumentExport } from '@/components/forge/DocumentExport';
 import { Scale, ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { LEGAL_DOCUMENT_TEMPLATES, type LegalDocumentType } from '@/types/legal';
-import { LegalContextInjector } from '@/app/components/forge/LegalContextInjector';
+import { LegalContextInjector } from '@/components/forge/LegalContextInjector';
 
 export default function ContractGeneratorPage() {
   const router = useRouter();

@@ -12,9 +12,9 @@
  * @module lib/storage/media-lifecycle
  */
 
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 import { del } from '@vercel/blob';
-import { resolvePlatformAccess } from '@/lib/platform-access';
+import { resolvePlatformAccess } from '@/lib/security/platform-access';
 
 /**
  * Cleanup configuration

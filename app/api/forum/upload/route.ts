@@ -1,7 +1,7 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { RateLimiters } from '@/lib/rate-limit';
+import { RateLimiters } from '@/lib/security/rate-limit';
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
-import { setSquadVisibility } from '@/lib/squad-visibility';
+import { prisma } from '@/lib/database/prisma';
+import { setSquadVisibility } from '@/lib/user/squad-visibility';
 
 export async function PATCH(request: Request) {
   const session = await auth();

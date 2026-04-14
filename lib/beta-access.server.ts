@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { isPublicLoginEnabled } from '@/lib/beta-access';
-import { isConfiguredAdminEmail } from '@/lib/admin-access';
+import { isConfiguredAdminEmail } from '@/lib/security/admin-access';
 
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();

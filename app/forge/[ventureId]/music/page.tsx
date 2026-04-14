@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Music } from 'lucide-react';
-import { StudioShell } from '@/app/components/forge/StudioShell';
-import { MusicStudio } from '@/app/components/forge/MusicStudio';
+import { StudioShell } from '@/components/forge/StudioShell';
+import { MusicStudio } from '@/components/forge/MusicStudio';
 import { useAIContext } from '@/app/context/AIContext';
 import type { BrandDNA } from '@prisma/client';
 

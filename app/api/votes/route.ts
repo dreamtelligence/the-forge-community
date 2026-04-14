@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getVotes, updateVoteCount } from '@/lib/notion';
+import { getVotes, updateVoteCount } from '@/lib/integrations/notion';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/lib/database/prisma';
 
 export const dynamic = 'force-dynamic';
 

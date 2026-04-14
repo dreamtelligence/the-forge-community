@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin';
-import { getFinanceReconciliationReport } from '@/lib/finance-reconciliation';
+import { requireAdmin } from '@/lib/security/admin';
+import { getFinanceReconciliationReport } from '@/lib/finance/reconciliation';
 
 export const dynamic = 'force-dynamic';
 
