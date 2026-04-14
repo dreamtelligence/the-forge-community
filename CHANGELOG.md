@@ -93,7 +93,7 @@ Dieses Dokument enthält die vollständige Änderungshistorie, die zuvor in der 
 
 *   **TrendReport System (DB + RLS):**
     *   Neues Modell `TrendReport` (Venture-gebunden, JSON-Resultate)
-    *   Migration: `migrations/012_add_trend_hunter.sql`
+    *   Migration: `migrations/012b_add_trend_hunter.sql`
     *   RLS Policies: `migrations/014_add_trend_report_rls.sql`
 *   **AI Trend Hunter Agent (Backend):**
     *   `lib/trend-hunter.ts` generiert Suchqueries aus Brand DNA (Kategorie, Zielgruppe)
@@ -389,4 +389,3 @@ Das Projekt wurde auf eine professionelle **Multi-Tenant Architektur** für skal
 - **AI Smoke-Test-Suiten:** Getrennte Flows für Image, Video, Effects und Warehouse-APIs (`scripts/smoke-tests/README.md`, `package.json`).
 
 ---
-

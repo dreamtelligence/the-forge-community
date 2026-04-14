@@ -6,6 +6,7 @@ import { estimateElevenLabsTtsCredits } from '@/lib/credit-pricing';
 import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 
+export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 const ELEVENLABS_API_URL = process.env.ELEVENLABS_API_URL || 'https://api.elevenlabs.io/v1';

@@ -8,6 +8,7 @@ import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 import { MOTION_TRANSFER_MODELS } from '@/lib/media-models';
 
+export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for motion transfer
 
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100MB

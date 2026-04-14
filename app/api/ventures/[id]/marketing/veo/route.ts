@@ -9,6 +9,9 @@ import { generateUUID } from '@/lib/utils/uuid';
 import { put } from '@vercel/blob';
 import { GOOGLE_AI_STUDIO_KEY_ENV_HINT, resolveGoogleAIStudioApiKey } from '@/lib/google-ai';
 
+export const runtime = 'nodejs';
+export const maxDuration = 300;
+
 type GenerationMode = 'text-to-video' | 'image-to-video' | 'references-to-video' | 'extend-video';
 type VeoModelKey = 'veo-3.1' | 'veo-3.1-fast';
 type AspectRatio = '16:9' | '9:16';

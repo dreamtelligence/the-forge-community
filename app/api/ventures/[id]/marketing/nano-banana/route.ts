@@ -7,6 +7,7 @@ import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnerg
 import { generateUUID } from '@/lib/utils/uuid';
 import { GOOGLE_AI_STUDIO_KEY_ENV_HINT, resolveGoogleAIStudioApiKey } from '@/lib/google-ai';
 
+export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;

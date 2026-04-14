@@ -8,6 +8,7 @@ import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 import { LIPSYNC_MODELS } from '@/lib/media-models';
 
+export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 const MAX_VIDEO_BYTES = 120 * 1024 * 1024; // 120MB

@@ -8,6 +8,7 @@ import { getReplicateClientForUser } from '@/lib/provider-keys';
 import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 
+export const runtime = 'nodejs';
 export const maxDuration = 300; // Increased to 5 minutes for video generation
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;

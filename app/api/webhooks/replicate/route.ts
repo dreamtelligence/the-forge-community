@@ -5,7 +5,9 @@ import { put } from '@vercel/blob';
 import { settleEnergy, refundEnergy } from '@/lib/energy';
 
 // We need the raw body for signature verification
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 120;
 
 const JOB_TTL_MS = 1000 * 60 * 60 * 6;
 const PROCESSING_LOCK_TTL_MS = 1000 * 60 * 10;

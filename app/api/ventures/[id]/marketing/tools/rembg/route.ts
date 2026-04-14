@@ -6,6 +6,9 @@ import { InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } fr
 import { generateUUID } from '@/lib/utils/uuid';
 import { getReplicateClientForUser } from '@/lib/provider-keys';
 
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 const COST = 2; // Cheap tool
 const MODEL_VERSION = "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003";
 

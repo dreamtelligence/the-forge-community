@@ -21,7 +21,7 @@
   - `Squad` → `legalDocuments LegalDocument[]`
   - `Venture` → `legalDocuments LegalDocument[]`
 
-### 2. **SQL Migration** (`migrations/005_add_legal_documents.sql`)
+### 2. **SQL Migration** (`migrations/005b_add_legal_documents.sql`)
 - ✅ CREATE TYPE für Enums
 - ✅ CREATE TABLE mit allen Constraints
 - ✅ CREATE INDEX für Performance
@@ -89,7 +89,7 @@ npx prisma studio
 # https://console.neon.tech/
 
 # 2. Run Migration File
-# Copy & Paste: migrations/005_add_legal_documents.sql
+# Copy & Paste: migrations/005b_add_legal_documents.sql
 
 # 3. Verify
 SELECT table_name FROM information_schema.tables WHERE table_name = 'LegalDocument';
@@ -174,7 +174,7 @@ MODIFIED:
 ├── prisma/schema.prisma (Enums + Model + Relations)
 
 CREATED:
-├── migrations/005_add_legal_documents.sql (SQL Migration)
+├── migrations/005b_add_legal_documents.sql (SQL Migration)
 ├── types/legal.ts (TypeScript Types & Validation)
 └── migrations/STEP_1_README.md (This file)
 ```

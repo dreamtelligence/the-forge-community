@@ -122,6 +122,16 @@ find app/api/ventures -name 'route.ts' | wc -l
 - **Settings & Platform Ops:** Billing, API Keys, Provider Keys (BYOK), Integrations, Account/Privacy/Notifications.
 - **Admin Console:** Applicants, Finance, User-Management, Credit-Granting, Security/Setup-Endpunkte.
 
+## 🧱 Architektur-Grenzen
+
+- **Modularer Monolith:** Ein Deployable, aber keine beliebige Vermischung von UI, Domain-Logik und Ops-Skripten.
+- **`components/`:** wiederverwendbare UI-Primitives und Integrations-Widgets.
+- **`app/components/`:** app-spezifische zusammengesetzte Komponenten und Studio-Flows.
+- **`lib/`:** Service-/Domain-Layer. Neue Fachlogik gehört in Unterordner; die Root von `lib/` ist Legacy-Bestand.
+- **AI-/Media-Routen:** langlaufende Routen müssen explizit `runtime = 'nodejs'` und `maxDuration` setzen.
+
+Details: [docs/architecture/repo-boundaries.md](docs/architecture/repo-boundaries.md)
+
 ### Academy-Inhalte (aktuelle Beispiele im Code)
 
 - **Forge Studio Guide: Texte, Bilder und Videos erstellen** (`slug: forge-studio-onboarding`)
@@ -316,7 +326,7 @@ the-forge-community/
 │   └── stripe.ts             # Stripe Integration
 ├── scripts/                  # Seeding, Smoke Tests, Ops Automation
 ├── prisma/                   # Database Schema
-├── migrations/               # SQL Migrations (Manual)
+├── migrations/               # Manual SQL Supplements (RLS / Post-Deploy)
 ├── types/                    # TypeScript Definitions
 └── public/                   # Static Assets
 ```
@@ -594,7 +604,8 @@ Die folgende Übersicht basiert auf dem tatsächlich vorhandenen Code in `app/`,
 - **[INTEGRATIONS.md](INTEGRATIONS.md)** – Integrationsplan (Notion, Slack, DocuSign, etc.)
 - **[DEPLOYMENT-SECURITY.md](DEPLOYMENT-SECURITY.md)** – Security- und Deployment-Hinweise
 - **[THE_FORGE_AI_OVERVIEW.md](THE_FORGE_AI_OVERVIEW.md)** – Überblick über AI-Architektur & Flows
-- **[Migrations](migrations/)** – Manuelle SQL-Migrations (für RLS-Policies)
+- **[docs/architecture/repo-boundaries.md](docs/architecture/repo-boundaries.md)** – Repo-Grenzen und Modulregeln
+- **[migrations/README.md](migrations/README.md)** – Trennung zwischen Prisma-Migrationskette und manuellen SQL-Supplements
 
 ---
 

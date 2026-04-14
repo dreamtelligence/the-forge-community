@@ -105,7 +105,12 @@ npm run seed:academy       # Seed academy/training course data
 npm run seed:platform-finance  # Seed platform finance data
 ```
 
-**Important**: This project uses **manual SQL migrations** stored in `/migrations/`. Do NOT use `prisma migrate` as it conflicts with RLS policies.
+**Important**: This project uses **two database change paths**:
+
+- `prisma/migrations/` is the canonical schema migration chain and is deployed with `npm run migrate:deploy` (`prisma migrate deploy` on an unpooled connection).
+- `/migrations/` contains **manual SQL supplements** for RLS, policies, and post-deploy SQL that Prisma does not manage directly.
+
+Do not create a second competing migration history in `/migrations/`. Use unique, sortable filenames there and keep schema evolution in Prisma unless the SQL must remain manual.
 
 ---
 

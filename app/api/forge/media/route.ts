@@ -7,6 +7,7 @@ import { IMAGE_MODELS, VIDEO_MODELS, DEFAULT_MODELS } from '@/lib/media-models';
 import { estimateVideoCredits } from '@/lib/credit-pricing';
 import { getReplicateClientForUser } from '@/lib/provider-keys';
 
+export const runtime = 'nodejs';
 export const maxDuration = 60; // Pro models and video need time
 
 export async function POST(request: NextRequest) {

@@ -8,6 +8,7 @@ import { put } from '@vercel/blob';
 import { generateUUID } from '@/lib/utils/uuid';
 import { FACESWAP_MODELS } from '@/lib/media-models';
 
+export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for face swap processing
 
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB
