@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/database/prisma';
-import { StorageBinType } from '@prisma/client';
-import { getWarehouseAccess } from '@/lib/warehouse/access';
-
-function parseBinType(value: unknown): StorageBinType {
-  if (typeof value !== 'string') return StorageBinType.SHELF;
-  return Object.values(StorageBinType).includes(value as StorageBinType)
-    ? (value as StorageBinType)
-    : StorageBinType.SHELF;
-}
+import {
+  createStorageBin,
+  listStorageBins,
+  WarehouseBinValidationError,
+} from '@/lib/warehouse/bins';
+import { parseWarehouseTake } from '@/lib/warehouse/contracts';
+import {
+  resolveWarehouseAccess,
+  warehouseAccessErrorResponse,
+} from '@/lib/warehouse/http';
 
 export async function GET(
   req: NextRequest,
@@ -21,49 +21,16 @@ export async function GET(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json(
-      { error: 'Venture nicht gefunden oder Zugriff verweigert' },
-      { status: 404 }
-    );
+    return warehouseAccessErrorResponse(access);
   }
 
   const { searchParams } = new URL(req.url);
-  const code = searchParams.get('code')?.trim();
-  const q = searchParams.get('q')?.trim();
-  const takeParam = Number(searchParams.get('take'));
-  const take = Number.isFinite(takeParam) ? Math.max(1, Math.min(100, takeParam)) : 30;
-
-  const bins = await prisma.storageBin.findMany({
-    where: {
-      ventureId: id,
-      isActive: true,
-      ...(code ? { code: { equals: code, mode: 'insensitive' } } : {}),
-      ...(q
-        ? {
-            OR: [
-              { code: { contains: q, mode: 'insensitive' } },
-              { label: { contains: q, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-    },
-    select: {
-      id: true,
-      code: true,
-      label: true,
-      binType: true,
-      locationId: true,
-      location: {
-        select: { id: true, code: true, name: true },
-      },
-    },
-    orderBy: [{ code: 'asc' }],
-    take,
+  const bins = await listStorageBins(id, {
+    code: searchParams.get('code'),
+    query: searchParams.get('q'),
+    take: parseWarehouseTake(searchParams.get('take'), { fallback: 30, max: 100 }),
   });
 
   return NextResponse.json(bins);
@@ -79,56 +46,19 @@ export async function POST(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json(
-      { error: 'Venture nicht gefunden oder Zugriff verweigert' },
-      { status: 404 }
-    );
+    return warehouseAccessErrorResponse(access);
   }
 
   try {
     const body = await req.json();
-    const code = typeof body?.code === 'string' ? body.code.trim() : '';
-    if (!code) {
-      return NextResponse.json({ error: 'code ist erforderlich' }, { status: 400 });
-    }
-
-    let locationId: string | null = null;
-    if (typeof body?.locationId === 'string' && body.locationId.trim()) {
-      const location = await prisma.warehouseLocation.findFirst({
-        where: { id: body.locationId.trim(), ventureId: id },
-        select: { id: true },
-      });
-      if (!location) {
-        return NextResponse.json({ error: 'locationId ist ungueltig' }, { status: 400 });
-      }
-      locationId = location.id;
-    }
-
-    const created = await prisma.storageBin.create({
-      data: {
-        ventureId: id,
-        code,
-        label: typeof body?.label === 'string' && body.label.trim() ? body.label.trim() : null,
-        binType: parseBinType(body?.binType),
-        capacity: Number.isFinite(body?.capacity) ? Number(body.capacity) : null,
-        locationId,
-      },
-      select: {
-        id: true,
-        code: true,
-        label: true,
-        binType: true,
-        locationId: true,
-      },
-    });
-
+    const created = await createStorageBin(id, body);
     return NextResponse.json(created, { status: 201 });
   } catch (error: any) {
+    if (error instanceof WarehouseBinValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     if (error?.code === 'P2002') {
       return NextResponse.json(
         { error: 'Bin-Code existiert bereits in diesem Venture' },

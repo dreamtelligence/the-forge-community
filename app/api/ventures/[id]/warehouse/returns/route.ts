@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/database/prisma';
-import { ReturnStatus } from '@prisma/client';
-import { getWarehouseAccess } from '@/lib/warehouse/access';
-import { canTransitionReturnStatus, returnStatusTimestampsPatch } from '@/lib/warehouse/transitions';
-
-function parseStatus(value: unknown): ReturnStatus | undefined {
-  if (typeof value !== 'string') return undefined;
-  return Object.values(ReturnStatus).includes(value as ReturnStatus)
-    ? (value as ReturnStatus)
-    : undefined;
-}
+import { parseWarehouseTake } from '@/lib/warehouse/contracts';
+import {
+  createReturnItem,
+  listReturnItems,
+  WarehouseReturnValidationError,
+} from '@/lib/warehouse/returns';
+import {
+  resolveWarehouseAccess,
+  warehouseAccessErrorResponse,
+} from '@/lib/warehouse/http';
 
 export async function GET(
   req: NextRequest,
@@ -22,42 +21,16 @@ export async function GET(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json(
-      { error: 'Venture nicht gefunden oder Zugriff verweigert' },
-      { status: 404 }
-    );
+    return warehouseAccessErrorResponse(access);
   }
 
   const { searchParams } = new URL(req.url);
-  const status = parseStatus(searchParams.get('status'));
-  const orderId = searchParams.get('orderId')?.trim();
-  const takeParam = Number(searchParams.get('take'));
-  const take = Number.isFinite(takeParam) ? Math.max(1, Math.min(100, takeParam)) : 50;
-
-  const entries = await prisma.returnItem.findMany({
-    where: {
-      ventureId: id,
-      ...(status ? { status } : {}),
-      ...(orderId ? { orderId } : {}),
-    },
-    include: {
-      order: {
-        select: { id: true, orderNumber: true, status: true },
-      },
-      orderLine: {
-        select: { id: true, sku: true, title: true },
-      },
-      handledBy: {
-        select: { id: true, name: true, email: true },
-      },
-    },
-    orderBy: [{ createdAt: 'desc' }],
-    take,
+  const entries = await listReturnItems(id, {
+    status: searchParams.get('status'),
+    orderId: searchParams.get('orderId'),
+    take: parseWarehouseTake(searchParams.get('take'), { fallback: 50, max: 100 }),
   });
 
   return NextResponse.json(entries);
@@ -73,71 +46,20 @@ export async function POST(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json(
-      { error: 'Venture nicht gefunden oder Zugriff verweigert' },
-      { status: 404 }
-    );
+    return warehouseAccessErrorResponse(access);
   }
 
   try {
     const body = await req.json();
-    const orderId = typeof body?.orderId === 'string' ? body.orderId.trim() : '';
-    if (!orderId) {
-      return NextResponse.json({ error: 'orderId ist erforderlich' }, { status: 400 });
-    }
-
-    const order = await prisma.fulfillmentOrder.findFirst({
-      where: { id: orderId, ventureId: id },
-      include: { lines: { orderBy: { createdAt: 'asc' } } },
-    });
-    if (!order) {
-      return NextResponse.json({ error: 'Order nicht gefunden' }, { status: 404 });
-    }
-
-    let orderLineId: string | null = null;
-    if (typeof body?.orderLineId === 'string' && body.orderLineId.trim()) {
-      const line = order.lines.find((entry) => entry.id === body.orderLineId.trim());
-      if (!line) {
-        return NextResponse.json({ error: 'orderLineId ist ungueltig' }, { status: 400 });
-      }
-      orderLineId = line.id;
-    } else if (order.lines.length > 0) {
-      orderLineId = order.lines[0].id;
-    }
-
-    const status = parseStatus(body?.status) ?? ReturnStatus.RECEIVED;
-    if (!canTransitionReturnStatus(ReturnStatus.ANNOUNCED, status)) {
-      return NextResponse.json({ error: 'Ungueltiger initialer Return-Status' }, { status: 400 });
-    }
-
-    const quantityInput = Number(body?.quantity);
-    const quantity = Number.isFinite(quantityInput) ? Math.max(1, Math.trunc(quantityInput)) : 1;
-
-    const created = await prisma.returnItem.create({
-      data: {
-        ventureId: id,
-        orderId: order.id,
-        orderLineId,
-        status,
-        quantity,
-        reason: typeof body?.reason === 'string' ? body.reason : null,
-        conditionNote: typeof body?.conditionNote === 'string' ? body.conditionNote : null,
-        handledById: access.userId,
-        ...returnStatusTimestampsPatch(ReturnStatus.ANNOUNCED, status),
-      },
-      include: {
-        order: { select: { id: true, orderNumber: true, status: true } },
-        orderLine: { select: { id: true, sku: true, title: true } },
-      },
-    });
-
+    const created = await createReturnItem(id, access.userId, body);
     return NextResponse.json(created, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
+    if (error instanceof WarehouseReturnValidationError) {
+      const status = error.code === 'ORDER_NOT_FOUND' ? 404 : 400;
+      return NextResponse.json({ error: error.message }, { status });
+    }
     console.error('Failed to create return item:', error);
     return NextResponse.json({ error: 'Interner Serverfehler' }, { status: 500 });
   }

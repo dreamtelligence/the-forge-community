@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { getWarehouseAccess } from '@/lib/warehouse/access';
 import { getWarehouseReorderSuggestions } from '@/lib/warehouse/automation';
-
-function parseBoolean(value: string | null): boolean {
-  if (!value) return false;
-  return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
-}
+import {
+  parseWarehouseBooleanFlag,
+  parseWarehouseTake,
+} from '@/lib/warehouse/contracts';
+import {
+  resolveWarehouseAccess,
+  warehouseAccessErrorResponse,
+} from '@/lib/warehouse/http';
 
 export async function GET(
   req: NextRequest,
@@ -18,22 +20,15 @@ export async function GET(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json(
-      { error: 'Venture nicht gefunden oder Zugriff verweigert' },
-      { status: 404 }
-    );
+    return warehouseAccessErrorResponse(access);
   }
 
   try {
     const { searchParams } = new URL(req.url);
-    const takeRaw = Number(searchParams.get('take'));
-    const take = Number.isFinite(takeRaw) ? Math.max(1, Math.min(200, Math.trunc(takeRaw))) : 20;
-    const includeHealthy = parseBoolean(searchParams.get('includeHealthy'));
+    const take = parseWarehouseTake(searchParams.get('take'), { fallback: 20, max: 200 });
+    const includeHealthy = parseWarehouseBooleanFlag(searchParams.get('includeHealthy'));
 
     const result = await getWarehouseReorderSuggestions(id, {
       take,

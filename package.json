@@ -23,7 +23,8 @@
     "test:smoke:image": "tsx scripts/smoke-tests/test-image-generation.ts",
     "test:smoke:video": "tsx scripts/smoke-tests/test-video-generation.ts",
     "test:smoke:effects": "tsx scripts/smoke-tests/test-video-effects.ts",
-    "test:smoke:warehouse": "tsx scripts/smoke-tests/test-warehouse-wms.ts"
+    "test:smoke:warehouse": "tsx scripts/smoke-tests/test-warehouse-wms.ts",
+    "test:warehouse:boundary": "node --import tsx scripts/test-warehouse-boundary.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.62",

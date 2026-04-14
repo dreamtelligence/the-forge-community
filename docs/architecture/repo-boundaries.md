@@ -46,6 +46,14 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 - Neue Einmal-Migrations- oder Refactor-Helfer bleiben nicht dauerhaft als ungepflegte Root-Skripte liegen.
 - Öffentliche Build-/Check-Pfade werden über `package.json` und die Architektur-Checks dokumentiert.
 
+### `lib/warehouse/`
+
+- Warehouse-Kernlogik lebt im eigenen Modul unter `lib/warehouse/**`.
+- Kernrouten wie `bins`, `items`, `inventory-transactions`, `orders`, `picklists`, `inbound-packages`, `import-errors`, `shipments`, `returns` und `reorder-suggestions` dürfen Prisma nicht direkt importieren.
+- Diese Routen sprechen HTTP; die Fachlogik und Persistenz leben in der Warehouse-Boundary.
+- Das gilt auch für untergeordnete Warehouse-Endpunkte wie `picklists/generate`, `inbound-packages/[packageId]/photos` und `inbound-packages/[packageId]/pickup-receipt`.
+- Boundary-Code wird separat über `npm run test:warehouse:boundary` auf Contract-/Parsing-Ebene getestet.
+
 ## API-Regeln
 
 - Langlaufende oder providergebundene Media-Routen müssen explizit `runtime = 'nodejs'` setzen.

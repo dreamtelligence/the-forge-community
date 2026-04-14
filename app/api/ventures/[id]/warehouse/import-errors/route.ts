@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/database/prisma';
-import { FulfillmentOrderSource } from '@prisma/client';
-import { getWarehouseAccess } from '@/lib/warehouse/access';
-
-function parseProvider(value: string | null): FulfillmentOrderSource | undefined {
-  if (!value) return undefined;
-  return Object.values(FulfillmentOrderSource).includes(value as FulfillmentOrderSource)
-    ? (value as FulfillmentOrderSource)
-    : undefined;
-}
+import {
+  createWarehouseImportErrorEntry,
+  listWarehouseImportErrors,
+  WarehouseImportErrorValidationError,
+} from '@/lib/warehouse/import-errors';
+import {
+  resolveWarehouseAccess,
+  warehouseAccessErrorResponse,
+} from '@/lib/warehouse/http';
 
 export async function GET(
   req: NextRequest,
@@ -21,29 +20,15 @@ export async function GET(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Venture nicht gefunden oder Zugriff verweigert' }, { status: 404 });
+    return warehouseAccessErrorResponse(access);
   }
 
   const { searchParams } = new URL(req.url);
-  const provider = parseProvider(searchParams.get('provider'));
-  const resolvedParam = searchParams.get('resolved');
-  const resolved =
-    resolvedParam === 'true' ? true : resolvedParam === 'false' ? false : undefined;
-
-  const errors = await prisma.warehouseImportError.findMany({
-    where: {
-      ventureId: id,
-      ...(provider ? { provider } : {}),
-      ...(resolved === true ? { resolvedAt: { not: null } } : {}),
-      ...(resolved === false ? { resolvedAt: null } : {}),
-    },
-    orderBy: [{ createdAt: 'desc' }],
-    take: 100,
+  const errors = await listWarehouseImportErrors(id, {
+    provider: searchParams.get('provider'),
+    resolved: searchParams.get('resolved'),
   });
 
   return NextResponse.json(errors);
@@ -59,46 +44,19 @@ export async function POST(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Venture nicht gefunden oder Zugriff verweigert' }, { status: 404 });
+    return warehouseAccessErrorResponse(access);
   }
 
   try {
     const body = await req.json().catch(() => ({}));
-    const provider =
-      parseProvider(body?.provider ?? null) ?? FulfillmentOrderSource.MANUAL;
-    const sourceEntity =
-      typeof body?.sourceEntity === 'string' ? body.sourceEntity.trim() : '';
-    const errorMessage =
-      typeof body?.errorMessage === 'string' ? body.errorMessage.trim() : '';
-
-    if (!sourceEntity || !errorMessage) {
-      return NextResponse.json(
-        { error: 'sourceEntity und errorMessage sind erforderlich' },
-        { status: 400 }
-      );
-    }
-
-    const created = await prisma.warehouseImportError.create({
-      data: {
-        ventureId: id,
-        provider,
-        sourceEntity,
-        sourceEntityId:
-          typeof body?.sourceEntityId === 'string' && body.sourceEntityId.trim()
-            ? body.sourceEntityId.trim()
-            : null,
-        payload: body?.payload ?? undefined,
-        errorMessage,
-      },
-    });
-
+    const created = await createWarehouseImportErrorEntry(id, body);
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
+    if (error instanceof WarehouseImportErrorValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error('Failed to create warehouse import error:', error);
     return NextResponse.json({ error: 'Interner Serverfehler' }, { status: 500 });
   }

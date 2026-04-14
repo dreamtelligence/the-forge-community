@@ -66,6 +66,26 @@ const HEAVY_NODE_ROUTES = [
   { path: 'app/api/ventures/[id]/marketing/voice/dictionaries/route.ts', requireMaxDuration: true },
   { path: 'app/api/ventures/[id]/marketing/tools/rembg/route.ts', requireMaxDuration: true },
 ];
+const WAREHOUSE_BOUNDARY_ROUTES = [
+  'app/api/ventures/[id]/warehouse/bins/route.ts',
+  'app/api/ventures/[id]/warehouse/import-errors/[errorId]/route.ts',
+  'app/api/ventures/[id]/warehouse/import-errors/route.ts',
+  'app/api/ventures/[id]/warehouse/inbound-packages/[packageId]/photos/route.ts',
+  'app/api/ventures/[id]/warehouse/inbound-packages/[packageId]/pickup-receipt/route.ts',
+  'app/api/ventures/[id]/warehouse/inbound-packages/[packageId]/route.ts',
+  'app/api/ventures/[id]/warehouse/inbound-packages/route.ts',
+  'app/api/ventures/[id]/warehouse/inventory-transactions/route.ts',
+  'app/api/ventures/[id]/warehouse/items/[itemId]/adjust/route.ts',
+  'app/api/ventures/[id]/warehouse/items/route.ts',
+  'app/api/ventures/[id]/warehouse/orders/[orderId]/route.ts',
+  'app/api/ventures/[id]/warehouse/orders/route.ts',
+  'app/api/ventures/[id]/warehouse/picklists/[pickListId]/route.ts',
+  'app/api/ventures/[id]/warehouse/picklists/generate/route.ts',
+  'app/api/ventures/[id]/warehouse/picklists/route.ts',
+  'app/api/ventures/[id]/warehouse/reorder-suggestions/route.ts',
+  'app/api/ventures/[id]/warehouse/returns/route.ts',
+  'app/api/ventures/[id]/warehouse/shipments/route.ts',
+];
 
 const checkManualMigrationPrefixes = () => {
   const fullPath = path.join(ROOT, MANUAL_MIGRATIONS_DIR);
@@ -194,6 +214,30 @@ const checkPublicAssetConventions = () => {
   info.push(`Top-Level-Ordner in public/: ${topLevelPublicDirs.length}`);
 };
 
+const checkWarehouseBoundary = () => {
+  for (const routePath of WAREHOUSE_BOUNDARY_ROUTES) {
+    if (!pathExists(routePath)) {
+      errors.push(`Warehouse-Guardrail verweist auf fehlende Route: ${routePath}`);
+      continue;
+    }
+
+    const source = readFile(routePath);
+    if (source.includes("@/lib/database/prisma")) {
+      errors.push(
+        `${routePath} darf Prisma nicht direkt importieren. Nutze die Warehouse-Boundary in lib/warehouse/*.`
+      );
+    }
+
+    if (!source.includes("@/lib/warehouse/")) {
+      errors.push(
+        `${routePath} muss die Fachlogik aus lib/warehouse/* beziehen.`
+      );
+    }
+  }
+
+  info.push(`Warehouse-Boundary geprüft: ${WAREHOUSE_BOUNDARY_ROUTES.length} Kernrouten`);
+};
+
 checkManualMigrationPrefixes();
 
 if (!onlyMigrations) {
@@ -201,6 +245,7 @@ if (!onlyMigrations) {
   checkLibBoundary();
   checkRepoHygiene();
   checkPublicAssetConventions();
+  checkWarehouseBoundary();
 }
 
 

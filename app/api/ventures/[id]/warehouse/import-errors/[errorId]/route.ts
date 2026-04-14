@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/database/prisma';
-import { getWarehouseAccess } from '@/lib/warehouse/access';
+import {
+  updateWarehouseImportErrorResolution,
+  WarehouseImportErrorValidationError,
+} from '@/lib/warehouse/import-errors';
+import {
+  resolveWarehouseAccess,
+  warehouseAccessErrorResponse,
+} from '@/lib/warehouse/http';
 
 export async function PATCH(
   req: NextRequest,
@@ -13,35 +19,20 @@ export async function PATCH(
   }
 
   const { id, errorId } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Venture nicht gefunden oder Zugriff verweigert' }, { status: 404 });
+    return warehouseAccessErrorResponse(access);
   }
 
   try {
     const body = await req.json().catch(() => ({}));
-    const resolved = body?.resolved !== false;
-
-    const existing = await prisma.warehouseImportError.findFirst({
-      where: { id: errorId, ventureId: id },
-      select: { id: true },
-    });
-    if (!existing) {
-      return NextResponse.json({ error: 'Import-Fehler nicht gefunden' }, { status: 404 });
-    }
-
-    const updated = await prisma.warehouseImportError.update({
-      where: { id: existing.id },
-      data: {
-        resolvedAt: resolved ? new Date() : null,
-      },
-    });
-
+    const updated = await updateWarehouseImportErrorResolution(id, errorId, body);
     return NextResponse.json(updated);
   } catch (error) {
+    if (error instanceof WarehouseImportErrorValidationError) {
+      const status = error.code === 'IMPORT_ERROR_NOT_FOUND' ? 404 : 400;
+      return NextResponse.json({ error: error.message }, { status });
+    }
     console.error('Failed to update warehouse import error:', error);
     return NextResponse.json({ error: 'Update fehlgeschlagen' }, { status: 500 });
   }

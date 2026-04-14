@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/lib/database/prisma';
-import { ShipmentStatus } from '@prisma/client';
-import { getWarehouseAccess } from '@/lib/warehouse/access';
-
-function parseStatus(value: string | null): ShipmentStatus | undefined {
-  if (!value) return undefined;
-  return Object.values(ShipmentStatus).includes(value as ShipmentStatus)
-    ? (value as ShipmentStatus)
-    : undefined;
-}
+import { listShipments } from '@/lib/warehouse/shipments';
+import {
+  resolveWarehouseAccess,
+  warehouseAccessErrorResponse,
+} from '@/lib/warehouse/http';
 
 export async function GET(
   req: NextRequest,
@@ -21,33 +16,15 @@ export async function GET(
   }
 
   const { id } = await params;
-  const access = await getWarehouseAccess(session.user.email, id);
+  const access = await resolveWarehouseAccess(session.user.email, id);
   if (!access.ok) {
-    if (access.reason === 'USER_NOT_FOUND') {
-      return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Venture nicht gefunden oder Zugriff verweigert' }, { status: 404 });
+    return warehouseAccessErrorResponse(access);
   }
 
   const { searchParams } = new URL(req.url);
-  const status = parseStatus(searchParams.get('status'));
-  const orderId = searchParams.get('orderId')?.trim();
-
-  const shipments = await prisma.shipment.findMany({
-    where: {
-      ventureId: id,
-      ...(status ? { status } : {}),
-      ...(orderId ? { orderId } : {}),
-    },
-    include: {
-      order: {
-        select: { id: true, orderNumber: true, status: true, source: true },
-      },
-      createdBy: {
-        select: { id: true, name: true, email: true },
-      },
-    },
-    orderBy: [{ createdAt: 'desc' }],
+  const shipments = await listShipments(id, {
+    status: searchParams.get('status'),
+    orderId: searchParams.get('orderId'),
   });
 
   return NextResponse.json(shipments);
