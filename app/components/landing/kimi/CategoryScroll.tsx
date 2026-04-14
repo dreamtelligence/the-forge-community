@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { FullScreenScrollFX } from "@/components/ui/full-screen-scroll-fx";
+import { FullScreenScrollFX } from "@/shared/ui/full-screen-scroll-fx";
 import { useI18n } from '@/app/components/i18n/I18nProvider';
 
 const sections = [

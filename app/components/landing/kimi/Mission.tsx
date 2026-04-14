@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
-import { TextGradientScroll } from '@/components/ui/text-gradient-scroll';
+import { TextGradientScroll } from '@/shared/ui/text-gradient-scroll';
 import { useI18n } from '@/app/components/i18n/I18nProvider';
 
 export default function Mission() {

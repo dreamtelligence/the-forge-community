@@ -1,7 +1,7 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dotted-dialog"
+import { Button } from "@/shared/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dotted-dialog"
 
 const MotionLogo = ({ className, color = "fill-yellow-300" }: { className?: string, color?: string }) => (
   <svg 

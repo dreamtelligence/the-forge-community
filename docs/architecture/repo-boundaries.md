@@ -13,12 +13,6 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 
 ## Verzeichnisregeln
 
-### `components/`
-
-- Nur für wiederverwendbare UI-Primitives und integrationsnahe Widgets.
-- Keine Venture-/Forum-/Warehouse-/Legal-spezifische Business-Logik.
-- Beispiele: `components/ui/*`, `components/notion/*`, `components/slack/*`.
-
 ### `app/components/`
 
 - Standard-Ort für app-spezifische zusammengesetzte Komponenten.
@@ -29,6 +23,12 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 - Root `lib/*.ts` ist Legacy-Bestand.
 - Neue Domain-Logik gehört in Unterordner wie `lib/warehouse/*`, `lib/integrations/*`, `lib/storage/*`.
 - Die Anzahl der Top-Level-Dateien in `lib/` wird per Repo-Check eingefroren.
+
+### `shared/`
+
+- Explizite Shared-Module für UI-Primitives, Integrationswidgets und andere bereichsübergreifende Bausteine.
+- `app/**` soll Shared-Imports für Cross-Cutting-Module nutzen.
+- Keine Fachlogik; nur stabile Brücken für wiederverwendbare Bausteine.
 
 ## API-Regeln
 

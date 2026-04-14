@@ -15,9 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { MessageSquare, Settings, Bell, Hash, Loader2, Check } from 'lucide-react';
 import { SlackConnectButton } from './slack-connect-button';
 import { SlackChannelSelect } from './slack-channel-select';

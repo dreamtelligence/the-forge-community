@@ -125,7 +125,7 @@ find app/api/ventures -name 'route.ts' | wc -l
 ## 🧱 Architektur-Grenzen
 
 - **Modularer Monolith:** Ein Deployable, aber keine beliebige Vermischung von UI, Domain-Logik und Ops-Skripten.
-- **`components/`:** wiederverwendbare UI-Primitives und Integrations-Widgets.
+- **`shared/`:** bereichsübergreifende UI- und Integrationsbausteine.
 - **`app/components/`:** app-spezifische zusammengesetzte Komponenten und Studio-Flows.
 - **`lib/`:** Service-/Domain-Layer. Neue Fachlogik gehört in Unterordner; die Root von `lib/` ist Legacy-Bestand.
 - **AI-/Media-Routen:** langlaufende Routen müssen explizit `runtime = 'nodejs'` und `maxDuration` setzen.
@@ -314,6 +314,7 @@ the-forge-community/
 │   │   ├── admin/            # Venture Admin/Budget
 │   │   └── settings/         # Venture Settings
 │   ├── studio/               # Personal Studio Entry
+├── shared/                   # Cross-cutting UI / integration modules
 │   ├── ventures/             # Venture Management
 │   ├── squads/               # Squad Marketplace
 │   └── profile/              # Founder Dossier/Profile

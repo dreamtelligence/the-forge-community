@@ -6,8 +6,8 @@
  * Toggle switches for Slack notification preferences.
  */
 
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Switch } from '@/shared/ui/switch';
+import { Label } from '@/shared/ui/label';
 import { 
   Rocket, 
   Users, 

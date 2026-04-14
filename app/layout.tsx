@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Providers } from "@/app/components/Providers";
 import StructuredData from "@/app/components/StructuredData";
-import { CookieBanner } from "@/components/cookie-banner";
+import { CookieBanner } from "@/shared/layout/cookie-banner";
 import Script from "next/script";
 import "./globals.css";
 import { siteConfig } from "@/lib/seo";

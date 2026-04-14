@@ -7,7 +7,7 @@ import PageShell from '@/app/components/PageShell';
 import { deleteVenture, getVenture, updateVentureTask, addVentureCost, getVentureCosts } from '@/app/actions/ventures';
 import { Calendar, CheckCircle2, Circle, AlertCircle, Plus, DollarSign, Clock, Zap, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { NotionExportButton } from '@/components/notion';
+import { NotionExportButton } from '@/shared/integrations/notion';
 
 export default function VentureDetailPage() {
   const params = useParams();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/button';
 import { NotionSyncDialog } from './notion-sync-dialog';
 
 interface NotionExportButtonProps {

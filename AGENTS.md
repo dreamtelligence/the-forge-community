@@ -65,6 +65,7 @@ the-forge-community/
 │   ├── forum/                   # Community Forum
 │   ├── settings/                # User settings (billing, API keys)
 │   └── ...                      # Other pages
+├── shared/                      # Cross-cutting UI + integration modules
 ├── lib/                         # Shared Utilities & Services
 │   ├── prisma.ts               # Database Client
 │   ├── ai.ts                   # AI Service (Gemini/Groq)

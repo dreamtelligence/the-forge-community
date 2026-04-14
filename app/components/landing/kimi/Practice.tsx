@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import DatabaseWithRestApi from '@/components/ui/database-with-rest-api';
+import DatabaseWithRestApi from '@/shared/ui/database-with-rest-api';
 import { useI18n } from '@/app/components/i18n/I18nProvider';
 import LandingShaderAccent from '@/app/components/landing/kimi/LandingShaderAccent';
 

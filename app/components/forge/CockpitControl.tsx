@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUnreadMessages } from '@/app/hooks/useUnreadMessages';
-import { CoreSpinLoader } from '@/components/ui/core-spin-loader';
+import { CoreSpinLoader } from '@/shared/ui/core-spin-loader';
 
 interface CockpitControlProps {
   userImage?: string | null;

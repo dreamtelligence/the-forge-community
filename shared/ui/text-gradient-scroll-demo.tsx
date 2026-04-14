@@ -1,4 +1,4 @@
-import { TextGradientScroll } from "@/components/ui/text-gradient-scroll";
+import { TextGradientScroll } from "@/shared/ui/text-gradient-scroll";
 
 function TextGradientScrollExample() {
   return (
