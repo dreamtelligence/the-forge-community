@@ -3,8 +3,8 @@
  * Like Claude's web fetch capability
  */
 
-import { callAI, AIMessage } from './ai';
-import { braveSearch } from './research';
+import { callAI, AIMessage } from './index';
+import { braveSearch } from './research-core';
 
 export interface ResearchResult {
   answer: string;

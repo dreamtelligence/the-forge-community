@@ -8,12 +8,12 @@
  */
 
 import { randomUUID } from 'crypto';
-import { prisma } from './prisma';
+import { prisma } from '../database/prisma';
 import { IntegrationProvider } from '@prisma/client';
-import { refreshAccessToken } from './integrations/service';
-import { sendMessage, SlackTemplates } from './integrations/slack/service';
-import type { SlackMessageBlock } from './integrations/slack/service';
-import { defaultSlackPreferences, type SlackPreferenceKey, type SlackPreferenceMap } from './integrations/slack/preferences';
+import { refreshAccessToken } from './service';
+import { sendMessage, SlackTemplates } from './slack/service';
+import type { SlackMessageBlock } from './slack/service';
+import { defaultSlackPreferences, type SlackPreferenceKey, type SlackPreferenceMap } from './slack/preferences';
 
 // ============================================
 // Venture Notifications

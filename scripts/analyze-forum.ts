@@ -1,4 +1,4 @@
-import { getForumPosts } from '../lib/notion';
+import { getForumPosts } from '../lib/integrations/notion';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 

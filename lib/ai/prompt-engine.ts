@@ -1,4 +1,4 @@
-import { callAI } from './ai';
+import { callAI } from './index';
 
 /**
  * AI Prompt Engine - January 2026

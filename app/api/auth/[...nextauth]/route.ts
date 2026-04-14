@@ -1,5 +1,5 @@
 import { handlers } from '@/auth';
-import { RateLimiters } from '@/lib/rate-limit';
+import { RateLimiters } from '@/lib/security/rate-limit';
 import { NextRequest } from 'next/server';
 
 const { GET: authGet, POST: authPost } = handlers;

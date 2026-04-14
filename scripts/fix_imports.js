@@ -31,7 +31,7 @@ const replacements = {
     "@/lib/legal-corpus": "@/lib/legal/corpus",
     "@/lib/moderation": "@/lib/security/moderation",
     "@/lib/notifications": "@/lib/forum/notifications",
-    "@/lib/notion": "@/lib/integrations/notion",
+    "@/lib/integrations/notion": "@/lib/integrations/notion",
     "@/lib/orion-tools": "@/lib/ai/orion-tools",
     "@/lib/personal-studio": "@/lib/ventures/personal-studio",
     "@/lib/platform-access": "@/lib/security/platform-access",

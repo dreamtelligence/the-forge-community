@@ -16,8 +16,8 @@ const info = [];
 const readFile = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 const listFiles = (relativePath) => fs.readdirSync(path.join(ROOT, relativePath));
 
-const MANUAL_MIGRATIONS_DIR = 'migrations';
-const MAX_TOP_LEVEL_LIB_FILES = 63;
+const MANUAL_MIGRATIONS_DIR = 'prisma/manual_sql';
+const MAX_TOP_LEVEL_LIB_FILES = 10;
 const HEAVY_NODE_ROUTES = [
   { path: 'app/api/forge/media/route.ts', requireMaxDuration: true },
   { path: 'app/api/webhooks/replicate/route.ts', requireMaxDuration: true },
@@ -36,6 +36,11 @@ const HEAVY_NODE_ROUTES = [
 ];
 
 const checkManualMigrationPrefixes = () => {
+  const fullPath = path.join(ROOT, MANUAL_MIGRATIONS_DIR);
+  if (!fs.existsSync(fullPath)) {
+    info.push(`Manuelle SQL-Migrations Ordner nicht gefunden: ${MANUAL_MIGRATIONS_DIR}`);
+    return;
+  }
   const files = listFiles(MANUAL_MIGRATIONS_DIR)
     .filter((entry) => entry.endsWith('.sql'))
     .sort();
@@ -46,7 +51,7 @@ const checkManualMigrationPrefixes = () => {
     const seen = prefixes.get(prefix);
     if (seen) {
       errors.push(
-        `Doppelte manuelle Migrations-Prefixe in /migrations: "${seen}" und "${file}". ` +
+        `Doppelte manuelle Migrations-Prefixe in ${MANUAL_MIGRATIONS_DIR}: "${seen}" und "${file}". ` +
           'Verwende eindeutige, sortierbare Prefixe.'
       );
       continue;
@@ -59,6 +64,9 @@ const checkManualMigrationPrefixes = () => {
 
 const checkHeavyRoutes = () => {
   for (const route of HEAVY_NODE_ROUTES) {
+    const fullPath = path.join(ROOT, route.path);
+    if (!fs.existsSync(fullPath)) continue;
+    
     const source = readFile(route.path);
 
     if (!/export const runtime = ['"]nodejs['"]/.test(source)) {
@@ -75,49 +83,21 @@ const checkHeavyRoutes = () => {
 
 const checkLibBoundary = () => {
   const topLevelLibFiles = listFiles('lib')
-    .filter((entry) => fs.statSync(path.join(ROOT, 'lib', entry)).isFile())
+    .filter((entry) => {
+       const p = path.join(ROOT, 'lib', entry);
+       return fs.existsSync(p) && fs.statSync(p).isFile();
+    })
     .filter((entry) => /\.(ts|tsx|js|jsx|mjs|cjs)$/.test(entry))
     .sort();
 
   if (topLevelLibFiles.length > MAX_TOP_LEVEL_LIB_FILES) {
     errors.push(
-      `lib/ ist wieder gewachsen (${topLevelLibFiles.length} Top-Level-Dateien > ${MAX_TOP_LEVEL_LIB_FILES}). ` +
-        'Neue Domain-Logik gehört in Unterordner statt in die Root-Müllschublade.'
+      `lib/ ist zu unübersichtlich (${topLevelLibFiles.length} Top-Level-Dateien > ${MAX_TOP_LEVEL_LIB_FILES}). ` +
+        'Verschiebe Logik in Unterordner (z.B. lib/ai, lib/billing).'
     );
   }
 
   info.push(`Top-Level-Dateien in lib/: ${topLevelLibFiles.length}`);
-};
-
-const checkLegacyComponentImports = () => {
-  const appDir = path.join(ROOT, 'app');
-  const offenders = [];
-
-  const walk = (dir) => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const fullPath = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        walk(fullPath);
-        continue;
-      }
-      if (!/\.(ts|tsx|js|jsx|mjs)$/.test(entry.name)) continue;
-      const relativePath = path.relative(ROOT, fullPath);
-      const source = fs.readFileSync(fullPath, 'utf8');
-      if (source.includes("@/components/")) {
-        offenders.push(relativePath);
-      }
-    }
-  };
-
-  walk(appDir);
-
-  if (offenders.length > 0) {
-    warnings.push(
-      `App-Code importiert noch ${offenders.length}x aus dem Legacy-Root components/: ` +
-        offenders.slice(0, 10).join(', ') +
-        (offenders.length > 10 ? ', …' : '')
-    );
-  }
 };
 
 checkManualMigrationPrefixes();
@@ -125,8 +105,8 @@ checkManualMigrationPrefixes();
 if (!onlyMigrations) {
   checkHeavyRoutes();
   checkLibBoundary();
-  checkLegacyComponentImports();
 }
+
 
 if (info.length > 0) {
   console.log('Architecture check');

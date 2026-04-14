@@ -14,8 +14,8 @@ import { generateApiKey } from '@/lib/api-keys/crypto';
 import { generateOAuthUrl, disconnectIntegration, getUserConnections } from '@/lib/integrations/service';
 import { stripe } from '@/lib/billing/stripe';
 import type { IntegrationProvider, Role } from '@prisma/client';
-import { updateVentureProgress } from '@/lib/ventures/index/index';
-import { getTemplateByType } from '@/lib/ventures/index/templates';
+import { updateVentureProgress } from '@/lib/ventures/index';
+import { getTemplateByType } from '@/lib/ventures/templates';
 import { isConfiguredAdminEmail } from '@/lib/security/admin-access';
 
 export interface ToolContext {

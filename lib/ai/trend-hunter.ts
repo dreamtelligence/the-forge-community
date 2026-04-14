@@ -1,5 +1,5 @@
-import { callAI } from './ai';
-import { braveSearch } from './research';
+import { callAI } from './index';
+import { braveSearch } from './research-core';
 
 export interface TrendOpportunity {
   title: string;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/database/prisma';
-import { getVentureAccessByEmail } from '@/lib/ventures/index/access';
+import { getVentureAccessByEmail } from '@/lib/ventures/access';
 
 export async function POST(
   request: NextRequest,

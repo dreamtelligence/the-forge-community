@@ -2,9 +2,9 @@
 
 import { auth } from '@/auth';
 import { prisma } from '@/lib/database/prisma';
-import { getTemplateByType } from '@/lib/ventures/index/templates';
+import { getTemplateByType } from '@/lib/ventures/templates';
 import { isForumVenture } from '@/lib/forum/venture';
-import { isPersonalStudioVenture } from '@/lib/ventures/index/personal-studio';
+import { isPersonalStudioVenture } from '@/lib/ventures/personal-studio';
 import { revalidatePath } from 'next/cache';
 
 export async function createVenture(data: {

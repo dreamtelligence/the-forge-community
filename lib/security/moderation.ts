@@ -3,8 +3,8 @@
  * 3-Strike Warning System with Fair Penalties
  */
 
-import { callAI } from './ai';
-import { prisma } from './prisma';
+import { callAI } from '../ai';
+import { prisma } from '../database/prisma';
 
 export interface ModerationResult {
   isToxic: boolean;

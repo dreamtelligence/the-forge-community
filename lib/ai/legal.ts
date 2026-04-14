@@ -2,7 +2,7 @@
  * AI Legal Helper - Contract Generation with Gemini/Groq
  */
 
-import { callAI, type AIResponse } from './ai';
+import { callAI, type AIResponse } from './index';
 import type {
   LegalDocumentType,
   ContractTerms,

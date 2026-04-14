@@ -1,4 +1,4 @@
-import { prisma } from './prisma';
+import { prisma } from '../database/prisma';
 
 export const VENTURE_PHASES = [
   { number: 1, name: 'Ideation', description: 'Business Idee definieren' },

@@ -3,7 +3,7 @@ const path = require('path');
 
 const replacements = {
     "@/app/components": "@/components",
-    "@/lib/prisma": "@/lib/database/prisma"
+    "@/lib/database/prisma": "@/lib/database/prisma"
 };
 
 function walk(dir) {

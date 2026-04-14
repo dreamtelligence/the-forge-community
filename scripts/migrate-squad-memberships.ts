@@ -7,7 +7,7 @@
  * Run BEFORE pushing the schema changes!
  */
 
-import { prisma } from '../lib/prisma';
+import { prisma } from '../lib/database/prisma';
 
 async function migrateSquadMemberships() {
   console.log('🔍 Checking for existing squad memberships...');

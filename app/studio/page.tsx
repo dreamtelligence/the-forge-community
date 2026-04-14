@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { getOrCreatePersonalStudioVentureByEmail } from '@/lib/ventures/index/personal-studio';
+import { getOrCreatePersonalStudioVentureByEmail } from '@/lib/ventures/personal-studio';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
