@@ -11,4 +11,4 @@ Hier liegen explizite Shared-Module für bereichsübergreifende UI- und Integrat
 ## Regel
 
 - `app/**` soll Shared-Imports bevorzugen, wenn ein Baustein mehrfach oder bereichsübergreifend genutzt wird.
-- Neue app-spezifische Komponenten gehören weiterhin nach `app/components/**`.
+- Neue app-spezifische Komponenten gehören weiterhin nach `components/**`.

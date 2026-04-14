@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkOverdueTasks } from '@/app/actions/ventures';
+import { requireCronSecret } from '@/lib/security/cron';
 
 /**
  * Cron Job API Route for monitoring overdue tasks
@@ -14,11 +15,8 @@ import { checkOverdueTasks } from '@/app/actions/ventures';
  */
 
 export async function GET(request: Request) {
-  // Optional: Verify the request is from Vercel Cron or has a secret
-  const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
 
   try {
     const overdueCount = await checkOverdueTasks();

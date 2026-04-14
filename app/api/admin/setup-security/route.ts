@@ -8,9 +8,9 @@ import { requireAdmin } from '@/lib/security/admin';
  * This endpoint implements Row-Level Security (RLS) to prevent data leaks.
  * Only authenticated admins can run this migration.
  *
- * Run once after deployment: GET /api/admin/setup-security
+ * Run once after deployment: POST /api/admin/setup-security
  */
-export async function GET() {
+export async function POST() {
   const adminCheck = await requireAdmin();
   if (adminCheck) return adminCheck;
 

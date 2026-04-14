@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 import { scanCompetitor, compareSnapshots } from '@/lib/security/watchdog';
 import { sendNotification } from '@/lib/forum/notifications';
+import { requireCronSecret } from '@/lib/security/cron';
 
 export const maxDuration = 120; // 2 minutes for Vercel
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
 
   try {
     // 1. Find ventures to scan

@@ -16,6 +16,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cleanupOldMediaAssets, getCleanupStats } from '@/lib/storage/media-lifecycle';
+import { requireCronSecret } from '@/lib/security/cron';
 
 export const maxDuration = 60; // Max duration for cron job
 
@@ -27,14 +28,8 @@ export const maxDuration = 60; // Max duration for cron job
  * @see https://vercel.com/docs/cron-jobs/manage-cron-jobs
  */
 export async function GET(request: NextRequest) {
-  // Verify request is from Vercel Cron
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[Cron] Unauthorized cron job attempt');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
 
   const startTime = Date.now();
 

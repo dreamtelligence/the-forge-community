@@ -442,7 +442,7 @@ export default function Forum({
   const ensureForumVentureId = async () => {
     if (forumVentureIdState) return forumVentureIdState;
     try {
-      const res = await fetch('/api/forum/venture');
+      const res = await fetch('/api/forum/venture', { method: 'POST' });
       if (!res.ok) return null;
       const data = await res.json();
       if (data?.id) {

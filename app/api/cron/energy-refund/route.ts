@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 import { refundEnergy } from '@/lib/finance/energy';
+import { requireCronSecret } from '@/lib/security/cron';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,11 +11,8 @@ export const dynamic = 'force-dynamic';
  * (likely due to timeouts or crashes) and refunds them to the user.
  */
 export async function GET(request: Request) {
-  // Simple auth check for cron (can be enhanced with CRON_SECRET)
-  const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response('Unauthorized', { status: 401 });
-  }
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
 
   try {
     // Find reservations older than 10 minutes that are still RESERVED

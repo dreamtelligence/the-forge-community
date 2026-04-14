@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLegalCorpusStatus, syncLegalCorpus } from '@/lib/legal/corpus';
+import { requireCronSecret } from '@/lib/security/cron';
 
 export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
   const { searchParams } = new URL(request.url);
   const force = searchParams.get('force') === '1';
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   try {
     const syncResult = await syncLegalCorpus({ force });
@@ -32,4 +29,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

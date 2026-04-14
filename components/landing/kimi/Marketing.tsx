@@ -10,7 +10,7 @@ const featuredVideo = {
   title: 'Launch Kit - Footwear',
   category: 'Product Ads',
   number: '01',
-  src: '/Ai_videos/shoes_16_9.mp4',
+  src: '/media-demos/videos/shoes_16_9.mp4',
 };
 
 const portraitVideos = [
@@ -19,21 +19,21 @@ const portraitVideos = [
     title: 'UGC Creator Set',
     category: 'Social Assets',
     number: '02',
-    src: '/Ai_videos/fashion_influencer_9_16.mp4',
+    src: '/media-demos/videos/fashion_influencer_9_16.mp4',
   },
   {
     id: 3,
     title: 'Home Studio Intro',
     category: 'Identity',
     number: '03',
-    src: '/Ai_videos/influencer_random.mov',
+    src: '/media-demos/videos/influencer_random.mov',
   },
   {
     id: 4,
     title: 'Performance Ads',
     category: 'Campaign',
     number: '04',
-    src: '/Ai_videos/influencer_random.mp4',
+    src: '/media-demos/videos/influencer_random.mp4',
   },
 ];
 

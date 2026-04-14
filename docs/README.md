@@ -28,66 +28,66 @@ Es kombiniert **Brand, Marketing, Sourcing, Legal, Community und Venture-Ops** i
   <summary><strong>Demo-Screens öffnen</strong></summary>
   <br />
   <p align="center">
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.22.52.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.22.52.png" width="32%" alt="The Forge Demo Screenshot 01" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.22.52.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.22.52.png" width="32%" alt="The Forge Demo Screenshot 01" />
     </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.17.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.17.png" width="32%" alt="The Forge Demo Screenshot 02" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.17.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.17.png" width="32%" alt="The Forge Demo Screenshot 02" />
     </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.26.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.26.png" width="32%" alt="The Forge Demo Screenshot 03" />
-    </a>
-  </p>
-  <p align="center">
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.35.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.35.png" width="32%" alt="The Forge Demo Screenshot 04" />
-    </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.46.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.46.png" width="32%" alt="The Forge Demo Screenshot 05" />
-    </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.55.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.23.55.png" width="32%" alt="The Forge Demo Screenshot 06" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.26.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.26.png" width="32%" alt="The Forge Demo Screenshot 03" />
     </a>
   </p>
   <p align="center">
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.03.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.03.png" width="32%" alt="The Forge Demo Screenshot 07" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.35.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.35.png" width="32%" alt="The Forge Demo Screenshot 04" />
     </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.05.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.05.png" width="32%" alt="The Forge Demo Screenshot 08" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.46.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.46.png" width="32%" alt="The Forge Demo Screenshot 05" />
     </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.14.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.14.png" width="32%" alt="The Forge Demo Screenshot 09" />
-    </a>
-  </p>
-  <p align="center">
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.19.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.19.png" width="32%" alt="The Forge Demo Screenshot 10" />
-    </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.22.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.22.png" width="32%" alt="The Forge Demo Screenshot 11" />
-    </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.33.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.33.png" width="32%" alt="The Forge Demo Screenshot 12" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.55.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.23.55.png" width="32%" alt="The Forge Demo Screenshot 06" />
     </a>
   </p>
   <p align="center">
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.45.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.45.png" width="32%" alt="The Forge Demo Screenshot 13" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.03.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.03.png" width="32%" alt="The Forge Demo Screenshot 07" />
     </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.58.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.24.58.png" width="32%" alt="The Forge Demo Screenshot 14" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.05.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.05.png" width="32%" alt="The Forge Demo Screenshot 08" />
     </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.06.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.06.png" width="32%" alt="The Forge Demo Screenshot 15" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.14.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.14.png" width="32%" alt="The Forge Demo Screenshot 09" />
     </a>
   </p>
   <p align="center">
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.33.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.25.33.png" width="32%" alt="The Forge Demo Screenshot 16" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.19.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.19.png" width="32%" alt="The Forge Demo Screenshot 10" />
     </a>
-    <a href="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.26.44.png">
-      <img src="./public/Screenshots_/Bildschirmfoto%202026-04-02%20um%2011.26.44.png" width="32%" alt="The Forge Demo Screenshot 17" />
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.22.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.22.png" width="32%" alt="The Forge Demo Screenshot 11" />
+    </a>
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.33.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.33.png" width="32%" alt="The Forge Demo Screenshot 12" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.45.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.45.png" width="32%" alt="The Forge Demo Screenshot 13" />
+    </a>
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.58.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.58.png" width="32%" alt="The Forge Demo Screenshot 14" />
+    </a>
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.25.06.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.25.06.png" width="32%" alt="The Forge Demo Screenshot 15" />
+    </a>
+  </p>
+  <p align="center">
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.25.33.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.25.33.png" width="32%" alt="The Forge Demo Screenshot 16" />
+    </a>
+    <a href="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.26.44.png">
+      <img src="./public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.26.44.png" width="32%" alt="The Forge Demo Screenshot 17" />
     </a>
   </p>
 </details>
@@ -126,7 +126,7 @@ find app/api/ventures -name 'route.ts' | wc -l
 
 - **Modularer Monolith:** Ein Deployable, aber keine beliebige Vermischung von UI, Domain-Logik und Ops-Skripten.
 - **`shared/`:** bereichsübergreifende UI- und Integrationsbausteine.
-- **`app/components/`:** app-spezifische zusammengesetzte Komponenten und Studio-Flows.
+- **`components/`:** app-spezifische zusammengesetzte Komponenten und Studio-Flows.
 - **`lib/`:** Service-/Domain-Layer. Neue Fachlogik gehört in Unterordner; die Root von `lib/` ist Legacy-Bestand.
 - **AI-/Media-Routen:** langlaufende Routen müssen explizit `runtime = 'nodejs'` und `maxDuration` setzen.
 
@@ -487,7 +487,7 @@ Die folgende Übersicht basiert auf dem tatsächlich vorhandenen Code in `app/`,
 ### Community, Forum & Orion
 
 - **Forum-Feed:** Posts, Kommentare, Threading, Likes/Votes, Edit/Delete, Uploads, Link-Previews, Related Posts, Venture-bezogene Threads.
-- **Trending Topics:** eigener Trending-Feed mit Analyse der Forenbeiträge über `app/api/forum/trending/route.ts` und UI in `app/components/TrendingTopics.tsx`.
+- **Trending Topics:** eigener Trending-Feed mit Analyse der Forenbeiträge über `app/api/forum/trending/route.ts` und UI in `components/TrendingTopics.tsx`.
 - **Orion im Forum:** Erwähnungen via `@orion` in Posts und Kommentaren sowie ein Action-Menü mit `summarize`, `feedback`, `expand`, `factCheck`, `nextSteps`.
 - **Orion Feedback:** gesonderter Flow in `app/api/forum/ai-action/route.ts`, der Orion-Antworten als Kommentar im Thread speichert.
 - **Communication Hub:** persistente AI-Threads mit Modi `chat`, `research`, `supplier`, `factcheck`, Dateianhängen, Quellenanzeige und Thread-Archiv.
@@ -572,7 +572,7 @@ Die folgende Übersicht basiert auf dem tatsächlich vorhandenen Code in `app/`,
 | Thema | Status | Nachweis im Code |
 |---|---|---|
 | AI News | **Live** | `app/api/cron/ai-news/route.ts`, `app/api/admin/ai-news/trigger/route.ts`, `vercel.json` |
-| Trending Posts / Topics | **Live** | `app/api/forum/trending/route.ts`, `app/components/TrendingTopics.tsx`, `app/forum/ForumClient.tsx` |
+| Trending Posts / Topics | **Live** | `app/api/forum/trending/route.ts`, `components/TrendingTopics.tsx`, `app/forum/ForumClient.tsx` |
 | Orion als Forum-Assistent | **Live** | `app/api/forum/route.ts`, `app/api/forum/comment/route.ts`, `app/api/forum/ai-action/route.ts`, `lib/ai.ts` |
 | Orion kann Feedback geben | **Live** | `app/api/forum/ai-action/route.ts` mit Action `feedback` |
 | Orion außerhalb des Forums | **Live** | `app/communication/CommunicationClient.tsx`, `app/api/chat/contextual/route.ts`, `app/api/chat/route.ts`, `lib/orion-tools.ts` |
@@ -580,9 +580,9 @@ Die folgende Übersicht basiert auf dem tatsächlich vorhandenen Code in `app/`,
 | Squad | **Live** | `app/squads/page.tsx`, `app/squads/[id]/page.tsx`, `app/api/squads/*`, `prisma/schema.prisma` (`Squad`, `SquadMember`, `SquadWallet`) |
 | Ventures | **Live** | `app/ventures/page.tsx`, `app/ventures/new/page.tsx`, `app/ventures/[id]/page.tsx`, `app/forge/[ventureId]/*` |
 | Brand DNA | **Live** | `app/forge/[ventureId]/brand/page.tsx`, `app/api/ventures/[id]/brand-dna/route.ts`, `prisma/schema.prisma` (`BrandDNA`) |
-| Marketing / Creator Tools | **Live** | `app/forge/[ventureId]/marketing/*`, `app/api/ventures/[id]/marketing/*`, `app/components/marketing/*` |
+| Marketing / Creator Tools | **Live** | `app/forge/[ventureId]/marketing/*`, `app/api/ventures/[id]/marketing/*`, `components/marketing/*` |
 | Suppliers / Samples / Orders | **Live** | `app/forge/[ventureId]/sourcing/page.tsx`, `app/api/ventures/[id]/sourcing/*`, `prisma/schema.prisma` (`Supplier`, `Sample`, `ProductionOrder`) |
-| Warehouse / LagerHub | **Live** | `app/components/sourcing/WarehousePanel.tsx`, `app/api/ventures/[id]/warehouse/*`, `lib/warehouse/*` |
+| Warehouse / LagerHub | **Live** | `components/sourcing/WarehousePanel.tsx`, `app/api/ventures/[id]/warehouse/*`, `lib/warehouse/*` |
 | Votes / Decisions | **Live** | `app/forge/[ventureId]/decisions/page.tsx`, `app/api/ventures/[id]/decisions/*` |
 | Legal / Dokumente | **Live** | `app/forge/[ventureId]/legal/*`, `app/api/ventures/[id]/legal/route.ts`, `app/api/documents/route.ts` |
 | Academy / Resources | **Live** | `app/resources/page.tsx`, `app/resources/[slug]/page.tsx`, `app/api/training/*`, `app/api/resources/route.ts` |

@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 import { braveSearch } from '@/lib/ai/research-core';
 import { callAI } from '@/lib/ai';
+import { requireCronSecret } from '@/lib/security/cron';
 
 export const maxDuration = 60;
 
@@ -271,15 +272,10 @@ Gib NUR gültiges JSON zurück:
 };
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
   const { searchParams } = new URL(request.url);
   const forceRun = searchParams.get('force') === '1';
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[Cron] Unauthorized AI news attempt');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   try {
     const { date: berlinDate, hour: berlinHour } = getBerlinParts();

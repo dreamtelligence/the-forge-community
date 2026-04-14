@@ -12,9 +12,41 @@ const onlyMigrations = process.argv.includes('--migrations-only');
 const errors = [];
 const warnings = [];
 const info = [];
+const IGNORE_DIRS = new Set(['.git', '.next', '.vercel', 'node_modules']);
+const LEGACY_FILE_PATTERNS = [
+  /^page_old\.[a-z]+$/i,
+  /^page-old\.[a-z]+$/i,
+  /(?:^|[_-])old\.(?:ts|tsx|js|jsx|mjs|cjs)$/i,
+  /\.(?:bak|backup)$/i,
+];
 
 const readFile = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
 const listFiles = (relativePath) => fs.readdirSync(path.join(ROOT, relativePath));
+const pathExists = (relativePath) => fs.existsSync(path.join(ROOT, relativePath));
+
+const walkFiles = (relativePath = '.') => {
+  const absolutePath = path.join(ROOT, relativePath);
+  if (!fs.existsSync(absolutePath)) return [];
+
+  const entries = fs.readdirSync(absolutePath, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const nextRelative = relativePath === '.'
+      ? entry.name
+      : path.posix.join(relativePath, entry.name);
+
+    if (entry.isDirectory()) {
+      if (IGNORE_DIRS.has(entry.name)) continue;
+      files.push(...walkFiles(nextRelative));
+      continue;
+    }
+
+    files.push(nextRelative);
+  }
+
+  return files;
+};
 
 const MANUAL_MIGRATIONS_DIR = 'prisma/manual_sql';
 const MAX_TOP_LEVEL_LIB_FILES = 10;
@@ -38,7 +70,7 @@ const HEAVY_NODE_ROUTES = [
 const checkManualMigrationPrefixes = () => {
   const fullPath = path.join(ROOT, MANUAL_MIGRATIONS_DIR);
   if (!fs.existsSync(fullPath)) {
-    info.push(`Manuelle SQL-Migrations Ordner nicht gefunden: ${MANUAL_MIGRATIONS_DIR}`);
+    errors.push(`Manuelle SQL-Migrations fehlen: ${MANUAL_MIGRATIONS_DIR}`);
     return;
   }
   const files = listFiles(MANUAL_MIGRATIONS_DIR)
@@ -65,7 +97,10 @@ const checkManualMigrationPrefixes = () => {
 const checkHeavyRoutes = () => {
   for (const route of HEAVY_NODE_ROUTES) {
     const fullPath = path.join(ROOT, route.path);
-    if (!fs.existsSync(fullPath)) continue;
+    if (!fs.existsSync(fullPath)) {
+      errors.push(`Guardrail verweist auf fehlende Route: ${route.path}`);
+      continue;
+    }
     
     const source = readFile(route.path);
 
@@ -100,11 +135,72 @@ const checkLibBoundary = () => {
   info.push(`Top-Level-Dateien in lib/: ${topLevelLibFiles.length}`);
 };
 
+const checkRepoHygiene = () => {
+  if (pathExists('app/components')) {
+    errors.push('Legacy-Struktur gefunden: app/components/. Nutze ausschließlich components/.');
+  }
+
+  if (!pathExists('README.md')) {
+    errors.push('README.md im Repo-Root fehlt. Ein öffentliches Repo braucht Pitch + Betriebsgrenzen.');
+  }
+
+  const files = walkFiles('.');
+  const legacyFiles = files.filter((relativePath) =>
+    LEGACY_FILE_PATTERNS.some((pattern) => pattern.test(path.basename(relativePath)))
+  );
+
+  if (legacyFiles.length > 0) {
+    errors.push(
+      `Legacy-/Backup-Dateien sind verboten: ${legacyFiles.slice(0, 10).join(', ')}` +
+      (legacyFiles.length > 10 ? ', …' : '')
+    );
+  }
+
+  const dsStoreFiles = files.filter((relativePath) => path.basename(relativePath) === '.DS_Store');
+  if (dsStoreFiles.length > 0) {
+    errors.push(
+      `.DS_Store gehört nicht ins Repo: ${dsStoreFiles.slice(0, 10).join(', ')}` +
+      (dsStoreFiles.length > 10 ? ', …' : '')
+    );
+  }
+
+  const pythonOutsideScripts = files.filter(
+    (relativePath) => relativePath.endsWith('.py') && !relativePath.startsWith('scripts/python/')
+  );
+  if (pythonOutsideScripts.length > 0) {
+    errors.push(
+      `Python-Skripte müssen unter scripts/python/ liegen: ${pythonOutsideScripts.join(', ')}`
+    );
+  }
+};
+
+const checkPublicAssetConventions = () => {
+  if (!pathExists('public')) return;
+
+  const topLevelPublicDirs = listFiles('public')
+    .filter((entry) => fs.statSync(path.join(ROOT, 'public', entry)).isDirectory())
+    .sort();
+
+  const invalidNames = topLevelPublicDirs.filter(
+    (entry) => !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry)
+  );
+
+  if (invalidNames.length > 0) {
+    errors.push(
+      `public/ Top-Level-Ordner müssen lowercase-kebab-case sein: ${invalidNames.join(', ')}`
+    );
+  }
+
+  info.push(`Top-Level-Ordner in public/: ${topLevelPublicDirs.length}`);
+};
+
 checkManualMigrationPrefixes();
 
 if (!onlyMigrations) {
   checkHeavyRoutes();
   checkLibBoundary();
+  checkRepoHygiene();
+  checkPublicAssetConventions();
 }
 
 

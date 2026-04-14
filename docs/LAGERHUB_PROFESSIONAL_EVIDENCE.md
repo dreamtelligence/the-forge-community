@@ -90,7 +90,7 @@ Integration eines operativ nutzbaren WMS-MVP (Warehouse Management System) in di
 ## Technischer Nachweis im Code
 - UI:
   - `app/forge/[ventureId]/sourcing/page.tsx`
-  - `app/components/sourcing/WarehousePanel.tsx`
+  - `components/sourcing/WarehousePanel.tsx`
 - API:
   - `app/api/ventures/[id]/warehouse/*`
   - `app/api/ventures/[id]/warehouse/bins/route.ts`

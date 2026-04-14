@@ -5,6 +5,7 @@ import {
   buildWarehouseOpsDigestNotification,
   sendWarehouseOpsDigestEmail,
 } from '@/lib/warehouse/automation';
+import { requireCronSecret } from '@/lib/security/cron';
 
 export const maxDuration = 120;
 
@@ -20,11 +21,8 @@ function startOfTodayUtc(): Date {
 }
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
 
   const sendEmpty = parseBoolean(process.env.WAREHOUSE_OPS_DIGEST_SEND_EMPTY);
   const sendEmail = process.env.WAREHOUSE_OPS_DIGEST_EMAIL_ENABLED !== '0';

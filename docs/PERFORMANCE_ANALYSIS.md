@@ -113,10 +113,10 @@ export default async function Home() {
 
 ---
 
-### 3. HOMEPAGE CONTENT COMPONENT - app/components/landing/kimi/HomePage.tsx
+### 3. HOMEPAGE CONTENT COMPONENT - components/landing/kimi/HomePage.tsx
 
 #### Issue 3.1: Client Component with Heavy Child Components
-**File:** `/Users/bucci369/the-forge-community/app/components/landing/kimi/HomePage.tsx`  
+**File:** `/Users/bucci369/the-forge-community/components/landing/kimi/HomePage.tsx`  
 **Severity:** HIGH  
 **Impact:** 500KB+ of JavaScript loaded for initial render
 
@@ -149,9 +149,9 @@ export default async function Home() {
 
 ---
 
-### 4. CRITICAL ISSUE: SMOOTH SCROLL LIBRARY - app/components/SmoothScroll.tsx
+### 4. CRITICAL ISSUE: SMOOTH SCROLL LIBRARY - components/SmoothScroll.tsx
 
-**File:** `/Users/bucci369/the-forge-community/app/components/SmoothScroll.tsx`  
+**File:** `/Users/bucci369/the-forge-community/components/SmoothScroll.tsx`  
 **Severity:** CRITICAL  
 **Impact:** 100KB+ library, continuous RAF loop, blocks initial render
 
@@ -184,9 +184,9 @@ useEffect(() => {
 
 ---
 
-### 5. CUSTOM CURSOR COMPONENT - app/components/landing/kimi/CustomCursor.tsx
+### 5. CUSTOM CURSOR COMPONENT - components/landing/kimi/CustomCursor.tsx
 
-**File:** `/Users/bucci369/the-forge-community/app/components/landing/kimi/CustomCursor.tsx`  
+**File:** `/Users/bucci369/the-forge-community/components/landing/kimi/CustomCursor.tsx`  
 **Severity:** HIGH  
 **Impact:** 10-30ms per frame from mousemove events
 
@@ -207,9 +207,9 @@ window.addEventListener('mousemove', handleMouseMove);
 
 ---
 
-### 6. CRITICAL ISSUE: AUTO-PLAYING VIDEOS - app/components/landing/kimi/Marketing.tsx
+### 6. CRITICAL ISSUE: AUTO-PLAYING VIDEOS - components/landing/kimi/Marketing.tsx
 
-**File:** `/Users/bucci369/the-forge-community/app/components/landing/kimi/Marketing.tsx` (Lines 141-149)  
+**File:** `/Users/bucci369/the-forge-community/components/landing/kimi/Marketing.tsx` (Lines 141-149)  
 **Severity:** CRITICAL  
 **Impact:** 95MB of video data, massive LCP delay
 
@@ -261,8 +261,8 @@ Total: 95 MB
 
 ### 7. IMAGE OPTIMIZATION ISSUES
 
-#### Issue 7.1: Infinite Image Loop - app/components/landing/kimi/InfiniteImageLoop.tsx
-**File:** `/Users/bucci369/the-forge-community/app/components/landing/kimi/InfiniteImageLoop.tsx`  
+#### Issue 7.1: Infinite Image Loop - components/landing/kimi/InfiniteImageLoop.tsx
+**File:** `/Users/bucci369/the-forge-community/components/landing/kimi/InfiniteImageLoop.tsx`  
 **Severity:** MEDIUM  
 **Impact:** 8-10 images loaded eagerly, ~1.5MB
 
@@ -298,7 +298,7 @@ const duplicatedImages = [...images, ...images, ...images];  // 21 image element
 ---
 
 #### Issue 7.2: Testimonials Component - Unoptimized Images
-**File:** `/Users/bucci369/the-forge-community/app/components/landing/kimi/Testimonials.tsx` (Lines 50-56)  
+**File:** `/Users/bucci369/the-forge-community/components/landing/kimi/Testimonials.tsx` (Lines 50-56)  
 **Severity:** LOW-MEDIUM  
 **Impact:** Avatar images not optimized
 
@@ -331,7 +331,7 @@ const duplicatedImages = [...images, ...images, ...images];  // 21 image element
 ---
 
 #### Issue 7.3: ImageInImage Component - Priority on Non-Critical Image
-**File:** `/Users/bucci369/the-forge-community/app/components/landing/kimi/ImageInImage.tsx` (Line 34)  
+**File:** `/Users/bucci369/the-forge-community/components/landing/kimi/ImageInImage.tsx` (Line 34)  
 **Severity:** MEDIUM  
 **Impact:** Inset image prioritized when main image is more important
 
@@ -416,7 +416,7 @@ const duplicatedImages = [...images, ...images, ...images];  // 21 image element
 ---
 
 #### Issue 8.2: RollingText Component - Per-Character Animations
-**File:** `/Users/bucci369/the-forge-community/app/components/landing/kimi/RollingText.tsx`  
+**File:** `/Users/bucci369/the-forge-community/components/landing/kimi/RollingText.tsx`  
 **Severity:** MEDIUM  
 **Impact:** Creates motion div for EVERY letter in page
 

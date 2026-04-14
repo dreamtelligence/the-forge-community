@@ -169,7 +169,7 @@ Danach Phase 2:
 Seit dem initialen Plan wurde der operative Lagerflow scan-orientiert erweitert.
 
 Neu umgesetzt:
-- Scan-First Warehouse UI in `app/components/sourcing/WarehousePanel.tsx`
+- Scan-First Warehouse UI in `components/sourcing/WarehousePanel.tsx`
   - Inbound Scan: Tracking -> `RECEIVED`
   - Auto-Store Flow: zweiter Scan / Bin-Scan -> `STORED`
   - Dedupe-Handling mit direkter Option fuer "verknuepfen" oder "ignorieren"

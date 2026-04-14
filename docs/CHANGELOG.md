@@ -27,17 +27,17 @@ Dieses Dokument enthält die vollständige Änderungshistorie, die zuvor in der 
     *   `auth.ts`: Magic-Link Versand wird bei geschlossener Beta direkt abgewiesen.
     *   `lib/beta-access.server.ts`: zentrale Allowlist-Prüfung über `BETA_LOGIN_ALLOWLIST`, plus Admin-Allowlist über `ADMIN_EMAIL`/`ADMIN_EMAILS`.
 *   **UI-Sperre + Tooltip-Hinweise:**
-    *   Neuer reusable UI-Baustein: `app/components/ui/BetaLoginButton.tsx`.
+    *   Neuer reusable UI-Baustein: `components/ui/BetaLoginButton.tsx`.
     *   Login-CTAs ersetzt durch deaktivierte Buttons mit Tooltip + Bewerbungs-Mail:
-        *   `app/components/Header.tsx`
-        *   `app/components/landing/kimi/Header.tsx`
-        *   `app/components/landing/kimi/B2BSourcing.tsx`
-        *   `app/components/landing/kimi/Pricing.tsx`
-        *   `app/components/ui/ResponsiveHeroBanner.tsx`
+        *   `components/Header.tsx`
+        *   `components/landing/kimi/Header.tsx`
+        *   `components/landing/kimi/B2BSourcing.tsx`
+        *   `components/landing/kimi/Pricing.tsx`
+        *   `components/ui/ResponsiveHeroBanner.tsx`
     *   Login/Signup-Views auf Closed-Beta-Messaging umgestellt:
-        *   `app/components/auth/LoginPage.tsx`
-        *   `app/components/auth/LoginFormInline.tsx`
-        *   `app/components/landing/kimi/SignupCard.tsx`
+        *   `components/auth/LoginPage.tsx`
+        *   `components/auth/LoginFormInline.tsx`
+        *   `components/landing/kimi/SignupCard.tsx`
 *   **Neue zentrale Beta-Helper:**
     *   `lib/beta-access.ts`
     *   `lib/beta-access.server.ts`

@@ -5,9 +5,9 @@ import { requireAdmin } from '@/lib/security/admin';
 /**
  * Creates webhook_events table for Stripe webhook idempotency
  *
- * Run once: GET /api/admin/setup-webhook-table
+ * Run once: POST /api/admin/setup-webhook-table
  */
-export async function GET() {
+export async function POST() {
   // SECURITY: Only admin can run this
   const adminCheck = await requireAdmin();
   if (adminCheck) return adminCheck;

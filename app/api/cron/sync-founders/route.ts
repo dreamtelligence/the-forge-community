@@ -1,17 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getFounders } from '@/lib/integrations/notion';
 import { prisma } from '@/lib/database/prisma';
+import { requireCronSecret } from '@/lib/security/cron';
 
 
 export async function GET(request: Request) {
-  // Simple protection via secret query param or header (for Vercel Cron)
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    // Also allow if running locally in dev
-    if (process.env.NODE_ENV !== 'development') {
-       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
 
   try {
     const founders = await getFounders();

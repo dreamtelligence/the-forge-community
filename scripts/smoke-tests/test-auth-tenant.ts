@@ -78,7 +78,7 @@ async function runAuthTenantSmoke(config: Config) {
 
   await run('ST-02 /api/forum/venture create-or-get', async () => {
     const first = await fetch(`${config.apiBaseUrl}/api/forum/venture`, {
-      method: 'GET',
+      method: 'POST',
       headers: { Cookie: config.cookieA },
     });
     const firstData = await parseJsonResponse(first);
@@ -87,7 +87,7 @@ async function runAuthTenantSmoke(config: Config) {
     ventureAId = String(firstData.id);
 
     const second = await fetch(`${config.apiBaseUrl}/api/forum/venture`, {
-      method: 'GET',
+      method: 'POST',
       headers: { Cookie: config.cookieA },
     });
     const secondData = await parseJsonResponse(second);

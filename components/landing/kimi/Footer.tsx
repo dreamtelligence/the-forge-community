@@ -19,12 +19,12 @@ const socialIcons = [
 ];
 
 const paymentIcons = [
-  { label: 'Visa', src: '/payment-logos-master/assets/cards/visa.svg' },
-  { label: 'Mastercard', src: '/payment-logos-master/assets/cards/mastercard.svg' },
-  { label: 'American Express', src: '/payment-logos-master/assets/cards/american-express.svg' },
-  { label: 'PayPal', src: '/payment-logos-master/assets/apm/paypal.svg' },
-  { label: 'Apple Pay', src: '/payment-logos-master/assets/wallets/apple-pay.svg' },
-  { label: 'Google Pay', src: '/payment-logos-master/assets/wallets/google-pay.svg' },
+  { label: 'Visa', src: '/vendor/payment-logos/assets/cards/visa.svg' },
+  { label: 'Mastercard', src: '/vendor/payment-logos/assets/cards/mastercard.svg' },
+  { label: 'American Express', src: '/vendor/payment-logos/assets/cards/american-express.svg' },
+  { label: 'PayPal', src: '/vendor/payment-logos/assets/apm/paypal.svg' },
+  { label: 'Apple Pay', src: '/vendor/payment-logos/assets/wallets/apple-pay.svg' },
+  { label: 'Google Pay', src: '/vendor/payment-logos/assets/wallets/google-pay.svg' },
 ];
 
 export default function Footer() {

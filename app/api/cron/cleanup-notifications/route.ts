@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
+import { requireCronSecret } from '@/lib/security/cron';
 
 const parsePositiveInt = (value: string | undefined) => {
   if (!value) return null;
@@ -9,10 +10,8 @@ const parsePositiveInt = (value: string | undefined) => {
 };
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const cronCheck = requireCronSecret(request);
+  if (cronCheck) return cronCheck;
 
   const url = new URL(request.url);
   const retentionDaysParam = parsePositiveInt(url.searchParams.get('retentionDays') || undefined);

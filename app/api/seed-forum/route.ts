@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
+import { requireAdmin } from '@/lib/security/admin';
 
-export async function GET() {
+export async function POST() {
+  const adminCheck = await requireAdmin();
+  if (adminCheck) return adminCheck;
+
   const posts = [
     {
       author: 'Maximilian (Lead)',
