@@ -65,6 +65,16 @@ export class WarehouseInboundPackageValidationError extends Error {
   }
 }
 
+export class WarehouseShipmentValidationError extends Error {
+  code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = 'WarehouseShipmentValidationError';
+    this.code = code;
+  }
+}
+
 export class WarehouseReturnValidationError extends Error {
   code: string;
 

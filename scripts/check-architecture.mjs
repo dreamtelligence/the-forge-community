@@ -78,12 +78,17 @@ const WAREHOUSE_BOUNDARY_ROUTES = [
   'app/api/ventures/[id]/warehouse/items/[itemId]/adjust/route.ts',
   'app/api/ventures/[id]/warehouse/items/route.ts',
   'app/api/ventures/[id]/warehouse/orders/[orderId]/route.ts',
+  'app/api/ventures/[id]/warehouse/orders/import/manual/route.ts',
+  'app/api/ventures/[id]/warehouse/orders/import/shopify/route.ts',
+  'app/api/ventures/[id]/warehouse/orders/import/woocommerce/route.ts',
   'app/api/ventures/[id]/warehouse/orders/route.ts',
   'app/api/ventures/[id]/warehouse/picklists/[pickListId]/route.ts',
   'app/api/ventures/[id]/warehouse/picklists/generate/route.ts',
   'app/api/ventures/[id]/warehouse/picklists/route.ts',
   'app/api/ventures/[id]/warehouse/reorder-suggestions/route.ts',
+  'app/api/ventures/[id]/warehouse/returns/[returnId]/route.ts',
   'app/api/ventures/[id]/warehouse/returns/route.ts',
+  'app/api/ventures/[id]/warehouse/shipments/create/route.ts',
   'app/api/ventures/[id]/warehouse/shipments/route.ts',
 ];
 

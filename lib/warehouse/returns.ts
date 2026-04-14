@@ -106,3 +106,48 @@ export async function createReturnItem(
     },
   });
 }
+
+export async function updateReturnItem(
+  ventureId: string,
+  returnId: string,
+  userId: string,
+  input: unknown
+) {
+  const body = (input ?? {}) as Record<string, unknown>;
+  const nextStatus = parseReturnStatusParam(body.status);
+
+  const existing = await prisma.returnItem.findFirst({
+    where: { id: returnId, ventureId },
+    select: { id: true, status: true },
+  });
+  if (!existing) {
+    throw new WarehouseReturnValidationError('RETURN_NOT_FOUND', 'Return nicht gefunden');
+  }
+
+  if (nextStatus && !canTransitionReturnStatus(existing.status, nextStatus)) {
+    throw new WarehouseReturnValidationError(
+      'INVALID_STATUS_TRANSITION',
+      'Ungueltiger Return-Statuswechsel'
+    );
+  }
+
+  return prisma.returnItem.update({
+    where: { id: existing.id },
+    data: {
+      ...(nextStatus ? { status: nextStatus } : {}),
+      ...(nextStatus ? returnStatusTimestampsPatch(existing.status, nextStatus) : {}),
+      ...(body.reason !== undefined ? { reason: body.reason ? String(body.reason) : null } : {}),
+      ...(body.conditionNote !== undefined
+        ? { conditionNote: body.conditionNote ? String(body.conditionNote) : null }
+        : {}),
+      ...(body.quantity !== undefined && Number.isFinite(body.quantity)
+        ? { quantity: Math.max(1, Math.trunc(Number(body.quantity))) }
+        : {}),
+      handledById: userId,
+    },
+    include: {
+      order: { select: { id: true, orderNumber: true, status: true } },
+      orderLine: { select: { id: true, sku: true, title: true } },
+    },
+  });
+}

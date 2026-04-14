@@ -49,7 +49,7 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 ### `lib/warehouse/`
 
 - Warehouse-Kernlogik lebt im eigenen Modul unter `lib/warehouse/**`.
-- Kernrouten wie `bins`, `items`, `inventory-transactions`, `orders`, `picklists`, `inbound-packages`, `import-errors`, `shipments`, `returns` und `reorder-suggestions` dürfen Prisma nicht direkt importieren.
+- Kernrouten wie `bins`, `items`, `inventory-transactions`, `orders`, `orders/import/*`, `picklists`, `inbound-packages`, `import-errors`, `shipments`, `shipments/create`, `returns`, `returns/[returnId]` und `reorder-suggestions` dürfen Prisma nicht direkt importieren.
 - Diese Routen sprechen HTTP; die Fachlogik und Persistenz leben in der Warehouse-Boundary.
 - Das gilt auch für untergeordnete Warehouse-Endpunkte wie `picklists/generate`, `inbound-packages/[packageId]/photos` und `inbound-packages/[packageId]/pickup-receipt`.
 - Boundary-Code wird separat über `npm run test:warehouse:boundary` auf Contract-/Parsing-Ebene getestet.

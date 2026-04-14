@@ -33,6 +33,7 @@ import {
   WarehouseOrderValidationError,
   WarehousePickListValidationError,
   WarehouseReturnValidationError,
+  WarehouseShipmentValidationError,
 } from '@/lib/warehouse/contracts';
 import {
   WarehouseImportValidationError,
@@ -109,6 +110,7 @@ function run() {
   assert.ok(new WarehousePickListValidationError('x', 'y') instanceof Error);
   assert.ok(new WarehouseInboundPackageValidationError('x', 'y') instanceof Error);
   assert.ok(new WarehouseReturnValidationError('x', 'y') instanceof Error);
+  assert.ok(new WarehouseShipmentValidationError('x', 'y') instanceof Error);
   assert.ok(new WarehouseImportErrorValidationError('x', 'y') instanceof Error);
   assert.ok(new WarehouseImportValidationError('x') instanceof Error);
 
