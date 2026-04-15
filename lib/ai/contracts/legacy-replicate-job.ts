@@ -34,30 +34,76 @@ export type LegacyReplicateJobStatusResult = {
   error?: string;
 };
 
-type LegacyReplicateJobErrorOptions = {
+export type LegacyReplicateStartResult = {
+  predictionId: string;
+  status: string;
+  provider: 'replicate';
+  model: string;
+  creditsUsed: number;
+  tier?: string;
+  outputUrl?: string;
+  mock?: boolean;
+};
+
+export type LegacyReplicateUploadFile = {
+  name: string;
+  type: string;
+  size: number;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+};
+
+type LegacyReplicateErrorOptions = {
   code: string;
   status: number;
   details?: Record<string, unknown>;
 };
 
-export class LegacyReplicateJobError extends Error {
+export class LegacyReplicateError extends Error {
   code: string;
   status: number;
   details?: Record<string, unknown>;
 
-  constructor(message: string, options: LegacyReplicateJobErrorOptions) {
+  constructor(message: string, options: LegacyReplicateErrorOptions) {
     super(message);
-    this.name = 'LegacyReplicateJobError';
+    this.name = 'LegacyReplicateError';
     this.code = options.code;
     this.status = options.status;
     this.details = options.details;
   }
 }
 
-export class LegacyReplicateJobNotFoundError extends LegacyReplicateJobError {
+export class LegacyReplicateValidationError extends LegacyReplicateError {
+  constructor(message: string, status = 400, details?: Record<string, unknown>) {
+    super(message, { code: 'LEGACY_REPLICATE_VALIDATION', status, details });
+    this.name = 'LegacyReplicateValidationError';
+  }
+}
+
+export class LegacyReplicateNotFoundError extends LegacyReplicateError {
   constructor(message: string, details?: Record<string, unknown>) {
     super(message, { code: 'LEGACY_REPLICATE_NOT_FOUND', status: 404, details });
-    this.name = 'LegacyReplicateJobNotFoundError';
+    this.name = 'LegacyReplicateNotFoundError';
+  }
+}
+
+export class LegacyReplicateConfigurationError extends LegacyReplicateError {
+  constructor(message: string, details?: Record<string, unknown>) {
+    super(message, { code: 'LEGACY_REPLICATE_CONFIGURATION', status: 500, details });
+    this.name = 'LegacyReplicateConfigurationError';
+  }
+}
+
+export class LegacyReplicateQuotaExceededError extends LegacyReplicateError {
+  constructor(message: string, details?: Record<string, unknown>) {
+    super(message, { code: 'LEGACY_REPLICATE_QUOTA_EXCEEDED', status: 429, details });
+    this.name = 'LegacyReplicateQuotaExceededError';
+  }
+}
+
+export class LegacyReplicateCreditsError extends LegacyReplicateError {
+  constructor(message: string, details?: Record<string, unknown>) {
+    super(message, { code: 'INSUFFICIENT_CREDITS', status: 402, details });
+    this.name = 'LegacyReplicateCreditsError';
   }
 }
 
@@ -82,8 +128,8 @@ export const getLegacyReplicateJobTags = (jobKind: LegacyReplicateJobKind) =>
     ? ['faceswap', 'replicate']
     : ['motion-transfer', 'wan-animate', 'replicate'];
 
-export const toLegacyReplicateJobErrorResponse = (error: unknown) => {
-  if (error instanceof LegacyReplicateJobError) {
+export const toLegacyReplicateErrorResponse = (error: unknown) => {
+  if (error instanceof LegacyReplicateError) {
     return {
       status: error.status,
       body: {

@@ -3,7 +3,7 @@ import type {
   LegacyReplicateJobReceipt,
   LegacyReplicateJobStatusResult,
 } from '@/lib/ai/contracts/legacy-replicate-job';
-import { LegacyReplicateJobNotFoundError } from '@/lib/ai/contracts/legacy-replicate-job';
+import { LegacyReplicateNotFoundError } from '@/lib/ai/contracts/legacy-replicate-job';
 import { completeLegacyReplicateJob } from '@/lib/ai/application/complete-legacy-replicate-job';
 import { failLegacyReplicateJob } from '@/lib/ai/application/fail-legacy-replicate-job';
 
@@ -51,12 +51,12 @@ export async function getLegacyReplicateJobStatus(
   const resolvedDependencies = dependencies ?? (await loadDefaultDependencies());
   const user = await resolvedDependencies.findUserByEmail(input.userEmail);
   if (!user) {
-    throw new LegacyReplicateJobNotFoundError('Benutzer nicht gefunden');
+    throw new LegacyReplicateNotFoundError('Benutzer nicht gefunden');
   }
 
   const receipt = await resolvedDependencies.findJobReceipt(input.jobKind, input.predictionId);
   if (!receipt || receipt.userId !== user.id || receipt.ventureId !== input.ventureId) {
-    throw new LegacyReplicateJobNotFoundError('Prediction nicht gefunden.');
+    throw new LegacyReplicateNotFoundError('Prediction nicht gefunden.');
   }
 
   if (receipt.error && !receipt.outputUrl) {

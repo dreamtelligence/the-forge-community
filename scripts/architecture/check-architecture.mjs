@@ -137,6 +137,32 @@ const THIN_APPLICATION_ROUTES = [
       'crypto',
     ],
   },
+  {
+    path: 'app/api/ventures/[id]/marketing/faceswap/route.ts',
+    requiredImports: [
+      "@/lib/ai/application/start-faceswap-generation",
+      "@/lib/ai/application/get-legacy-replicate-job-status",
+    ],
+    forbiddenImports: [
+      '@/lib/database/prisma',
+      '@/lib/integrations/provider-keys',
+      '@/lib/finance/energy',
+      '@vercel/blob',
+    ],
+  },
+  {
+    path: 'app/api/ventures/[id]/marketing/motion-transfer/route.ts',
+    requiredImports: [
+      "@/lib/ai/application/start-motion-transfer-generation",
+      "@/lib/ai/application/get-legacy-replicate-job-status",
+    ],
+    forbiddenImports: [
+      '@/lib/database/prisma',
+      '@/lib/integrations/provider-keys',
+      '@/lib/finance/energy',
+      '@vercel/blob',
+    ],
+  },
 ];
 const CORE_DOMAIN_MODULES = [
   'ai',

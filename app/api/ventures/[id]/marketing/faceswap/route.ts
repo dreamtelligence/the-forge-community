@@ -1,35 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import {
-  reserveEnergy,
-  refundEnergy,
-  InsufficientEnergyError,
-  checkDailyVideoQuota,
-  checkMonthlyAvatarQuota,
-} from '@/lib/finance/energy';
-import { prisma } from '@/lib/database/prisma';
 import { RateLimiters } from '@/lib/security/rate-limit';
-import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
-import { put } from '@vercel/blob';
+import { startFaceSwapGeneration } from '@/lib/ai/application/start-faceswap-generation';
 import { getLegacyReplicateJobStatus } from '@/lib/ai/application/get-legacy-replicate-job-status';
-import { toLegacyReplicateJobErrorResponse } from '@/lib/ai/contracts/legacy-replicate-job';
-import { writeFaceSwapJobReceipt } from '@/lib/ai/infrastructure/legacy-replicate-job-store';
+import { toLegacyReplicateErrorResponse } from '@/lib/ai/contracts/legacy-replicate-job';
 import { generateUUID } from '@/lib/utils/uuid';
-import { FACESWAP_MODELS } from '@/lib/media-models';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for face swap processing
-
-const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
-const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/quicktime']);
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-
-const isFileLike = (value: FormDataEntryValue | null): value is File => {
-  return Boolean(value && typeof value === 'object' && 'arrayBuffer' in value && 'type' in value);
-};
-
-const sanitizeFilename = (value: string) => value.replace(/[^a-zA-Z0-9._-]+/g, '-');
 
 export async function POST(
   request: NextRequest,
@@ -40,232 +18,27 @@ export async function POST(
 
   const isDryRun = request.headers.get('X-Dry-Run') === 'true';
   const isDev = process.env.NODE_ENV === 'development';
-
-  let session = await auth();
-  let user = null;
-
-  if ((!session?.user?.email) && isDryRun && isDev) {
-    console.log('🧪 Dry Run Mode (Dev): Mocking User Session');
-    session = { user: { email: 'mock@example.com', name: 'Mock User' }, expires: '9999-12-31' };
-    user = { id: 'mock-user-id', email: 'mock@example.com' };
-  } else if (session?.user?.email) {
-    user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true }
-    });
-  }
-
-  if (!user) {
+  const session = await auth();
+  if (!session?.user?.email && !(isDryRun && isDev)) {
     return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
   }
 
-  const { id: ventureId } = await params;
-  const formData = await request.formData();
-
-  const modelKey = String(formData.get('model') || 'lucataco-faceswap');
-  const videoFile = formData.get('video');
-  const faceFile = formData.get('face');
-  const swapCondition = String(formData.get('swapCondition') || 'all'); // 'all' or 'first'
-
-  const hasVideo = isFileLike(videoFile);
-  const hasFace = isFileLike(faceFile);
-
-  if (!hasFace || !hasVideo) {
-    return NextResponse.json({ error: 'Video und Referenzbild sind erforderlich' }, { status: 400 });
-  }
-
-  const face = faceFile as File;
-  const video = videoFile as File;
-
-  // Mock venture for Dry Run
-  const venture = (isDryRun && isDev && user.id === 'mock-user-id')
-    ? { id: ventureId, ownerId: user.id }
-    : await prisma.venture.findFirst({
-      where: { id: ventureId, ownerId: user.id },
-    });
-
-  if (!venture) {
-    return NextResponse.json({ error: 'Venture nicht gefunden oder Zugriff verweigert' }, { status: 404 });
-  }
-
-  const modelConfig = FACESWAP_MODELS[modelKey];
-  if (!modelConfig) {
-    return NextResponse.json({ error: 'Ungültiges Modell' }, { status: 400 });
-  }
-
-  const replicateClientContext = await getReplicateClientForUser(user.id);
-  if (!replicateClientContext) {
-    return NextResponse.json(
-      { error: 'Kein Replicate Key konfiguriert. Bitte BYOK oder Plattform-Key setzen.' },
-      { status: 500 }
-    );
-  }
-
-  // Validate files
-  if (hasVideo && video!.size > MAX_VIDEO_BYTES) {
-    return NextResponse.json({ error: 'Video ist zu groß (max 50MB)' }, { status: 413 });
-  }
-  if (face.size > MAX_IMAGE_BYTES) {
-    return NextResponse.json({ error: 'Referenzbild ist zu groß (max 10MB)' }, { status: 413 });
-  }
-  if (hasVideo && !ALLOWED_VIDEO_TYPES.has(video!.type)) {
-    return NextResponse.json({ error: 'Ungültiges Video-Format (nur MP4/MOV)' }, { status: 415 });
-  }
-  if (!ALLOWED_IMAGE_TYPES.has(face.type)) {
-    return NextResponse.json({ error: 'Ungültiges Bild-Format (nur JPG/PNG/WebP)' }, { status: 415 });
-  }
-
-  const cost = modelConfig.cost;
-  let reservationId: string | null = null;
-  const requestId = request.headers.get('x-request-id') || generateUUID();
-
   try {
-    // Step 1: Reserve credits
-    const isDryRun = request.headers.get('X-Dry-Run') === 'true';
-
-    if (isDryRun) {
-      console.log('🧪 Dry Run Mode: Skipping external calls and costs');
-      return NextResponse.json({
-        predictionId: 'dry-run-prediction-id',
-        status: 'succeeded',
-        provider: 'replicate',
-        model: modelConfig.label,
-        creditsUsed: 0,
-        outputUrl: 'https://placehold.co/1080x1920.mp4?text=Dry+Run+Output',
-        mock: true
-      });
-    }
-
-    const reservation = await reserveEnergy({
-      userId: user.id,
-      amount: cost,
-      feature: 'marketing.faceswap',
-      requestId,
-      metadata: {
-        ventureId,
-        model: modelConfig.id,
-        cost,
-      }
-    });
-    reservationId = reservation.reservationId;
-
-    // Step 2: Monthly + Daily quotas
-    const monthlyQuota = await checkMonthlyAvatarQuota(user.id);
-    if (!monthlyQuota.allowed) {
-      await refundEnergy(reservationId, 'monthly-quota-exceeded');
-      return NextResponse.json({
-        error: `Monatslimit erreicht (${monthlyQuota.limit}/Monat). Reset: ${monthlyQuota.resetAt.toLocaleDateString('de-DE')}`,
-        quota: {
-          limit: monthlyQuota.limit,
-          remaining: monthlyQuota.remaining,
-          resetAt: monthlyQuota.resetAt.toISOString()
-        }
-      }, { status: 429 });
-    }
-
-    const dailyQuota = await checkDailyVideoQuota(user.id);
-    if (!dailyQuota.allowed) {
-      await refundEnergy(reservationId, 'daily-quota-exceeded');
-      return NextResponse.json({
-        error: `Tageslimit für Avatar Swap erreicht (${dailyQuota.limit}/Tag). Reset: ${dailyQuota.resetAt.toLocaleTimeString('de-DE')}`,
-        quota: {
-          limit: dailyQuota.limit,
-          remaining: dailyQuota.remaining,
-          resetAt: dailyQuota.resetAt.toISOString()
-        }
-      }, { status: 429 });
-    }
-
-    // Step 3: Upload files to Vercel Blob
-    const faceBuffer = Buffer.from(await face.arrayBuffer());
-    const faceFilename = `faceswap/${user.id}/faces/${Date.now()}-${sanitizeFilename(face.name)}`;
-    const faceBlob = await put(faceFilename, faceBuffer, {
-      access: 'public',
-      contentType: face.type,
-    });
-
-    const videoBlob = hasVideo
-      ? await (async () => {
-        const videoBuffer = Buffer.from(await video!.arrayBuffer());
-        const videoFilename = `faceswap/${user.id}/videos/${Date.now()}-${sanitizeFilename(video!.name)}`;
-        return put(videoFilename, videoBuffer, {
-          access: 'public',
-          contentType: video!.type,
-        });
-      })()
-      : null;
-
-    let input: Record<string, unknown> = {};
-
-    if (modelKey === 'live-portrait') {
-      input = {
-        source_image: faceBlob.url,
-        driving_video: videoBlob!.url,
-        flag_eye_retargeting: true,
-        flag_lip_zero: true,
-        flag_stitching: true,
-        flag_relative_motion: true
-      };
-    } else {
-      input = {
-        target_video: videoBlob!.url,
-        swap_image: faceBlob.url,
-      };
-      if (modelKey === 'lucataco-faceswap') {
-        input.swap_condition = swapCondition;
-      }
-    }
-
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-    const webhookUrl =
-      appUrl && appUrl.startsWith('https://') ? `${appUrl}/api/webhooks/replicate` : undefined;
-
-    const prediction = await replicateClientContext.client.predictions.create({
-      model: modelConfig.id,
-      input,
-      ...(webhookUrl
-        ? {
-          webhook: webhookUrl,
-          webhook_events_filter: ['start', 'output', 'logs', 'completed'],
-        }
-        : {}),
-    });
-
-    await writeFaceSwapJobReceipt(prediction.id, {
+    const { id: ventureId } = await params;
+    const formData = await request.formData();
+    const result = await startFaceSwapGeneration({
+      userEmail: session?.user?.email ?? null,
       ventureId,
-      userId: user.id,
-      replicateAuthSource: replicateClientContext.source,
-      model: modelConfig.id,
-      cost,
-      reservationId,
-      videoUrl: videoBlob!.url,
-      faceUrl: faceBlob.url,
-      createdAt: new Date().toISOString(),
+      requestId: request.headers.get('x-request-id') || generateUUID(),
+      formData,
+      isDryRun,
+      isDevelopment: isDev,
     });
 
-    return NextResponse.json({
-      predictionId: prediction.id,
-      status: prediction.status,
-      provider: 'replicate',
-      model: modelConfig.label,
-      creditsUsed: cost,
-    });
-  } catch (error: any) {
-    if (reservationId) await refundEnergy(reservationId, 'faceswap-failed');
-    if (error instanceof InsufficientEnergyError) {
-      return NextResponse.json(
-        {
-          error: error.message,
-          code: 'INSUFFICIENT_CREDITS',
-          requiredCredits: error.requiredCredits,
-          creditsAvailable: error.creditsAvailable,
-        },
-        { status: 402 }
-      );
-    }
-    console.error('Avatar Swap Error:', error);
-    return NextResponse.json({ error: error.message || 'Avatar fehlgeschlagen' }, { status: 500 });
+    return NextResponse.json(result);
+  } catch (error) {
+    const response = toLegacyReplicateErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
   }
 }
 
@@ -295,7 +68,7 @@ export async function GET(
 
     return NextResponse.json(result);
   } catch (error) {
-    const response = toLegacyReplicateJobErrorResponse(error);
+    const response = toLegacyReplicateErrorResponse(error);
     return NextResponse.json(response.body, { status: response.status });
   }
 }

@@ -1,44 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import {
-  reserveEnergy,
-  refundEnergy,
-  InsufficientEnergyError,
-  checkDailyVideoQuota,
-  getUserTier,
-} from '@/lib/finance/energy';
-import { prisma } from '@/lib/database/prisma';
 import { RateLimiters } from '@/lib/security/rate-limit';
-import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
-import { put } from '@vercel/blob';
+import { startMotionTransferGeneration } from '@/lib/ai/application/start-motion-transfer-generation';
 import { getLegacyReplicateJobStatus } from '@/lib/ai/application/get-legacy-replicate-job-status';
-import { toLegacyReplicateJobErrorResponse } from '@/lib/ai/contracts/legacy-replicate-job';
-import {
-  writeMotionTransferJobReceipt,
-} from '@/lib/ai/infrastructure/legacy-replicate-job-store';
+import { toLegacyReplicateErrorResponse } from '@/lib/ai/contracts/legacy-replicate-job';
 import { generateUUID } from '@/lib/utils/uuid';
-import { MOTION_TRANSFER_MODELS } from '@/lib/media-models';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes for motion transfer
-
-const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100MB
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
-const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/quicktime', 'video/webm']);
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const ALLOWED_RESOLUTIONS = new Set(['480', '720']);
-
-const isFileLike = (value: FormDataEntryValue | null): value is File => {
-  return Boolean(value && typeof value === 'object' && 'arrayBuffer' in value && 'type' in value);
-};
-
-const sanitizeFilename = (value: string) => value.replace(/[^a-zA-Z0-9._-]+/g, '-');
-
-const parseFormNumber = (value: FormDataEntryValue | null, fallback: number) => {
-  if (typeof value !== 'string') return fallback;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
 
 export async function POST(
   request: NextRequest,
@@ -49,223 +18,27 @@ export async function POST(
 
   const isDryRun = request.headers.get('X-Dry-Run') === 'true';
   const isDev = process.env.NODE_ENV === 'development';
-
-  let session = await auth();
-  let user = null;
-
-  if ((!session?.user?.email) && isDryRun && isDev) {
-    console.log('🧪 Dry Run Mode (Dev): Mocking User Session');
-    session = { user: { email: 'mock@example.com', name: 'Mock User' }, expires: '9999-12-31' };
-    user = { id: 'mock-user-id', email: 'mock@example.com' };
-  } else if (session?.user?.email) {
-    user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true }
-    });
-  }
-
-  if (!user) {
+  const session = await auth();
+  if (!session?.user?.email && !(isDryRun && isDev)) {
     return NextResponse.json({ error: 'Nicht autorisiert' }, { status: 401 });
   }
 
-  const { id: ventureId } = await params;
-  const formData = await request.formData();
-
-  const modelKey = String(formData.get('model') || 'wan-2.2-animate');
-  const drivingVideoFile = formData.get('drivingVideo');
-  const characterImageFile = formData.get('characterImage');
-  const resolution = String(formData.get('resolution') || '720');
-  const refertNum = parseFormNumber(formData.get('refertNum'), 5);
-  const fps = parseFormNumber(formData.get('fps'), 24);
-  const mergeAudio = String(formData.get('mergeAudio') || 'true') === 'true';
-  const goFast = String(formData.get('goFast') || 'true') === 'true';
-
-  const hasVideo = isFileLike(drivingVideoFile);
-  const hasImage = isFileLike(characterImageFile);
-
-  if (!hasVideo) {
-    return NextResponse.json({ error: 'Driving Video ist erforderlich' }, { status: 400 });
-  }
-
-  if (!hasImage) {
-    return NextResponse.json({ error: 'Character Image ist erforderlich' }, { status: 400 });
-  }
-
-  const video = drivingVideoFile as File;
-  const image = characterImageFile as File;
-
-  // Mock venture for Dry Run
-  const venture = (isDryRun && isDev && user.id === 'mock-user-id')
-    ? { id: ventureId, ownerId: user.id }
-    : await prisma.venture.findFirst({
-      where: { id: ventureId, ownerId: user.id },
-    });
-
-  if (!venture) {
-    return NextResponse.json({ error: 'Venture nicht gefunden oder Zugriff verweigert' }, { status: 404 });
-  }
-
-  const modelConfig = MOTION_TRANSFER_MODELS[modelKey];
-  if (!modelConfig) {
-    return NextResponse.json({ error: 'Ungültiges Modell' }, { status: 400 });
-  }
-
-  const replicateClientContext = (isDryRun && isDev && user.id === 'mock-user-id')
-    ? { client: {} as any, source: 'platform' as const }
-    : await getReplicateClientForUser(user.id);
-
-  if (!replicateClientContext) {
-    return NextResponse.json(
-      { error: 'Kein Replicate Key konfiguriert. Bitte BYOK oder Plattform-Key setzen.' },
-      { status: 500 }
-    );
-  }
-
-  // Validate files
-  if (video.size > MAX_VIDEO_BYTES) {
-    return NextResponse.json({ error: 'Video ist zu groß (max 100MB)' }, { status: 413 });
-  }
-  if (image.size > MAX_IMAGE_BYTES) {
-    return NextResponse.json({ error: 'Character Image ist zu groß (max 10MB)' }, { status: 413 });
-  }
-  if (!ALLOWED_VIDEO_TYPES.has(video.type)) {
-    return NextResponse.json({ error: 'Ungültiges Video-Format (nur MP4/MOV/WebM)' }, { status: 415 });
-  }
-  if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
-    return NextResponse.json({ error: 'Ungültiges Bild-Format (nur JPG/PNG/WebP)' }, { status: 415 });
-  }
-  if (!ALLOWED_RESOLUTIONS.has(resolution)) {
-    return NextResponse.json({ error: 'Ungültige Auflösung (480 oder 720)' }, { status: 400 });
-  }
-
-  const tier = (isDryRun && isDev && user.id === 'mock-user-id') ? 'pro' : await getUserTier(user.id);
-  const cost = modelConfig.cost;
-  let reservationId: string | null = null;
-  const requestId = request.headers.get('x-request-id') || generateUUID();
-
   try {
-    // Step 1: Reserve credits
-    const isDryRun = request.headers.get('X-Dry-Run') === 'true';
-
-    if (isDryRun) {
-      console.log('🧪 Dry Run Mode: Skipping external calls and costs');
-      return NextResponse.json({
-        predictionId: 'dry-run-prediction-id',
-        status: 'succeeded',
-        provider: 'replicate',
-        model: modelConfig.label,
-        creditsUsed: 0,
-        tier,
-        outputUrl: 'https://placehold.co/1080x1920.mp4?text=Dry+Run+Output',
-        mock: true
-      });
-    }
-
-    const reservation = await reserveEnergy({
-      userId: user.id,
-      amount: cost,
-      feature: 'marketing.motion-transfer',
-      requestId,
-      metadata: {
-        ventureId,
-        model: modelConfig.id,
-        cost,
-        tier
-      }
-    });
-    reservationId = reservation.reservationId;
-
-    // Step 2: Daily quota check
-    const dailyQuota = await checkDailyVideoQuota(user.id);
-    if (!dailyQuota.allowed) {
-      await refundEnergy(reservationId, 'daily-quota-exceeded');
-      return NextResponse.json({
-        error: `Tageslimit für Motion Transfer erreicht (${dailyQuota.limit}/Tag). Reset: ${dailyQuota.resetAt.toLocaleTimeString('de-DE')}`,
-        quota: {
-          limit: dailyQuota.limit,
-          remaining: dailyQuota.remaining,
-          resetAt: dailyQuota.resetAt.toISOString()
-        }
-      }, { status: 429 });
-    }
-
-    // Step 3: Upload files to Vercel Blob
-    const videoBuffer = Buffer.from(await video.arrayBuffer());
-    const videoFilename = `motion-transfer/${user.id}/videos/${Date.now()}-${sanitizeFilename(video.name)}`;
-    const videoBlob = await put(videoFilename, videoBuffer, {
-      access: 'public',
-      contentType: video.type,
-    });
-
-    const imageBuffer = Buffer.from(await image.arrayBuffer());
-    const imageFilename = `motion-transfer/${user.id}/characters/${Date.now()}-${sanitizeFilename(image.name)}`;
-    const imageBlob = await put(imageFilename, imageBuffer, {
-      access: 'public',
-      contentType: image.type,
-    });
-
-    // Step 4: Create Replicate prediction
-    const input = {
-      video: videoBlob.url,
-      character_image: imageBlob.url,
-      resolution,
-      refert_num: refertNum,
-      frames_per_second: fps,
-      merge_audio: mergeAudio,
-      go_fast: goFast,
-    };
-
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-    const webhookUrl =
-      appUrl && appUrl.startsWith('https://') ? `${appUrl}/api/webhooks/replicate` : undefined;
-
-    const prediction = await replicateClientContext.client.predictions.create({
-      model: modelConfig.id,
-      input,
-      ...(webhookUrl
-        ? {
-          webhook: webhookUrl,
-          webhook_events_filter: ['start', 'output', 'logs', 'completed'],
-        }
-        : {}),
-    });
-
-    await writeMotionTransferJobReceipt(prediction.id, {
+    const { id: ventureId } = await params;
+    const formData = await request.formData();
+    const result = await startMotionTransferGeneration({
+      userEmail: session?.user?.email ?? null,
       ventureId,
-      userId: user.id,
-      replicateAuthSource: replicateClientContext.source,
-      model: modelConfig.id,
-      cost,
-      reservationId,
-      drivingVideoUrl: videoBlob.url,
-      characterImageUrl: imageBlob.url,
-      createdAt: new Date().toISOString(),
+      requestId: request.headers.get('x-request-id') || generateUUID(),
+      formData,
+      isDryRun,
+      isDevelopment: isDev,
     });
 
-    return NextResponse.json({
-      predictionId: prediction.id,
-      status: prediction.status,
-      provider: 'replicate',
-      model: modelConfig.label,
-      creditsUsed: cost,
-      tier
-    });
-  } catch (error: any) {
-    if (reservationId) await refundEnergy(reservationId, 'motion-transfer-failed');
-    if (error instanceof InsufficientEnergyError) {
-      return NextResponse.json(
-        {
-          error: error.message,
-          code: 'INSUFFICIENT_CREDITS',
-          requiredCredits: error.requiredCredits,
-          creditsAvailable: error.creditsAvailable,
-        },
-        { status: 402 }
-      );
-    }
-    console.error('Motion Transfer Error:', error);
-    return NextResponse.json({ error: error.message || 'Motion Transfer fehlgeschlagen' }, { status: 500 });
+    return NextResponse.json(result);
+  } catch (error) {
+    const response = toLegacyReplicateErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
   }
 }
 
@@ -295,7 +68,7 @@ export async function GET(
 
     return NextResponse.json(result);
   } catch (error) {
-    const response = toLegacyReplicateJobErrorResponse(error);
+    const response = toLegacyReplicateErrorResponse(error);
     return NextResponse.json(response.body, { status: response.status });
   }
 }

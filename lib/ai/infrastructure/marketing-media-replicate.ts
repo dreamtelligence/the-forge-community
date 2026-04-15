@@ -161,6 +161,30 @@ export const createMarketingMediaPrediction = async (params: {
   };
 };
 
+export const createReplicatePrediction = async (params: {
+  userId: string;
+  model: string;
+  input: Record<string, unknown>;
+}) => {
+  const clientContext = await getReplicateClientForUser(params.userId);
+  if (!clientContext) {
+    throw new MarketingMediaConfigurationError(
+      'Kein Replicate Key konfiguriert. Bitte hinterlege BYOK oder setze den Plattform-Key.'
+    );
+  }
+
+  const prediction = await clientContext.client.predictions.create({
+    model: params.model,
+    input: params.input,
+    ...resolveReplicateWebhookConfig(),
+  });
+
+  return {
+    prediction: prediction as MarketingMediaPrediction,
+    source: clientContext.source,
+  };
+};
+
 export const getMarketingMediaPrediction = async (userId: string, predictionId: string) => {
   const clientContext = await getReplicateClientForUser(userId);
   if (!clientContext) {

@@ -5,7 +5,9 @@ import { completeLegacyReplicateJob } from '@/lib/ai/application/complete-legacy
 import { failLegacyReplicateJob } from '@/lib/ai/application/fail-legacy-replicate-job';
 import { getLegacyReplicateJobStatus } from '@/lib/ai/application/get-legacy-replicate-job-status';
 import { handleLegacyReplicateWebhookJob } from '@/lib/ai/application/handle-legacy-replicate-webhook-job';
-import { LegacyReplicateJobNotFoundError } from '@/lib/ai/contracts/legacy-replicate-job';
+import { startFaceSwapGeneration } from '@/lib/ai/application/start-faceswap-generation';
+import { startMotionTransferGeneration } from '@/lib/ai/application/start-motion-transfer-generation';
+import { LegacyReplicateNotFoundError, LegacyReplicateQuotaExceededError } from '@/lib/ai/contracts/legacy-replicate-job';
 
 async function testCompleteLegacyReplicateJobPersistsFaceSwapOutput() {
   let settled = false;
@@ -352,8 +354,198 @@ async function testGetLegacyReplicateJobStatusNotFound() {
           },
         }
       ),
-    LegacyReplicateJobNotFoundError
+    LegacyReplicateNotFoundError
   );
+}
+
+async function testStartFaceSwapGeneration() {
+  const formData = {
+    get(name: string) {
+      const values: Record<string, unknown> = {
+        model: 'lucataco-faceswap',
+        swapCondition: 'first',
+        face: {
+          name: 'face.png',
+          type: 'image/png',
+          size: 8,
+          async arrayBuffer() {
+            return new TextEncoder().encode('face').buffer;
+          },
+        },
+        video: {
+          name: 'clip.mp4',
+          type: 'video/mp4',
+          size: 8,
+          async arrayBuffer() {
+            return new TextEncoder().encode('video').buffer;
+          },
+        },
+      };
+
+      return (values[name] ?? null) as FormDataEntryValue | null;
+    },
+  } as unknown as FormData;
+
+  let reserved = false;
+
+  const result = await startFaceSwapGeneration(
+    {
+      userEmail: 'founder@example.com',
+      ventureId: 'venture-1',
+      requestId: 'req-face-1',
+      formData,
+      isDryRun: false,
+      isDevelopment: false,
+    },
+    {
+      async findUserByEmail(email) {
+        assert.equal(email, 'founder@example.com');
+        return { id: 'user-1' };
+      },
+      async findOwnedVenture(ventureId, ownerId) {
+        assert.equal(ventureId, 'venture-1');
+        assert.equal(ownerId, 'user-1');
+        return { id: ventureId };
+      },
+      async reserveEnergy(input) {
+        reserved = true;
+        assert.equal(input.feature, 'marketing.faceswap');
+        return { reservationId: 'reservation-face-1' };
+      },
+      async refundEnergy() {
+        assert.fail('refundEnergy should not run on successful faceswap start');
+      },
+      async checkMonthlyAvatarQuota() {
+        return { allowed: true, limit: 10, remaining: 9, resetAt: new Date() };
+      },
+      async checkDailyVideoQuota() {
+        return { allowed: true, limit: 5, remaining: 4, resetAt: new Date() };
+      },
+      async uploadInputs(input) {
+        assert.equal(input.userId, 'user-1');
+        return {
+          faceUrl: 'https://blob.example.com/face.png',
+          videoUrl: 'https://blob.example.com/video.mp4',
+        };
+      },
+      async createPrediction(input) {
+        assert.equal(input.model, 'lucataco/faceswap');
+        assert.deepEqual(input.input, {
+          target_video: 'https://blob.example.com/video.mp4',
+          swap_image: 'https://blob.example.com/face.png',
+          swap_condition: 'first',
+        });
+        return {
+          prediction: { id: 'pred-face-1', status: 'starting' },
+          source: 'user',
+        };
+      },
+      async saveJobReceipt(predictionId, receipt) {
+        assert.equal(predictionId, 'pred-face-1');
+        assert.equal(receipt.userId, 'user-1');
+        assert.equal(receipt.reservationId, 'reservation-face-1');
+      },
+    }
+  );
+
+  assert.equal(reserved, true);
+  assert.deepEqual(result, {
+    predictionId: 'pred-face-1',
+    status: 'starting',
+    provider: 'replicate',
+    model: 'Face Swap Pro (Roop)',
+    creditsUsed: 50,
+  });
+}
+
+async function testStartMotionTransferGenerationQuotaExceeded() {
+  const formData = {
+    get(name: string) {
+      const values: Record<string, unknown> = {
+        model: 'wan-2.2-animate',
+        resolution: '720',
+        drivingVideo: {
+          name: 'drive.mp4',
+          type: 'video/mp4',
+          size: 8,
+          async arrayBuffer() {
+            return new TextEncoder().encode('drive').buffer;
+          },
+        },
+        characterImage: {
+          name: 'character.png',
+          type: 'image/png',
+          size: 8,
+          async arrayBuffer() {
+            return new TextEncoder().encode('character').buffer;
+          },
+        },
+      };
+
+      return (values[name] ?? null) as FormDataEntryValue | null;
+    },
+  } as unknown as FormData;
+
+  let refundedReason: string | null = null;
+
+  await assert.rejects(
+    () =>
+      startMotionTransferGeneration(
+        {
+          userEmail: 'founder@example.com',
+          ventureId: 'venture-1',
+          requestId: 'req-motion-1',
+          formData,
+          isDryRun: false,
+          isDevelopment: false,
+        },
+        {
+          async findUserByEmail() {
+            return { id: 'user-1' };
+          },
+          async findOwnedVenture() {
+            return { id: 'venture-1' };
+          },
+          async getUserTier() {
+            return 'pro';
+          },
+          async reserveEnergy() {
+            return { reservationId: 'reservation-motion-1' };
+          },
+          async refundEnergy(_, reason) {
+            refundedReason = reason;
+          },
+          async checkDailyVideoQuota() {
+            return {
+              allowed: false,
+              limit: 1,
+              remaining: 0,
+              resetAt: new Date(Date.now() + 60_000),
+            };
+          },
+          async uploadInputs() {
+            assert.fail('uploadInputs should not run after quota rejection');
+            return {
+              drivingVideoUrl: 'https://blob.example.com/drive.mp4',
+              characterImageUrl: 'https://blob.example.com/character.png',
+            };
+          },
+          async createPrediction() {
+            assert.fail('createPrediction should not run after quota rejection');
+            return {
+              prediction: { id: 'pred-motion-1', status: 'starting' },
+              source: 'user',
+            };
+          },
+          async saveJobReceipt() {
+            assert.fail('saveJobReceipt should not run after quota rejection');
+          },
+        }
+      ),
+    LegacyReplicateQuotaExceededError
+  );
+
+  assert.equal(refundedReason, 'daily-quota-exceeded');
 }
 
 async function run() {
@@ -364,6 +556,8 @@ async function run() {
   await testHandleLegacyReplicateWebhookJobReturnsUnknown();
   await testGetLegacyReplicateJobStatusUsesSharedCompletionPath();
   await testGetLegacyReplicateJobStatusNotFound();
+  await testStartFaceSwapGeneration();
+  await testStartMotionTransferGenerationQuotaExceeded();
 
   console.log('Legacy Replicate job flow tests passed.');
 }
