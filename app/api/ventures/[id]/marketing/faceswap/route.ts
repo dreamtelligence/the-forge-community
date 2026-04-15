@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { reserveEnergy, refundEnergy, settleEnergy, InsufficientEnergyError, checkDailyVideoQuota, checkMonthlyAvatarQuota } from '@/lib/finance/energy';
+import {
+  reserveEnergy,
+  refundEnergy,
+  InsufficientEnergyError,
+  checkDailyVideoQuota,
+  checkMonthlyAvatarQuota,
+} from '@/lib/finance/energy';
 import { prisma } from '@/lib/database/prisma';
 import { RateLimiters } from '@/lib/security/rate-limit';
 import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
 import { put } from '@vercel/blob';
+import { getLegacyReplicateJobStatus } from '@/lib/ai/application/get-legacy-replicate-job-status';
+import { toLegacyReplicateJobErrorResponse } from '@/lib/ai/contracts/legacy-replicate-job';
+import { writeFaceSwapJobReceipt } from '@/lib/ai/infrastructure/legacy-replicate-job-store';
 import { generateUUID } from '@/lib/utils/uuid';
 import { FACESWAP_MODELS } from '@/lib/media-models';
 
@@ -15,51 +24,6 @@ const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
 const ALLOWED_VIDEO_TYPES = new Set(['video/mp4', 'video/quicktime']);
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-
-type FaceSwapJobCache = {
-  ventureId: string;
-  userId: string;
-  replicateAuthSource?: 'user' | 'platform';
-  model: string;
-  cost: number;
-  reservationId: string | null;
-  videoUrl?: string;
-  faceUrl?: string;
-  outputUrl?: string;
-  error?: string;
-  settledAt?: string;
-  refundedAt?: string;
-  createdAt: string;
-};
-
-const jobKeyForPrediction = (predictionId: string) => `faceswap:${predictionId}`;
-
-const readJobCache = async (predictionId: string) => {
-  const record = await prisma.systemCache.findUnique({ where: { key: jobKeyForPrediction(predictionId) } });
-  if (!record) return null;
-  try {
-    return JSON.parse(record.value) as FaceSwapJobCache;
-  } catch {
-    return null;
-  }
-};
-
-const writeJobCache = async (predictionId: string, payload: FaceSwapJobCache) => {
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 6); // 6 hours
-  await prisma.systemCache.upsert({
-    where: { key: jobKeyForPrediction(predictionId) },
-    update: { value: JSON.stringify(payload), expiresAt },
-    create: { key: jobKeyForPrediction(predictionId), value: JSON.stringify(payload), expiresAt },
-  });
-};
-
-const updateJobCache = async (predictionId: string, updates: Partial<FaceSwapJobCache>) => {
-  const existing = await readJobCache(predictionId);
-  if (!existing) return null;
-  const next = { ...existing, ...updates };
-  await writeJobCache(predictionId, next);
-  return next;
-};
 
 const isFileLike = (value: FormDataEntryValue | null): value is File => {
   return Boolean(value && typeof value === 'object' && 'arrayBuffer' in value && 'type' in value);
@@ -268,7 +232,7 @@ export async function POST(
         : {}),
     });
 
-    await writeJobCache(prediction.id, {
+    await writeFaceSwapJobReceipt(prediction.id, {
       ventureId,
       userId: user.id,
       replicateAuthSource: replicateClientContext.source,
@@ -321,116 +285,17 @@ export async function GET(
     return NextResponse.json({ error: 'predictionId fehlt' }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true }
-  });
-
-  if (!user) {
-    return NextResponse.json({ error: 'Benutzer nicht gefunden' }, { status: 404 });
-  }
-
-  const cachedJob = await readJobCache(predictionId);
-  if (!cachedJob || cachedJob.userId !== user.id || cachedJob.ventureId !== ventureId) {
-    return NextResponse.json({ error: 'Prediction nicht gefunden' }, { status: 404 });
-  }
-
-  const replicateClientContext = await getReplicateClientForUser(user.id);
-  if (!replicateClientContext) {
-    return NextResponse.json(
-      { error: 'Kein Replicate Key verfügbar. Bitte BYOK oder Plattform-Key konfigurieren.' },
-      { status: 500 }
-    );
-  }
-
-  const prediction = await replicateClientContext.client.predictions.get(predictionId);
-
-  if (prediction.status === 'succeeded') {
-    if (!cachedJob.outputUrl) {
-      // Extract output URL
-      const output = prediction.output;
-      let outputUrl: string | null = null;
-
-      if (typeof output === 'string') {
-        outputUrl = output;
-      } else if (Array.isArray(output) && output.length > 0) {
-        outputUrl = typeof output[0] === 'string' ? output[0] : null;
-      }
-
-      if (!outputUrl) {
-        return NextResponse.json({ status: 'failed', error: 'Kein Output von Replicate' });
-      }
-
-      // Download and store in Vercel Blob
-      const res = await fetch(outputUrl);
-      if (!res.ok) throw new Error('Output konnte nicht geladen werden');
-      const blobData = await res.blob();
-      const buffer = Buffer.from(await blobData.arrayBuffer());
-
-      const filename = `faceswap/${user.id}/outputs/${Date.now()}-result.mp4`;
-      const blob = await put(filename, buffer, {
-        access: 'public',
-        contentType: 'video/mp4',
-      });
-
-      // Save to MediaAsset
-      await prisma.mediaAsset.create({
-        data: {
-          ventureId,
-          ownerId: user.id,
-          type: 'VIDEO',
-          url: blob.url,
-          filename,
-          mimeType: 'video/mp4',
-          size: buffer.length,
-          source: 'GENERATED',
-          model: cachedJob.model,
-          tags: ['faceswap', 'replicate']
-        }
-      });
-
-      // Settle energy
-      if (cachedJob.reservationId) {
-        await settleEnergy({
-          reservationId: cachedJob.reservationId,
-          finalCost: cachedJob.cost,
-          provider: 'replicate',
-          model: cachedJob.model
-        });
-      }
-
-      await updateJobCache(predictionId, {
-        outputUrl: blob.url,
-        settledAt: new Date().toISOString(),
-      });
-
-      return NextResponse.json({
-        status: 'succeeded',
-        outputUrl: blob.url,
-        provider: 'replicate',
-      });
-    }
-
-    return NextResponse.json({
-      status: 'succeeded',
-      outputUrl: cachedJob.outputUrl,
-      provider: 'replicate',
+  try {
+    const result = await getLegacyReplicateJobStatus({
+      userEmail: session.user.email,
+      ventureId,
+      predictionId,
+      jobKind: 'faceswap',
     });
-  }
 
-  if (prediction.status === 'failed' || prediction.status === 'canceled') {
-    if (!cachedJob.refundedAt && cachedJob.reservationId) {
-      await refundEnergy(cachedJob.reservationId, 'faceswap-failed');
-      await updateJobCache(predictionId, {
-        refundedAt: new Date().toISOString(),
-        error: String(prediction.error || 'Avatar fehlgeschlagen'),
-      });
-    }
-    return NextResponse.json({
-      status: prediction.status,
-      error: cachedJob.error || String(prediction.error) || 'Avatar fehlgeschlagen'
-    });
+    return NextResponse.json(result);
+  } catch (error) {
+    const response = toLegacyReplicateJobErrorResponse(error);
+    return NextResponse.json(response.body, { status: response.status });
   }
-
-  return NextResponse.json({ status: prediction.status });
 }

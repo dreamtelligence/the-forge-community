@@ -1,26 +1,19 @@
 import { prisma } from '@/lib/database/prisma';
+import type {
+  LegacyReplicateJobKind,
+  LegacyReplicateJobReceipt,
+} from '@/lib/ai/contracts/legacy-replicate-job';
 import { generateUUID } from '@/lib/utils/uuid';
-
-type LegacyReplicateJobReceipt = {
-  ventureId: string;
-  userId: string;
-  model: string;
-  cost: number;
-  reservationId?: string | null;
-  outputUrl?: string | null;
-  refundedAt?: string | null;
-  settledAt?: string | null;
-  error?: string | null;
-  processingId?: string | null;
-  processingAt?: string | null;
-  processingBy?: string | null;
-};
 
 const JOB_TTL_MS = 1000 * 60 * 60 * 6;
 const PROCESSING_LOCK_TTL_MS = 1000 * 60 * 10;
 
 const faceSwapJobKeyForPrediction = (predictionId: string) => `faceswap:${predictionId}`;
 const motionTransferJobKeyForPrediction = (predictionId: string) => `motion-transfer:${predictionId}`;
+const keyForLegacyJob = (jobKind: LegacyReplicateJobKind, predictionId: string) =>
+  jobKind === 'faceswap'
+    ? faceSwapJobKeyForPrediction(predictionId)
+    : motionTransferJobKeyForPrediction(predictionId);
 
 const readLegacyJob = async (key: string): Promise<LegacyReplicateJobReceipt | null> => {
   const record = await prisma.systemCache.findUnique({ where: { key } });
@@ -73,23 +66,57 @@ const acquireLegacyProcessingLock = async (key: string, holder: string) => {
   return confirmed;
 };
 
+export const findLegacyReplicateJobReceipt = (
+  jobKind: LegacyReplicateJobKind,
+  predictionId: string
+) => readLegacyJob(keyForLegacyJob(jobKind, predictionId));
+
+export const writeLegacyReplicateJobReceipt = (
+  jobKind: LegacyReplicateJobKind,
+  predictionId: string,
+  payload: LegacyReplicateJobReceipt
+) => writeLegacyJob(keyForLegacyJob(jobKind, predictionId), payload);
+
+export const updateLegacyReplicateJobReceipt = (
+  jobKind: LegacyReplicateJobKind,
+  predictionId: string,
+  updates: Partial<LegacyReplicateJobReceipt>
+) => updateLegacyJob(keyForLegacyJob(jobKind, predictionId), updates);
+
+export const acquireLegacyReplicateJobLock = (
+  jobKind: LegacyReplicateJobKind,
+  predictionId: string,
+  holder: string
+) => acquireLegacyProcessingLock(keyForLegacyJob(jobKind, predictionId), holder);
+
 export const findFaceSwapJobReceipt = (predictionId: string) =>
-  readLegacyJob(faceSwapJobKeyForPrediction(predictionId));
+  findLegacyReplicateJobReceipt('faceswap', predictionId);
+
+export const writeFaceSwapJobReceipt = (predictionId: string, payload: LegacyReplicateJobReceipt) =>
+  writeLegacyReplicateJobReceipt('faceswap', predictionId, payload);
 
 export const updateFaceSwapJobReceipt = (
   predictionId: string,
   updates: Partial<LegacyReplicateJobReceipt>
-) => updateLegacyJob(faceSwapJobKeyForPrediction(predictionId), updates);
+) => updateLegacyReplicateJobReceipt('faceswap', predictionId, updates);
 
 export const acquireFaceSwapJobLock = (predictionId: string, holder: string) =>
-  acquireLegacyProcessingLock(faceSwapJobKeyForPrediction(predictionId), holder);
+  acquireLegacyReplicateJobLock('faceswap', predictionId, holder);
 
 export const findMotionTransferJobReceipt = (predictionId: string) =>
-  readLegacyJob(motionTransferJobKeyForPrediction(predictionId));
+  findLegacyReplicateJobReceipt('motion-transfer', predictionId);
+
+export const writeMotionTransferJobReceipt = (
+  predictionId: string,
+  payload: LegacyReplicateJobReceipt
+) => writeLegacyReplicateJobReceipt('motion-transfer', predictionId, payload);
 
 export const updateMotionTransferJobReceipt = (
   predictionId: string,
   updates: Partial<LegacyReplicateJobReceipt>
-) => updateLegacyJob(motionTransferJobKeyForPrediction(predictionId), updates);
+) => updateLegacyReplicateJobReceipt('motion-transfer', predictionId, updates);
+
+export const acquireMotionTransferJobLock = (predictionId: string, holder: string) =>
+  acquireLegacyReplicateJobLock('motion-transfer', predictionId, holder);
 
 export type { LegacyReplicateJobReceipt };

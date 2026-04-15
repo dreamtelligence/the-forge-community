@@ -65,6 +65,8 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 - Prisma, Blob-Upload, Replicate-Orchestrierung sowie Credit-Settlement gehören nicht direkt in diesen Handler.
 - `app/api/webhooks/replicate/route.ts` bleibt ebenfalls dünn und delegiert an Verifikation plus `handleReplicateWebhookReceipt`.
 - Delivery-Idempotenz für Webhooks läuft über ein separates Receipt-Modell auf `WebhookEvent`; Job-Zustand bleibt im Job-Receipt (`SystemCache`).
+- Legacy-Replicate-Familien wie `faceswap` und `motion-transfer` teilen ihre Completion-/Fail-Logik zwischen Webhook und Polling über gemeinsame Application-Use-Cases statt über doppelte Route-spezifische Implementierungen.
+- Status-Polling für diese Legacy-Familien läuft ebenfalls über einen eigenen Application-Schnitt; die Route mappt nur Auth, Query-Parsing und HTTP-Response.
 
 ## API-Regeln
 

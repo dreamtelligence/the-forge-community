@@ -173,6 +173,8 @@ export const getMarketingMediaPrediction = async (userId: string, predictionId: 
   return prediction as MarketingMediaPrediction;
 };
 
+export const getReplicatePrediction = getMarketingMediaPrediction;
+
 export const extractMarketingMediaOutputUrls = async (output: unknown) => {
   if (!output) return [];
   if (Array.isArray(output)) {
@@ -182,6 +184,8 @@ export const extractMarketingMediaOutputUrls = async (output: unknown) => {
   const single = await normalizeOutputUrl(output);
   return single ? [single] : [];
 };
+
+export const extractReplicateOutputUrls = extractMarketingMediaOutputUrls;
 
 const resolveReplicateWebhookConfig = () => {
   const appUrl =
