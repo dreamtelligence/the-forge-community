@@ -266,7 +266,10 @@ function testResolveMarketingMediaGenerationPlan() {
     endImageFile: null,
     existingImageUrl: null,
     existingEndImageUrl: null,
-    imageFiles: [createMockFile('a.png', 'image/png'), createMockFile('b.png', 'image/png')],
+    imageFiles: [
+      createMockFile('a.png', 'image/png') as unknown as FormDataEntryValue,
+      createMockFile('b.png', 'image/png') as unknown as FormDataEntryValue,
+    ],
   });
 
   assert.equal(plan.mode, 'image-to-image');

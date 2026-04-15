@@ -7,12 +7,13 @@ import { getLegacyReplicateJobStatus } from '@/lib/ai/application/get-legacy-rep
 import { handleLegacyReplicateWebhookJob } from '@/lib/ai/application/handle-legacy-replicate-webhook-job';
 import { startFaceSwapGeneration } from '@/lib/ai/application/start-faceswap-generation';
 import { startMotionTransferGeneration } from '@/lib/ai/application/start-motion-transfer-generation';
+import type { LegacyReplicateJobReceipt } from '@/lib/ai/contracts/legacy-replicate-job';
 import { LegacyReplicateNotFoundError, LegacyReplicateQuotaExceededError } from '@/lib/ai/contracts/legacy-replicate-job';
 
 async function testCompleteLegacyReplicateJobPersistsFaceSwapOutput() {
   let settled = false;
   let persisted = false;
-  let updatedReceipt: Record<string, unknown> | null = null;
+  let updatedReceipt: Partial<LegacyReplicateJobReceipt> | null = null;
 
   const result = await completeLegacyReplicateJob(
     {
@@ -91,8 +92,10 @@ async function testCompleteLegacyReplicateJobPersistsFaceSwapOutput() {
   assert.equal(result.status, 'succeeded');
   assert.equal(result.outputUrl, 'https://blob.example.com/faceswap.mp4');
   assert.equal(result.provider, 'replicate');
-  assert.equal(updatedReceipt?.outputUrl, 'https://blob.example.com/faceswap.mp4');
-  assert.equal(updatedReceipt?.processingId, null);
+  assert.ok(updatedReceipt);
+  const completedReceipt = updatedReceipt as Partial<LegacyReplicateJobReceipt>;
+  assert.equal(completedReceipt.outputUrl, 'https://blob.example.com/faceswap.mp4');
+  assert.equal(completedReceipt.processingId, null);
 }
 
 async function testCompleteLegacyReplicateJobReturnsProcessingWhenLocked() {
@@ -149,7 +152,7 @@ async function testCompleteLegacyReplicateJobReturnsProcessingWhenLocked() {
 
 async function testFailLegacyReplicateJobRefundsAndClearsLock() {
   let refunded = false;
-  let updatedReceipt: Record<string, unknown> | null = null;
+  let updatedReceipt: Partial<LegacyReplicateJobReceipt> | null = null;
 
   const result = await failLegacyReplicateJob(
     {
@@ -191,9 +194,11 @@ async function testFailLegacyReplicateJobRefundsAndClearsLock() {
   assert.equal(refunded, true);
   assert.equal(result.status, 'failed');
   assert.equal(result.error, 'provider failed');
-  assert.equal(updatedReceipt?.processingId, null);
-  assert.equal(updatedReceipt?.error, 'provider failed');
-  assert.ok(typeof updatedReceipt?.refundedAt === 'string');
+  assert.ok(updatedReceipt);
+  const failedReceipt = updatedReceipt as Partial<LegacyReplicateJobReceipt>;
+  assert.equal(failedReceipt.processingId, null);
+  assert.equal(failedReceipt.error, 'provider failed');
+  assert.ok(typeof failedReceipt.refundedAt === 'string');
 }
 
 async function testHandleLegacyReplicateWebhookJobRoutesToSharedUseCases() {

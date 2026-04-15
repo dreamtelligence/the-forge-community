@@ -48,6 +48,18 @@ type ReserveCreditsForGenerationDependencies = {
   }>;
 };
 
+const isCreditsError = (
+  error: unknown
+): error is { message: string; requiredCredits: number; creditsAvailable: number } =>
+  Boolean(
+    error &&
+      typeof error === 'object' &&
+      'requiredCredits' in error &&
+      'creditsAvailable' in error &&
+      'message' in error &&
+      typeof (error as { message?: unknown }).message === 'string'
+  );
+
 const loadDefaultDependencies = async (): Promise<ReserveCreditsForGenerationDependencies> => {
   const energy = await import('@/lib/finance/energy');
   return {
@@ -122,16 +134,10 @@ export async function reserveCreditsForGeneration(
       throw error;
     }
 
-    if (
-      error &&
-      typeof error === 'object' &&
-      'requiredCredits' in error &&
-      'creditsAvailable' in error &&
-      'message' in error
-    ) {
+    if (isCreditsError(error)) {
       throw new MarketingMediaCreditsError(error.message, {
-        requiredCredits: (error as { requiredCredits: number }).requiredCredits,
-        creditsAvailable: (error as { creditsAvailable: number }).creditsAvailable,
+        requiredCredits: error.requiredCredits,
+        creditsAvailable: error.creditsAvailable,
       });
     }
 

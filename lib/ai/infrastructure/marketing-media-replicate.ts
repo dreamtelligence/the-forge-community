@@ -25,6 +25,12 @@ const limitedAspectModels = new Set([
   'minimax/video-01',
   'lumaai/dream-machine',
 ]);
+const REPLICATE_WEBHOOK_EVENTS: Array<'start' | 'output' | 'logs' | 'completed'> = [
+  'start',
+  'output',
+  'logs',
+  'completed',
+];
 
 export const buildMarketingMediaReplicateInput = (
   modelId: string,
@@ -222,6 +228,6 @@ const resolveReplicateWebhookConfig = () => {
 
   return {
     webhook: webhookUrl,
-    webhook_events_filter: ['start', 'output', 'logs', 'completed'],
+    webhook_events_filter: REPLICATE_WEBHOOK_EVENTS,
   };
 };

@@ -1,9 +1,13 @@
 import {
+  type MarketingMediaJobReceipt,
+  type MarketingMediaMode,
   type MarketingMediaStartResult,
   MarketingMediaNotFoundError,
   parseMarketingMediaFormData,
 } from '@/lib/ai/contracts/marketing-media';
 import {
+  type MarketingMediaModelConfig,
+  type MarketingMediaReplicateInput,
   buildFinalMarketingMediaPrompt,
   resolveMarketingMediaGenerationPlan,
 } from '@/lib/ai/domain/marketing-media';
@@ -24,7 +28,7 @@ type StartMarketingMediaGenerationDependencies = {
   ) => Promise<{ id: string; brandDNA: Record<string, unknown> | null } | null>;
   uploadInputs: (input: {
     userId: string;
-    mode: string;
+    mode: MarketingMediaMode;
     imageFile: unknown;
     endImageFile: unknown;
     existingImageUrl: unknown;
@@ -35,27 +39,10 @@ type StartMarketingMediaGenerationDependencies = {
   reserveCreditsForGeneration: typeof reserveCreditsForGeneration;
   createPrediction: (input: {
     userId: string;
-    modelConfig: {
-      id: string;
-      outputType: 'image' | 'video';
-      supportsImageInput?: boolean;
-    };
-    input: {
-      prompt: string;
-      negativePrompt?: string;
-      aspectRatio: string;
-      seed?: number;
-      steps?: number;
-      guidance?: number;
-      duration?: number;
-      generateAudio?: boolean;
-      imageUrl?: string | string[];
-      endImageUrl?: string;
-      width: number;
-      height: number;
-    };
+    modelConfig: MarketingMediaModelConfig;
+    input: MarketingMediaReplicateInput;
   }) => Promise<{ prediction: { id: string; status: string }; source: 'user' | 'platform' }>;
-  saveJobReceipt: (predictionId: string, receipt: Record<string, unknown>) => Promise<void>;
+  saveJobReceipt: (predictionId: string, receipt: MarketingMediaJobReceipt) => Promise<void>;
   refundEnergy: (reservationId: string, reason: string) => Promise<unknown>;
 };
 

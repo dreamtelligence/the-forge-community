@@ -1,5 +1,6 @@
 import { MOTION_TRANSFER_MODELS } from '@/lib/media-models';
 import type {
+  LegacyReplicateJobReceipt,
   LegacyReplicateStartResult,
   LegacyReplicateUploadFile,
 } from '@/lib/ai/contracts/legacy-replicate-job';
@@ -57,7 +58,10 @@ type StartMotionTransferGenerationDependencies = {
     model: string;
     input: Record<string, unknown>;
   }) => Promise<{ prediction: { id: string; status: string }; source: 'user' | 'platform' }>;
-  saveJobReceipt: (predictionId: string, receipt: Record<string, unknown>) => Promise<void>;
+  saveJobReceipt: (
+    predictionId: string,
+    receipt: LegacyReplicateJobReceipt
+  ) => Promise<void>;
 };
 
 const loadDefaultDependencies = async (): Promise<StartMotionTransferGenerationDependencies> => {
@@ -88,7 +92,7 @@ const parseFormNumber = (value: FormDataEntryValue | null, fallback: number) => 
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const isUploadFile = (value: FormDataEntryValue | null): value is LegacyReplicateUploadFile =>
+const isUploadFile = (value: unknown): value is LegacyReplicateUploadFile =>
   Boolean(value && typeof value === 'object' && 'arrayBuffer' in value && 'type' in value);
 
 const isInsufficientEnergyError = (
