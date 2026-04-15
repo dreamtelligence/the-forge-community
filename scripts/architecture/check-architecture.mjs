@@ -50,6 +50,12 @@ const walkFiles = (relativePath = '.') => {
 
 const MANUAL_MIGRATIONS_DIR = 'prisma/manual_sql';
 const MAX_TOP_LEVEL_LIB_FILES = 10;
+const ALLOWED_TOP_LEVEL_LIB_FILES = new Set([
+  'beta-access.server.ts',
+  'beta-access.ts',
+  'caseworker-login.ts',
+  'media-models.ts',
+]);
 const ALLOWED_SCRIPT_ROOT_ENTRIES = new Set([
   'architecture',
   'db',
@@ -103,6 +109,19 @@ const WAREHOUSE_BOUNDARY_ROUTES = [
   'app/api/ventures/[id]/warehouse/returns/route.ts',
   'app/api/ventures/[id]/warehouse/shipments/create/route.ts',
   'app/api/ventures/[id]/warehouse/shipments/route.ts',
+];
+const CORE_DOMAIN_MODULES = [
+  'ai',
+  'billing',
+  'integrations',
+  'ventures',
+  'warehouse',
+];
+const TARGET_DOMAIN_SUBDIRS = [
+  'domain',
+  'application',
+  'infrastructure',
+  'contracts',
 ];
 
 const checkManualMigrationPrefixes = () => {
@@ -178,7 +197,74 @@ const checkLibBoundary = () => {
     );
   }
 
+  const unexpectedTopLevelFiles = topLevelLibFiles.filter((entry) => !ALLOWED_TOP_LEVEL_LIB_FILES.has(entry));
+  const missingFrozenFiles = [...ALLOWED_TOP_LEVEL_LIB_FILES].filter((entry) => !topLevelLibFiles.includes(entry));
+
+  if (unexpectedTopLevelFiles.length > 0) {
+    errors.push(
+      `Neue Root-lib-Dateien sind verboten: ${unexpectedTopLevelFiles.join(', ')}. ` +
+        'Nutze stattdessen Modulordner unter lib/<domain>/.'
+    );
+  }
+
+  if (missingFrozenFiles.length > 0) {
+    errors.push(
+      `Die eingefrorene Root-lib-Allowlist wurde veraendert: ${missingFrozenFiles.join(', ')} fehlen. ` +
+        'Aendere Legacy-Dateien nur bewusst und mit passender Guardrail-Anpassung.'
+    );
+  }
+
   info.push(`Top-Level-Dateien in lib/: ${topLevelLibFiles.length}`);
+};
+
+const checkDomainModuleStructure = () => {
+  for (const domain of CORE_DOMAIN_MODULES) {
+    const domainPath = `lib/${domain}`;
+    if (!pathExists(domainPath)) {
+      errors.push(`Kernmodul fehlt: ${domainPath}`);
+      continue;
+    }
+
+    for (const subdir of TARGET_DOMAIN_SUBDIRS) {
+      const subdirPath = `${domainPath}/${subdir}`;
+      if (!pathExists(subdirPath)) {
+        errors.push(
+          `${domainPath} braucht die Zielstruktur ${TARGET_DOMAIN_SUBDIRS.join(', ')}. Fehlend: ${subdirPath}`
+        );
+        continue;
+      }
+
+      const absoluteSubdirPath = path.join(ROOT, subdirPath);
+      if (!fs.statSync(absoluteSubdirPath).isDirectory()) {
+        errors.push(`${subdirPath} muss ein Ordner sein.`);
+      }
+    }
+  }
+
+  info.push(`Kernmodule mit Zielstruktur geprueft: ${CORE_DOMAIN_MODULES.length}`);
+};
+
+const checkSharedBoundary = () => {
+  if (!pathExists('shared')) return;
+
+  const sharedFiles = walkFiles('shared').filter((relativePath) => /\.(ts|tsx|js|jsx|mjs|cjs)$/.test(relativePath));
+  const forbiddenImportPattern = /@\/lib\/(ai|billing|database|finance|forum|legal|security|user|ventures|warehouse)\//;
+
+  for (const relativePath of sharedFiles) {
+    const source = readFile(relativePath);
+
+    if (source.includes('@/lib/database/prisma')) {
+      errors.push(`${relativePath} darf Prisma nicht direkt importieren. shared/ bleibt fachlogikfrei.`);
+    }
+
+    if (forbiddenImportPattern.test(source)) {
+      errors.push(
+        `${relativePath} importiert Fachlogik aus lib/. shared/ ist nur fuer stabile, bereichsuebergreifende Bausteine gedacht.`
+      );
+    }
+  }
+
+  info.push(`shared/-Boundary geprueft: ${sharedFiles.length} Dateien`);
 };
 
 const checkRepoHygiene = () => {
@@ -285,9 +371,11 @@ checkManualSqlArchiveBoundary();
 if (!onlyMigrations) {
   checkHeavyRoutes();
   checkLibBoundary();
+  checkDomainModuleStructure();
   checkRepoHygiene();
   checkPublicAssetConventions();
   checkScriptsStructure();
+  checkSharedBoundary();
   checkWarehouseBoundary();
 }
 

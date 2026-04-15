@@ -24,13 +24,16 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 
 - Root `lib/*.ts` ist Legacy-Bestand.
 - Neue Domain-Logik gehört in Unterordner wie `lib/warehouse/*`, `lib/integrations/*`, `lib/storage/*`.
-- Die Anzahl der Top-Level-Dateien in `lib/` wird per Repo-Check eingefroren.
+- Root `lib/*.ts` ist auf die aktuelle Allowlist eingefroren und darf nicht durch neue Dateien wachsen.
+- Kernmodule arbeiten auf die Struktur `lib/<domain>/{domain,application,infrastructure,contracts}` hin.
+- `domain/` enthaelt Regeln und Modelle, `application/` Use-Cases und Orchestrierung, `infrastructure/` Provider/Prisma/IO, `contracts/` stabile DTOs, Parser und Modulgrenzen.
 
 ### `shared/`
 
 - Explizite Shared-Module für UI-Primitives, Integrationswidgets und andere bereichsübergreifende Bausteine.
 - `app/**` soll Shared-Imports für Cross-Cutting-Module nutzen.
 - Keine Fachlogik; nur stabile Brücken für wiederverwendbare Bausteine.
+- `shared/**` importiert weder Prisma noch Domain-Module wie `lib/warehouse`, `lib/finance`, `lib/ai`, `lib/ventures` oder ähnliche Fachschichten.
 
 ### `public/`
 
@@ -86,4 +89,5 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 
 - `npm run check:architecture` validiert die Guardrails.
 - `npm run check:migrations` validiert nur die manuelle SQL-Supplement-Kette.
+- Die Architektur-Checks pruefen explizit Root-`lib`-Freeze, Zielstruktur in Kernmodulen, `shared/` ohne Prisma/Fachlogik und Warehouse-Boundaries fuer API-Routen.
 - `build`, `lint` und `migrate:deploy` laufen nur noch durch, wenn diese Checks grün sind.

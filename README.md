@@ -13,6 +13,9 @@ Der Produktscope ist bewusst breit, aber im Code in vier Hauptdomänen getrennt:
 Ein Deployable, aber keine beliebige Suppe:
 `app/` für Oberfläche und Routen, `components/` für produktnahe UI, `shared/` für bereichsübergreifende Bausteine, `lib/` für Domain- und Service-Logik, `prisma/` für die kanonische Datenbankhistorie.
 
+Die Kernmodule in `lib/` werden auf eine einheitliche Struktur festgezogen:
+`lib/<domain>/domain`, `application`, `infrastructure`, `contracts`.
+
 ## Repo-Guardrails
 
 - `npm run check:architecture` erzwingt Architekturregeln vor `lint` und `build`
