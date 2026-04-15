@@ -58,6 +58,14 @@ Dieses Repo bleibt ein modularer Monolith. Die Grenze liegt deshalb im Repositor
 - Das gilt auch für untergeordnete Warehouse-Endpunkte wie `picklists/generate`, `inbound-packages/[packageId]/photos` und `inbound-packages/[packageId]/pickup-receipt`.
 - Boundary-Code wird separat über `npm run test:warehouse:boundary` auf Contract-/Parsing-Ebene getestet.
 
+### `lib/ai/`
+
+- Providergebundene Media-Flows werden in `contracts`, `domain`, `application` und `infrastructure` geschnitten.
+- `app/api/ventures/[id]/marketing/media/route.ts` bleibt dünn und delegiert an benannte Use Cases wie `startMarketingMediaGeneration` und `getMarketingMediaGenerationStatus`.
+- Prisma, Blob-Upload, Replicate-Orchestrierung sowie Credit-Settlement gehören nicht direkt in diesen Handler.
+- `app/api/webhooks/replicate/route.ts` bleibt ebenfalls dünn und delegiert an Verifikation plus `handleReplicateWebhookReceipt`.
+- Delivery-Idempotenz für Webhooks läuft über ein separates Receipt-Modell auf `WebhookEvent`; Job-Zustand bleibt im Job-Receipt (`SystemCache`).
+
 ## API-Regeln
 
 - Langlaufende oder providergebundene Media-Routen müssen explizit `runtime = 'nodejs'` setzen.

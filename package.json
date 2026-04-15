@@ -24,7 +24,9 @@
     "test:smoke:video": "tsx scripts/smoke-tests/test-video-generation.ts",
     "test:smoke:effects": "tsx scripts/smoke-tests/test-video-effects.ts",
     "test:smoke:warehouse": "tsx scripts/smoke-tests/test-warehouse-wms.ts",
-    "test:warehouse:boundary": "node --import tsx scripts/tests/test-warehouse-boundary.ts"
+    "test:warehouse:boundary": "node --import tsx scripts/tests/test-warehouse-boundary.ts",
+    "test:marketing:media": "node --import tsx scripts/tests/test-marketing-media-flow.ts",
+    "test:webhook:replicate": "node --import tsx scripts/tests/test-replicate-webhook-receipt.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.62",

@@ -110,6 +110,34 @@ const WAREHOUSE_BOUNDARY_ROUTES = [
   'app/api/ventures/[id]/warehouse/shipments/create/route.ts',
   'app/api/ventures/[id]/warehouse/shipments/route.ts',
 ];
+const THIN_APPLICATION_ROUTES = [
+  {
+    path: 'app/api/ventures/[id]/marketing/media/route.ts',
+    requiredImports: [
+      "@/lib/ai/application/start-marketing-media-generation",
+      "@/lib/ai/application/get-marketing-media-generation-status",
+    ],
+    forbiddenImports: [
+      '@/lib/database/prisma',
+      '@/lib/integrations/provider-keys',
+      '@/lib/finance/energy',
+      '@vercel/blob',
+    ],
+  },
+  {
+    path: 'app/api/webhooks/replicate/route.ts',
+    requiredImports: [
+      "@/lib/ai/application/handle-replicate-webhook-receipt",
+      "@/lib/ai/infrastructure/replicate-webhook-verifier",
+    ],
+    forbiddenImports: [
+      '@/lib/database/prisma',
+      '@/lib/finance/energy',
+      '@vercel/blob',
+      'crypto',
+    ],
+  },
+];
 const CORE_DOMAIN_MODULES = [
   'ai',
   'billing',
@@ -267,6 +295,31 @@ const checkSharedBoundary = () => {
   info.push(`shared/-Boundary geprueft: ${sharedFiles.length} Dateien`);
 };
 
+const checkThinApplicationRoutes = () => {
+  for (const route of THIN_APPLICATION_ROUTES) {
+    if (!pathExists(route.path)) {
+      errors.push(`Thin-Route-Guardrail verweist auf fehlende Route: ${route.path}`);
+      continue;
+    }
+
+    const source = readFile(route.path);
+
+    for (const requiredImport of route.requiredImports) {
+      if (!source.includes(requiredImport)) {
+        errors.push(`${route.path} muss den Application-Layer via ${requiredImport} nutzen.`);
+      }
+    }
+
+    for (const forbiddenImport of route.forbiddenImports) {
+      if (source.includes(forbiddenImport)) {
+        errors.push(`${route.path} darf ${forbiddenImport} nicht direkt importieren.`);
+      }
+    }
+  }
+
+  info.push(`Thin-Application-Routen geprueft: ${THIN_APPLICATION_ROUTES.length}`);
+};
+
 const checkRepoHygiene = () => {
   if (pathExists('app/components')) {
     errors.push('Legacy-Struktur gefunden: app/components/. Nutze ausschließlich components/.');
@@ -376,6 +429,7 @@ if (!onlyMigrations) {
   checkPublicAssetConventions();
   checkScriptsStructure();
   checkSharedBoundary();
+  checkThinApplicationRoutes();
   checkWarehouseBoundary();
 }
 
