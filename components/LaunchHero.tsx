@@ -107,18 +107,13 @@ export default function LaunchHero({ enableShaderBackground = false }: LaunchHer
           >
             {/* Video */}
             <div className="absolute inset-0 w-full h-full overflow-hidden rounded-[10px]">
-              <iframe
-                src="https://player.vimeo.com/video/315891633?autoplay=1&loop=1&muted=1&controls=0&title=0&byline=0&portrait=0"
-                frameBorder="0"
-                allow="autoplay; fullscreen"
-                className="w-full h-full"
-                style={{
-                  position: 'absolute',
-                  top: '0',
-                  left: '0',
-                  border: 'none',
-                  pointerEvents: 'none'
-                }}
+              <video
+                src="/5699553-uhd_3840_2160_24fps.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
               />
             </div>
           </motion.div>
@@ -223,17 +218,13 @@ export default function LaunchHero({ enableShaderBackground = false }: LaunchHer
             >
               {/* Video */}
               <div className="absolute inset-0 w-full h-full overflow-hidden rounded-[10px]">
-                <iframe
-                  src="https://player.vimeo.com/video/315891633?autoplay=1&loop=1&muted=1&controls=0&title=0&byline=0&portrait=0"
-                  frameBorder="0"
-                  allow="autoplay; fullscreen"
-                  className="w-full h-full"
-                  style={{
-                    position: 'absolute',
-                    top: '0',
-                    left: '0',
-                    border: 'none'
-                  }}
+                <video
+                  src="/5699553-uhd_3840_2160_24fps.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
                 />
               </div>
 

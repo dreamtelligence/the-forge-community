@@ -43,22 +43,16 @@ export default function Hero() {
     <section id="hero" className="min-h-screen bg-black pt-20">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
         <div className="lg:hidden flex justify-center">
-          <div className="w-full max-w-[320px] rounded-3xl border border-white/10 bg-black p-6">
-            <h1 className="text-2xl font-semibold text-white leading-snug tracking-tight">
-              Viele Founder. 1
-              <br />
-              Brand.
-              <br />
-              Profitiere von
-              <br />
-              unserem
-              <br />
-              Netzwerk an
-              <br />
-              B2B
-              <br />
-              Händlern.
-            </h1>
+          <div className="w-full max-w-[360px] rounded-2xl overflow-hidden relative aspect-[3/4]">
+            <video
+              src="/5699553-uhd_3840_2160_24fps.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
           </div>
         </div>
 
@@ -100,11 +94,13 @@ export default function Hero() {
             className="order-1 lg:order-2"
           >
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-              <img
-                src="/images/hero-fashion.jpg"
-                alt="Stake & Scale Hero"
+              <video
+                src="/5699553-uhd_3840_2160_24fps.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
                 className="w-full h-full object-cover"
-                loading="eager"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
