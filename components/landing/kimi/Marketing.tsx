@@ -13,29 +13,7 @@ const featuredVideo = {
   src: '/media-demos/videos/shoes_16_9.mp4',
 };
 
-const portraitVideos = [
-  {
-    id: 2,
-    title: 'UGC Creator Set',
-    category: 'Social Assets',
-    number: '02',
-    src: '/media-demos/videos/fashion_influencer_9_16.mp4',
-  },
-  {
-    id: 3,
-    title: 'Home Studio Intro',
-    category: 'Identity',
-    number: '03',
-    src: '/media-demos/videos/influencer_random.mov',
-  },
-  {
-    id: 4,
-    title: 'Performance Ads',
-    category: 'Campaign',
-    number: '04',
-    src: '/media-demos/videos/influencer_random.mp4',
-  },
-];
+
 
 export default function Marketing() {
   const { copy } = useI18n();
@@ -140,38 +118,7 @@ export default function Marketing() {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-8">
-            {portraitVideos.map((video) => (
-              <motion.div
-                key={video.id}
-                variants={itemVariants}
-                className="group relative"
-              >
-                <div className="relative overflow-hidden rounded-2xl aspect-[9/16] shadow-[0_30px_80px_-60px_rgba(0,0,0,0.9)]">
-                  <LazyVideo
-                    src={video.src}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
 
-                  <div className="absolute inset-0 p-5 flex flex-col justify-between">
-                    <div className="flex justify-between items-start">
-                      <span className="text-white/70 text-xs uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full">
-                        {video.category}
-                      </span>
-                      <span className="text-white/50 text-xs font-mono">{video.number}</span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-white text-base font-semibold mb-1">
-                        {video.title}
-                      </h3>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
       </div>
     </section>
