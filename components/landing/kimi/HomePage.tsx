@@ -1,22 +1,25 @@
+import dynamic from 'next/dynamic';
 import SmoothScroll from '@/components/SmoothScroll';
 import CustomCursor from '@/components/landing/kimi/CustomCursor';
 import Header from '@/components/landing/kimi/Header';
 import LaunchHero from '@/components/LaunchHero';
-import B2BSourcing from '@/components/landing/kimi/B2BSourcing';
-import Marketing from '@/components/landing/kimi/Marketing';
-import Services from '@/components/landing/kimi/Services';
-import MarketIntelligence from '@/components/landing/kimi/MarketIntelligence';
-import Mission from '@/components/landing/kimi/Mission';
-import CategoryScroll from '@/components/landing/kimi/CategoryScroll';
-import Practice from '@/components/landing/kimi/Practice';
-import Testimonials from '@/components/landing/kimi/Testimonials';
-import ForgeFeatures from '@/components/landing/kimi/ForgeFeatures';
-import Pricing from '@/components/landing/kimi/Pricing';
-import FAQ from '@/components/landing/kimi/FAQ';
-import Footer from '@/components/landing/kimi/Footer';
-import SignupCard from '@/components/landing/kimi/SignupCard';
 import { I18nProvider } from '@/components/i18n/I18nProvider';
 import type { Locale } from '@/lib/i18n';
+
+// Below-the-fold Sektionen – lazy-loaded für kleineren Initial-Bundle
+const B2BSourcing = dynamic(() => import('@/components/landing/kimi/B2BSourcing'));
+const Marketing = dynamic(() => import('@/components/landing/kimi/Marketing'));
+const Services = dynamic(() => import('@/components/landing/kimi/Services'));
+const MarketIntelligence = dynamic(() => import('@/components/landing/kimi/MarketIntelligence'));
+const Mission = dynamic(() => import('@/components/landing/kimi/Mission'));
+const CategoryScroll = dynamic(() => import('@/components/landing/kimi/CategoryScroll'));
+const Practice = dynamic(() => import('@/components/landing/kimi/Practice'));
+const Testimonials = dynamic(() => import('@/components/landing/kimi/Testimonials'));
+const ForgeFeatures = dynamic(() => import('@/components/landing/kimi/ForgeFeatures'));
+const Pricing = dynamic(() => import('@/components/landing/kimi/Pricing'));
+const SignupCard = dynamic(() => import('@/components/landing/kimi/SignupCard'));
+const FAQ = dynamic(() => import('@/components/landing/kimi/FAQ'));
+const Footer = dynamic(() => import('@/components/landing/kimi/Footer'));
 
 export default function HomePage({ locale, copy }: { locale: Locale; copy: Record<string, any> }) {
   return (

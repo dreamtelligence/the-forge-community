@@ -1,16 +1,17 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 const images = [
-  { src: '/images/fruits.webp', label: 'FOOD', aspectRatio: 'aspect-[3/4]', width: 'w-[200px] sm:w-[260px]' },
-  { src: '/images/supplements-v2.webp', label: 'SUPPLEMENTS', aspectRatio: 'aspect-[4/3]', width: 'w-[240px] sm:w-[320px]' },
-  { src: '/vans.webp', label: 'SHOES', aspectRatio: 'aspect-[2/3]', width: 'w-[180px] sm:w-[240px]' },
-  { src: '/parfum.jpg', label: 'BEAUTY', aspectRatio: 'aspect-[16/9]', width: 'w-[280px] sm:w-[360px]' },
-  { src: '/fashion.webp', label: 'FASHION', aspectRatio: 'aspect-square', width: 'w-[200px] sm:w-[260px]' },
-  { src: '/images/stuhl.webp', label: 'HOME & LIVING', aspectRatio: 'aspect-[3/5]', width: 'w-[220px] sm:w-[280px]' },
-  { src: '/electronics.webp', label: 'ELECTRONICS', aspectRatio: 'aspect-[3/2]', width: 'w-[260px] sm:w-[340px]' },
+  { src: '/images/fruits.webp', label: 'FOOD', aspectRatio: 'aspect-[3/4]', width: 'w-[200px] sm:w-[260px]', w: 260, h: 347 },
+  { src: '/images/supplements-v2.webp', label: 'SUPPLEMENTS', aspectRatio: 'aspect-[4/3]', width: 'w-[240px] sm:w-[320px]', w: 320, h: 240 },
+  { src: '/vans.webp', label: 'SHOES', aspectRatio: 'aspect-[2/3]', width: 'w-[180px] sm:w-[240px]', w: 240, h: 360 },
+  { src: '/parfum.jpg', label: 'BEAUTY', aspectRatio: 'aspect-[16/9]', width: 'w-[280px] sm:w-[360px]', w: 360, h: 203 },
+  { src: '/fashion.webp', label: 'FASHION', aspectRatio: 'aspect-square', width: 'w-[200px] sm:w-[260px]', w: 260, h: 260 },
+  { src: '/images/stuhl.webp', label: 'HOME & LIVING', aspectRatio: 'aspect-[3/5]', width: 'w-[220px] sm:w-[280px]', w: 280, h: 467 },
+  { src: '/electronics.webp', label: 'ELECTRONICS', aspectRatio: 'aspect-[3/2]', width: 'w-[260px] sm:w-[340px]', w: 340, h: 227 },
 ];
 
 export default function InfiniteImageLoop() {
@@ -45,10 +46,13 @@ export default function InfiniteImageLoop() {
               index % 5 === 0 && 'scale-105'
             )}
           >
-            <img
+            <Image
               src={img.src}
               alt={img.label}
-              className="object-contain w-full h-full"
+              fill
+              sizes={`(max-width: 640px) ${img.w * 0.6}px, ${img.w}px`}
+              className="object-contain"
+              loading="lazy"
             />
             {/* Overlay */}
             <div className="absolute inset-0 bg-white/5 opacity-0 hover:opacity-100 transition-opacity duration-300" />

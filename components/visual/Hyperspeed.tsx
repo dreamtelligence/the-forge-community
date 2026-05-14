@@ -881,7 +881,7 @@ export default function Hyperspeed({
           fogNear: { value: fog.near },
           fogFar: { value: fog.far }
         };
-        this.clock = new THREE.Clock();
+        this.timer = new THREE.Timer();
         this.assets = {};
         this.disposed = false;
 
@@ -1037,7 +1037,7 @@ export default function Hyperspeed({
         this.speedUp += lerp(this.speedUp, this.speedUpTarget, lerpPercentage, 0.00001);
         this.timeOffset += this.speedUp * delta;
 
-        const time = this.clock.elapsedTime + this.timeOffset;
+        const time = this.timer.getElapsed() + this.timeOffset;
 
         this.rightCarLights.update(time);
         this.leftCarLights.update(time);
@@ -1100,7 +1100,7 @@ export default function Hyperspeed({
           this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
           this.camera.updateProjectionMatrix();
         }
-        const delta = this.clock.getDelta();
+        const delta = this.timer.getDelta();
         this.render(delta);
         this.update(delta);
         requestAnimationFrame(this.tick.bind(this));

@@ -66,21 +66,22 @@ export default function LaunchHero({ enableShaderBackground = false }: LaunchHer
 
       {/* Mobile Hero */}
       <div className="lg:hidden relative z-10 min-h-screen w-full overflow-hidden flex flex-col items-center justify-center">
-        {/* Stake&Scale Logo - Mobile Animation (3-Phasen wie Desktop) */}
+        {/* Stake&Scale Logo - Mobile Animation (3-Phasen wie Desktop, scale statt fontSize für GPU-Compositor) */}
         <motion.h3
           className="absolute left-1/2 font-black leading-none text-white whitespace-nowrap z-0"
           style={{
             x: '-50%',
             letterSpacing: '-0.08em',
+            fontSize: '4.5rem', // finale Größe statisch, animiert via scale
           }}
           initial={{
             top: '10%',
-            fontSize: '2.5rem',
+            scale: 0.556, // 2.5 / 4.5
             color: 'rgba(255, 255, 255, 0.2)',
           }}
           animate={{
             top: ['10%', '35%', '35%', '15%'],
-            fontSize: ['2.5rem', '2.5rem', '2.5rem', '4.5rem'],
+            scale: [0.556, 0.556, 0.556, 1],
             color: ['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)'],
           }}
           transition={{
@@ -145,21 +146,22 @@ export default function LaunchHero({ enableShaderBackground = false }: LaunchHer
       <div className="hidden lg:block relative z-10">
         {/* Main Hero Content */}
         <div className="relative h-screen">
-          {/* Stake&Scale Logo - Three-phase animation */}
+          {/* Stake&Scale Logo - Three-phase animation (scale statt fontSize für GPU-Compositor) */}
           <motion.h3
             className="absolute left-1/2 font-black leading-none tracking-tighter text-white whitespace-nowrap"
             style={{
               x: '-50%',
               letterSpacing: '-0.05em',
+              fontSize: '16rem', // finale Größe statisch, animiert via scale
             }}
             initial={{
               top: '10%',
-              fontSize: '8rem',
+              scale: 0.5, // 8 / 16
               color: 'rgba(255, 255, 255, 0.2)',
             }}
             animate={{
               top: ['10%', '45%', '45%', '68%'],
-              fontSize: ['8rem', '8rem', '8rem', '16rem'],
+              scale: [0.5, 0.5, 0.5, 1],
               color: ['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)'],
             }}
             transition={{
