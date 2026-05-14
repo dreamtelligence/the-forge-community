@@ -820,6 +820,7 @@ export default function Hyperspeed({
       scene: any;
       fogUniforms: any;
       clock: any;
+      timer: any;
       assets: Record<string, any>;
       disposed: boolean;
       road: any;
