@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing postId or content' }, { status: 400 });
     }
 
-    // Get all posts
+    // Get recent posts (limit to 200 to avoid timeout)
     const allPosts = await prisma.forumPost.findMany({
       where: { id: { not: postId } },
       select: {
@@ -24,7 +24,9 @@ export async function POST(request: Request) {
         likes: true,
         createdAt: true,
         authorName: true
-      }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 200
     });
 
     // Extract keywords from current post

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, MessageSquare } from 'lucide-react';
 
@@ -23,30 +23,35 @@ interface RelatedPostsProps {
 export function RelatedPosts({ postId, content, category }: RelatedPostsProps) {
   const [relatedPosts, setRelatedPosts] = useState<RelatedPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    fetchRelatedPosts();
-  }, [fetchRelatedPosts, postId]);
-
-  async function fetchRelatedPosts() {
+  const fetchRelatedPosts = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const response = await fetch('/api/forum/related', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postId, content, category })
+        body: JSON.stringify({ postId, content, category }),
       });
 
       if (!response.ok) throw new Error('Failed to fetch');
 
       const data = await response.json();
-      setRelatedPosts(data.slice(0, 3)); // Show top 3
-    } catch (error) {
-      console.error('Related posts error:', error);
+      if (Array.isArray(data)) {
+        setRelatedPosts(data.slice(0, 3)); // Show top 3
+      }
+    } catch (e) {
+      console.error('Related posts error:', e);
+      setError(true);
     } finally {
       setLoading(false);
     }
-  }
+  }, [postId, content, category]);
+
+  useEffect(() => {
+    fetchRelatedPosts();
+  }, [fetchRelatedPosts]);
 
   if (loading) {
     return (
@@ -63,7 +68,7 @@ export function RelatedPosts({ postId, content, category }: RelatedPostsProps) {
     );
   }
 
-  if (relatedPosts.length === 0) {
+  if (error || relatedPosts.length === 0) {
     return null;
   }
 
