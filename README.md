@@ -2,7 +2,7 @@
   <img src="https://via.placeholder.com/150x150.png?text=Forge+Logo" alt="The Forge Community Logo" width="120" />
   
   # The Forge Community 🛠️
-
+**[👉 Live Platform at stakeandscale.de](https://stakeandscale.de)**
   **The Ultimate Operating System for Founders, Builders, and Squads.**
 
   [![Next.js](https://img.shields.io/badge/Next.js-15+-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
