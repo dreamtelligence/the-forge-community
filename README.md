@@ -21,36 +21,6 @@
 
 Whether you are looking for co-founders to form a "Squad," managing your startup's roadmap, signing NDAs, or automating tasks with AI, The Forge provides all the tools needed to go from an idea to a launched venture.
 
----
-
-## 📸 Platform Previews
-
-<div align="center">
-  <table border="0">
-    <tr>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 14.58.54.png" alt="Screenshot 1" /></td>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 14.59.04.png" alt="Screenshot 2" /></td>
-    </tr>
-    <tr>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 14.59.12.png" alt="Screenshot 3" /></td>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 14.59.27.png" alt="Screenshot 4" /></td>
-    </tr>
-    <tr>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 14.59.38.png" alt="Screenshot 5" /></td>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 14.59.44.png" alt="Screenshot 6" /></td>
-    </tr>
-    <tr>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 15.00.02.png" alt="Screenshot 7" /></td>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 15.00.05.png" alt="Screenshot 8" /></td>
-    </tr>
-    <tr>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 15.00.11.png" alt="Screenshot 9" /></td>
-      <td width="50%"><img src="public/screenshots/Bildschirmfoto 2026-05-05 um 15.00.35.png" alt="Screenshot 10" /></td>
-    </tr>
-  </table>
-</div>
-
----
 
 ## 🚀 Core Features & Modules
 
