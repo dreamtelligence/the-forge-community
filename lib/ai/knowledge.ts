@@ -121,16 +121,18 @@ export const FORGE_SYSTEM_KNOWLEDGE = {
     "AI Sourcing Matching (DB-first)",
     "Marketing Media Generation (Video/Image)",
     "3D Camera Prompt Workbench mit model-optimierten Copy-Ready Prompts",
-    "Prompt Routing für Veo 3.1 / Kling 2.6 / Sora 2"
+    "Prompt Routing für Veo 3.1 / Kling 4.0 / Kling 2.6 / Sora 2"
   ],
 
   mediaModels: [
     "Veo 3.1 (Text/Image → Video, Audio optional)",
+    "Kling 4.0 (Video bis 30s, bis 1080p)",
     "Kling 2.6 Pro (Video + Audio)",
     "Sora 2 (Video)",
-    "Luma Dream Machine (Video)",
-    "Minimax Video (Video)",
-    "Nano Banana (Multi-Image I2I)"
+    "Luma Ray 3.2 (Video)",
+    "MiniMax H3 (Video)",
+    "Flux 3 (Bild)",
+    "Nano Banana 2.1 / Nano Banana Pro (Multi-Image I2I)"
   ],
 
   credits: {

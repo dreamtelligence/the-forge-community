@@ -86,9 +86,23 @@ type ModelConfig = {
   disabledReason?: string;
 };
 
+const VIDEO_RESOLUTIONS_720_1080 = [
+  { id: '720p', label: '720p', shortSide: 720 },
+  { id: '1080p', label: '1080p', shortSide: 1080 },
+];
+
+// Stand 05.11.2026 - Eingaben/Grenzen laut replicate.com/<model>/api/schema
 const MODEL_CONFIGS: ModelConfig[] = [
   // ==================== IMAGE MODELS ====================
   // Replicate
+  {
+    id: 'black-forest-labs/flux-3-image',
+    label: 'Flux 3 · Neueste Generation',
+    outputType: 'image',
+    modes: ['text-to-image'],
+    aspectRatios: ['1:1', '16:9', '9:16', '4:5', '3:2'],
+    defaults: { aspectRatio: '4:5' },
+  },
   {
     id: 'black-forest-labs/flux-2-pro',
     label: 'Flux 2 Pro · Photorealism',
@@ -111,21 +125,32 @@ const MODEL_CONFIGS: ModelConfig[] = [
   // ==================== VIDEO MODELS ====================
   // Replicate
   {
+    id: 'kwaivgi/kling-v4.0',
+    label: 'Kling 4.0 · Cinema bis 1080p',
+    outputType: 'video',
+    modes: ['text-to-video', 'image-to-video'],
+    supportsImageInput: true,
+    supportsDuration: true,
+    aspectRatios: ['16:9', '9:16', '1:1'],
+    allowedDurations: [5, 10, 15],
+    outputResolutions: VIDEO_RESOLUTIONS_720_1080,
+    defaults: { aspectRatio: '9:16', duration: 5, outputResolution: '720p' },
+    ranges: { duration: { min: 5, max: 15, step: 5 } },
+  },
+  {
     id: 'kwaivgi/kling-v2.6',
     label: 'Kling 2.6 Pro · Cinema + Audio',
     outputType: 'video',
     modes: ['text-to-video', 'image-to-video'],
     supportsImageInput: true,
     supportsNegativePrompt: true,
-    supportsGuidance: true,
     supportsDuration: true,
     supportsAudioToggle: true,
     aspectRatios: ['16:9', '9:16', '1:1'],
     allowedDurations: [5, 10],
-    defaults: { aspectRatio: '9:16', duration: 5, guidance: 7.5, generateAudio: true },
+    defaults: { aspectRatio: '9:16', duration: 5, generateAudio: true },
     ranges: {
       duration: { min: 5, max: 10, step: 5 },
-      guidance: { min: 1, max: 15, step: 0.1 },
     },
   },
   {
@@ -135,9 +160,10 @@ const MODEL_CONFIGS: ModelConfig[] = [
     modes: ['text-to-video', 'image-to-video'],
     supportsImageInput: true,
     supportsDuration: true,
-    aspectRatios: ['16:9', '9:16', '1:1'],
+    aspectRatios: ['16:9', '9:16'],
+    allowedDurations: [4, 8, 12],
     defaults: { aspectRatio: '16:9', duration: 4 },
-    ranges: { duration: { min: 1, max: 8, step: 1 } },
+    ranges: { duration: { min: 4, max: 12, step: 4 } },
   },
   {
     id: 'google/veo-3.1',
@@ -151,26 +177,35 @@ const MODEL_CONFIGS: ModelConfig[] = [
     supportsAudioToggle: true,
     aspectRatios: ['16:9', '9:16'],
     allowedDurations: [4, 6, 8],
-    defaults: { aspectRatio: '16:9', duration: 4, generateAudio: true },
+    outputResolutions: VIDEO_RESOLUTIONS_720_1080,
+    defaults: { aspectRatio: '16:9', duration: 4, generateAudio: true, outputResolution: '720p' },
     ranges: { duration: { min: 4, max: 8, step: 2 } },
   },
   {
-    id: 'minimax/video-01',
-    label: 'Minimax Video · Human Motion',
+    id: 'minimax/h3',
+    label: 'MiniMax H3 · Human Motion',
     outputType: 'video',
-    modes: ['text-to-video'],
-    aspectRatios: ['16:9', '9:16'],
+    modes: ['text-to-video', 'image-to-video'],
+    supportsImageInput: true,
+    supportsDuration: true,
+    aspectRatios: ['16:9', '9:16', '1:1'],
+    allowedDurations: [5, 6, 8, 10],
+    defaults: { aspectRatio: '9:16', duration: 5 },
+    ranges: { duration: { min: 5, max: 10, step: 1 } },
   },
   {
-    id: 'lumaai/dream-machine',
-    label: 'Luma Dream Machine · Atmospheric',
+    id: 'luma/ray-3.2',
+    label: 'Luma Ray 3.2 · Atmospheric (5s)',
     outputType: 'video',
-    modes: ['text-to-video'],
-    aspectRatios: ['16:9', '9:16'],
+    modes: ['text-to-video', 'image-to-video'],
+    supportsImageInput: true,
+    aspectRatios: ['16:9', '9:16', '1:1'],
+    allowedDurations: [5],
+    defaults: { aspectRatio: '16:9', duration: 5 },
   },
   {
-    id: 'google/nano-banana',
-    label: 'Nano Banana · Multi-Image Blending',
+    id: 'google/nano-banana-2.1',
+    label: 'Nano Banana 2.1 · Multi-Image Blending',
     outputType: 'image',
     modes: ['image-to-image'],
     supportsImageInput: true,

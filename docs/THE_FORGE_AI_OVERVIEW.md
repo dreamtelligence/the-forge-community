@@ -31,7 +31,7 @@ The Forge is a **KI-gestützte SaaS-Betriebssystem** (AI-powered SaaS operating 
 
 ### Text Generation (LLM Stack)
 
-**Primary: Kimi K2.5 (Moonshot AI)** → Fallback to Gemini 2.0 Flash → Fallback to Groq Llama 3.3 70B
+**Primary: Kimi K3 (Moonshot AI)** → Fallback to Gemini 3.6 Flash → Fallback to Groq gpt-oss-120b
 
 ```typescript
 // lib/ai.ts - Main AI Helper
@@ -39,9 +39,9 @@ callAI() → callKimi() → callGemini() → callGroq()
 ```
 
 **Key Models:**
-- **Kimi K2.5** (Moonshot): Primary for multimodal support (images + video)
-- **Gemini 2.0 Flash / 2.5 Flash / 3 Pro**: Fallback LLM
-- **Groq Llama 3.1 70B Versatile**: Final fallback (fastest/cheapest)
+- **Kimi K3** (Moonshot): Primary for multimodal support (images + video); temperature fixed at 1.0
+- **Gemini 3.6 Flash / 3.5 Flash-Lite / 3.8 Flash**: Fallback LLM (thinking level set low/minimal)
+- **Groq openai/gpt-oss-120b**: Final fallback (fastest/cheapest)
 
 **Use Cases:**
 - Chat/Orion Jarvis assistant (`/api/chat/route.ts`)
@@ -86,11 +86,13 @@ callAI() → callKimi() → callGemini() → callGroq()
 
 | Model | Provider | Cost | Duration | Features |
 |-------|----------|------|----------|----------|
-| **Kling 2.6** | Replicate | $0.14/sec | 5-60s | Cinema + audio |
+| **Kling 4.0** | Replicate | $0.157/sec (720p), $0.235/sec (1080p) | 3-30s | Cinema, no native audio |
+| **MiniMax H3** | Replicate | $0.08/sec (768P) | 4-15s | Human motion |
+| **Kling 2.6** | Replicate | $0.14/sec | 5-10s | Cinema + audio |
 | **Sora 2** | Replicate | $0.20/sec | 5-60s | Flagship AI |
 | **Veo 3.1** (Google) | Replicate | $0.40/sec | 5-60s | Context-aware audio |
 | **Minimax Video 01** | Replicate | $0.12/sec | 5-60s | Human motion |
-| **Luma Dream Machine** | Replicate | $0.10/sec | 5-60s | Atmospheric |
+| **Luma Ray 3.2** | Replicate | $0.06/sec (720p, 5s) | 5s | Atmospheric |
 
 **Endpoint:** `POST /api/ventures/[id]/marketing/media`
 
@@ -111,7 +113,7 @@ credits = calculateCreditsFromEur(costEUR) * CREDIT_MARGIN
 
 | Model | Cost | Use Case |
 |-------|------|----------|
-| **Roop Face Swap** | 50 credits | Video face replacement |
+| ~~Roop Face Swap~~ | – | Removed: lucataco/faceswap was deleted from Replicate |
 | **CodePlug Face Swap** | 45 credits | Fast iterations |
 | **Live Portrait** | 65 credits | Character animation |
 
@@ -147,15 +149,15 @@ credits = calculateCreditsFromEur(costEUR) * CREDIT_MARGIN
 ```env
 # Text Generation
 GEMINI_API_KEY="xxx"
-GEMINI_MODEL="gemini-2.0-flash"
+GEMINI_MODEL="gemini-3.6-flash"
 GROQ_API_KEY="xxx"
-MOONSHOT_API_KEY="xxx"  # Kimi K2.5
+MOONSHOT_API_KEY="xxx"  # Kimi K3
 
 # Image/Video Generation
 REPLICATE_API_TOKEN="r8_xxx"
 
 # Character/Vision
-GEMINI_CHARACTER_MODEL="gemini-2.0-flash"
+GEMINI_CHARACTER_MODEL="gemini-3.6-flash"
 ```
 
 ### Replicate Webhook Architecture
@@ -789,7 +791,7 @@ NEXT_PUBLIC_APP_URL=https://www.stakeandscale.de
 |--------|---------|
 | **Primary LLM** | Kimi K2.5 (Moonshot) → Gemini 2.0 Flash → Groq Llama 3.3 |
 | **Image Generation** | Replicate (Flux Schnell, Flux 1.1 Pro, Flux 2 Pro) |
-| **Video Generation** | Replicate (Kling 2.6, Sora 2, Veo 3.1) |
+| **Video Generation** | Replicate (Kling 4.0, MiniMax H3, Kling 2.6, Sora 2, Veo 3.1, Luma Ray 3.2) |
 | **Avatar/Face Swap** | Replicate (Roop, Live Portrait) |
 | **Lip Sync/Motion** | Replicate + system cache for state |
 | **Credit System** | Reserve → Generate → Settle (with refunds) |

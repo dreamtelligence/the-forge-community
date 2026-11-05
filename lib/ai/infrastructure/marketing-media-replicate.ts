@@ -20,11 +20,6 @@ const normalizeOutputUrl = async (item: unknown) => {
   return null;
 };
 
-const limitedAspectModels = new Set([
-  'kwaivgi/kling-v1.5-pro',
-  'minimax/video-01',
-  'lumaai/dream-machine',
-]);
 const REPLICATE_WEBHOOK_EVENTS: Array<'start' | 'output' | 'logs' | 'completed'> = [
   'start',
   'output',
@@ -32,16 +27,36 @@ const REPLICATE_WEBHOOK_EVENTS: Array<'start' | 'output' | 'logs' | 'completed'>
   'completed',
 ];
 
+const firstImage = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
+
+/** 720p/1080p aus der UI; sonst 720p, damit Preis-Schaetzung und Abrechnung uebereinstimmen. */
+const resolveVideoResolution = (value: string | null | undefined): '720p' | '1080p' =>
+  value === '1080p' ? '1080p' : '720p';
+
+/**
+ * Baut den Replicate-Input je Modell. Feldnamen 1:1 aus den Live-Schemas
+ * (replicate.com/<model>/api/schema, Stand 05.11.2026).
+ */
 export const buildMarketingMediaReplicateInput = (
   modelId: string,
   options: MarketingMediaReplicateInput
 ) => {
-  const safeAspectRatio =
-    limitedAspectModels.has(modelId) && !['16:9', '9:16'].includes(options.aspectRatio)
-      ? '16:9'
-      : options.aspectRatio;
+  const image = firstImage(options.imageUrl);
 
   switch (modelId) {
+    case 'black-forest-labs/flux-3-image': {
+      const input: Record<string, unknown> = {
+        prompt: options.prompt,
+        aspect_ratio: options.aspectRatio,
+        resolution: '1k',
+        // Websuche vor dem Generieren aus: keine Prompt-Weitergabe an Suchdienste, planbare Kosten
+        grounding: false,
+        output_format: 'jpg',
+        output_quality: 95,
+      };
+      return input;
+    }
     case 'black-forest-labs/flux-1.1-pro':
     case 'black-forest-labs/flux-2-pro': {
       const input: Record<string, unknown> = {
@@ -53,44 +68,63 @@ export const buildMarketingMediaReplicateInput = (
       if (typeof options.seed === 'number') input.seed = options.seed;
       return input;
     }
+    case 'kwaivgi/kling-v4.0': {
+      const input: Record<string, unknown> = {
+        prompt: options.prompt,
+        aspect_ratio: options.aspectRatio,
+        resolution: resolveVideoResolution(options.resolution),
+      };
+      if (image) input.start_image = image;
+      if (options.endImageUrl) input.end_image = options.endImageUrl;
+      if (typeof options.duration === 'number') input.duration = options.duration;
+      return input;
+    }
     case 'kwaivgi/kling-v2.6': {
       const input: Record<string, unknown> = {
         prompt: options.prompt,
-        aspect_ratio: safeAspectRatio,
+        aspect_ratio: options.aspectRatio,
       };
-      if (options.imageUrl && typeof options.imageUrl === 'string') input.image = options.imageUrl;
+      if (image) input.start_image = image;
       if (typeof options.duration === 'number') input.duration = options.duration;
-      if (typeof options.guidance === 'number') input.guidance_scale = options.guidance;
       if (options.negativePrompt) input.negative_prompt = options.negativePrompt;
       if (typeof options.generateAudio === 'boolean') input.generate_audio = options.generateAudio;
       return input;
     }
-    case 'kwaivgi/kling-v1.5-pro': {
-      if (!options.imageUrl) {
-        throw new MarketingMediaConfigurationError('Referenzbild fehlt.');
-      }
+    case 'minimax/h3': {
       const input: Record<string, unknown> = {
-        image: options.imageUrl,
         prompt: options.prompt,
-        aspect_ratio: safeAspectRatio,
+        // 768P statt Default 2K: guenstiger und passend zur hinterlegten Rate
+        resolution: '768P',
+        ratio: image ? 'adaptive' : options.aspectRatio,
       };
+      if (image) input.first_frame_image = image;
+      if (options.endImageUrl) input.last_frame_image = options.endImageUrl;
       if (typeof options.duration === 'number') input.duration = options.duration;
-      if (typeof options.guidance === 'number') input.guidance_scale = options.guidance;
       return input;
     }
     case 'minimax/video-01':
-    case 'lumaai/dream-machine':
       return {
         prompt: options.prompt,
-        aspect_ratio: safeAspectRatio,
       };
+    case 'luma/ray-3.2': {
+      const input: Record<string, unknown> = {
+        prompt: options.prompt,
+        aspect_ratio: options.aspectRatio,
+        resolution: '720p',
+        duration: 5,
+      };
+      if (image) input.start_image = image;
+      if (options.endImageUrl) input.end_image = options.endImageUrl;
+      return input;
+    }
     case 'google/veo-3.1': {
       const input: Record<string, unknown> = {
         prompt: options.prompt,
-        aspect_ratio: safeAspectRatio,
+        aspect_ratio: options.aspectRatio,
+        resolution: resolveVideoResolution(options.resolution),
       };
-      if (options.imageUrl) input.image = options.imageUrl;
-      if (options.endImageUrl) input.end_image = options.endImageUrl;
+      if (image) input.image = image;
+      if (options.endImageUrl) input.last_frame = options.endImageUrl;
       if (typeof options.duration === 'number') input.duration = options.duration;
       if (typeof options.seed === 'number') input.seed = options.seed;
       if (options.negativePrompt) input.negative_prompt = options.negativePrompt;
@@ -98,22 +132,15 @@ export const buildMarketingMediaReplicateInput = (
       return input;
     }
     case 'openai/sora-2': {
-      const soraAspect =
-        safeAspectRatio === '9:16'
-          ? 'portrait'
-          : safeAspectRatio === '16:9'
-            ? 'landscape'
-            : 'landscape';
       const input: Record<string, unknown> = {
         prompt: options.prompt,
-        aspect_ratio: soraAspect,
+        aspect_ratio: options.aspectRatio === '9:16' ? 'portrait' : 'landscape',
       };
-      if (options.imageUrl && typeof options.imageUrl === 'string') {
-        input.input_reference = options.imageUrl;
-      }
+      if (image) input.input_reference = image;
       if (typeof options.duration === 'number') input.seconds = options.duration;
       return input;
     }
+    case 'google/nano-banana-2.1':
     case 'google/nano-banana': {
       const input: Record<string, unknown> = {
         prompt: options.prompt,
@@ -171,6 +198,8 @@ export const createReplicatePrediction = async (params: {
   userId: string;
   model: string;
   input: Record<string, unknown>;
+  /** false = kein Webhook (Job wird per Polling abgeholt, z. B. Veo Studio). */
+  webhook?: boolean;
 }) => {
   const clientContext = await getReplicateClientForUser(params.userId);
   if (!clientContext) {
@@ -182,7 +211,7 @@ export const createReplicatePrediction = async (params: {
   const prediction = await clientContext.client.predictions.create({
     model: params.model,
     input: params.input,
-    ...resolveReplicateWebhookConfig(),
+    ...(params.webhook === false ? {} : resolveReplicateWebhookConfig()),
   });
 
   return {

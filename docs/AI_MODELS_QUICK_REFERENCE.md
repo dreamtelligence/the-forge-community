@@ -1,5 +1,7 @@
 # The Forge - AI Models Quick Reference
 
+> Modell-Stand aktualisiert am 05.11.2026. Zentrale IDs: `lib/ai/text-models.ts` (Text/Chat), `lib/ai/domain/marketing-media.ts` + `lib/media-models.ts` (Medien), Preise: `lib/billing/credit-pricing.ts`.
+
 ## TL;DR Summary
 
 **The Forge** is an AI-powered SaaS for solo founders to build ventures collaboratively. It uses a sophisticated multi-model strategy for different tasks:
@@ -8,10 +10,12 @@
 
 | Task | Primary | Fallback 1 | Fallback 2 | Cost |
 |------|---------|-----------|-----------|------|
-| **Chat/Orion** | Kimi K2.5 | Gemini 2.0 Flash | Groq Llama 3.3 70B | ~1-3 credits/msg |
-| **Images** | Flux 1.1/2 Pro (Replicate) | Flux Schnell | N/A | 2-25 credits |
-| **Video** | Kling 2.6 (Replicate) | Sora 2, Veo 3.1 | N/A | $0.07-0.40/sec |
-| **Face Swap** | Roop (Replicate) | Live Portrait | N/A | 45-65 credits |
+| **Chat/Orion** | Kimi K3 | Gemini 3.6 Flash | Groq gpt-oss-120b | ~1-3 credits/msg |
+| **Images** | Flux 3 (Replicate) | Flux 2 Pro, Flux 1.1 Pro, Flux Schnell | N/A | 2-25 credits |
+| **Image-to-Image** | Nano Banana 2.1 | Nano Banana Pro | N/A | 4-5 credits |
+| **Video** | Kling 4.0 / MiniMax H3 (Replicate) | Kling 2.6, Sora 2, Veo 3.1, Luma Ray 3.2 | N/A | $0.06-0.40/sec |
+| **Veo Studio** | Veo 3.1 (Replicate) | Veo 3.1 Fast | N/A | $0.10-0.40/sec |
+| **Face Swap** | Live Portrait (Replicate) | N/A | N/A | 65 credits |
 | **Lip Sync** | Sync 2 Pro (Replicate) | N/A | N/A | 18-45 credits |
 | **Motion Transfer** | Wan 2.2 (Replicate) | N/A | N/A | 50 credits |
 
@@ -23,7 +27,7 @@ Reserve Credits → Generate Asset → Settle Credits → Refund if failed
 ```
 
 ### Providers Used
-1. **Moonshot AI (Kimi K2.5)** - Primary LLM (multimodal)
+1. **Moonshot AI (Kimi K3)** - Primary LLM (multimodal)
 2. **Google Gemini** - Fallback LLM + image analysis
 3. **Groq** - Fastest fallback
 4. **Replicate** - All media generation (images, videos, avatars)
@@ -138,7 +142,7 @@ Key tables:
 # AI Models
 GEMINI_API_KEY=...
 GROQ_API_KEY=...
-MOONSHOT_API_KEY=...  # Kimi K2.5
+MOONSHOT_API_KEY=...  # Kimi K3
 
 # Media Generation
 REPLICATE_API_TOKEN=...

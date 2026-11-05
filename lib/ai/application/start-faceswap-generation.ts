@@ -129,10 +129,9 @@ export async function startFaceSwapGeneration(
   dependencies?: StartFaceSwapGenerationDependencies
 ): Promise<LegacyReplicateStartResult> {
   const resolvedDependencies = dependencies ?? (await loadDefaultDependencies());
-  const modelKey = String(input.formData.get('model') || 'lucataco-faceswap');
+  const modelKey = String(input.formData.get('model') || 'live-portrait');
   const videoFile = input.formData.get('video');
   const faceFile = input.formData.get('face');
-  const swapCondition = String(input.formData.get('swapCondition') || 'all');
 
   if (!isUploadFile(faceFile) || !isUploadFile(videoFile)) {
     throw new LegacyReplicateValidationError('Video und Referenzbild sind erforderlich');
@@ -231,21 +230,15 @@ export async function startFaceSwapGeneration(
       video: videoFile,
     });
 
-    const predictionInput =
-      modelKey === 'live-portrait'
-        ? {
-            source_image: uploaded.faceUrl,
-            driving_video: uploaded.videoUrl,
-            flag_eye_retargeting: true,
-            flag_lip_zero: true,
-            flag_stitching: true,
-            flag_relative_motion: true,
-          }
-        : {
-            target_video: uploaded.videoUrl,
-            swap_image: uploaded.faceUrl,
-            ...(modelKey === 'lucataco-faceswap' ? { swap_condition: swapCondition } : {}),
-          };
+    // Feldnamen laut replicate.com/fofr/live-portrait/api/schema
+    const predictionInput = {
+      face_image: uploaded.faceUrl,
+      driving_video: uploaded.videoUrl,
+      live_portrait_eye_retargeting: true,
+      live_portrait_lip_zero: true,
+      live_portrait_stitching: true,
+      live_portrait_relative: true,
+    };
 
     const { prediction, source } = await resolvedDependencies.createPrediction({
       userId: user.id,

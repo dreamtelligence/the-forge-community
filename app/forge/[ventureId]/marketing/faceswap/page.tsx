@@ -22,7 +22,6 @@ export default function FaceSwapPage() {
   const [tierReady, setTierReady] = useState(false);
 
   const [model, setModel] = useState('live-portrait');
-  const [swapCondition, setSwapCondition] = useState<'all' | 'first'>('all');
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [faceFile, setFaceFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
@@ -149,7 +148,6 @@ export default function FaceSwapPage() {
       if (videoFile) formData.append('video', videoFile);
       formData.append('face', faceFile);
       formData.append('model', model);
-      formData.append('swapCondition', swapCondition);
 
       const res = await fetch(`/api/ventures/${ventureId}/marketing/faceswap`, {
         method: 'POST',
@@ -285,39 +283,6 @@ export default function FaceSwapPage() {
           ))}
         </div>
 
-        {model === 'lucataco-faceswap' && (
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-white/40">Swap Mode</label>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setSwapCondition('all')}
-                disabled={status !== 'idle'}
-                className={cn(
-                  'px-4 py-2 rounded-xl text-sm font-semibold transition-all',
-                  swapCondition === 'all'
-                    ? 'bg-[#FF9900] text-black'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10',
-                  status !== 'idle' && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                Alle Faces
-              </button>
-              <button
-                onClick={() => setSwapCondition('first')}
-                disabled={status !== 'idle'}
-                className={cn(
-                  'px-4 py-2 rounded-xl text-sm font-semibold transition-all',
-                  swapCondition === 'first'
-                    ? 'bg-[#FF9900] text-black'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10',
-                  status !== 'idle' && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                Nur erste Person
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Upload Section */}

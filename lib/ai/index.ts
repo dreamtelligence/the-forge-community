@@ -1,6 +1,14 @@
 /**
- * Unified AI Helper with Gemini Flash Primary + Groq Fallback
+ * Unified AI Helper: Kimi K3 (primary) -> Gemini Flash -> Groq gpt-oss (fallbacks)
  */
+import {
+  GEMINI_TEXT_MODELS,
+  GROQ_MODEL,
+  KIMI_MODEL,
+  geminiApiVersions,
+  withGeminiThinking,
+  isRetiredModelId,
+} from '@/lib/ai/text-models';
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -38,7 +46,7 @@ Pass deinen Vibe entsprechend an, aber bleib professionell-cool.
 `;
 
 /**
- * Call Kimi K2.5 (Primary) with Gemini and Groq as fallbacks
+ * Call Kimi K3 (Primary) with Gemini and Groq as fallbacks
  */
 interface AIProviderResult {
   content: string;
@@ -59,7 +67,7 @@ export async function callAI(
 ): Promise<AIResponse> {
   const { temperature = 0.7, maxTokens = 1000 } = options;
 
-  // Try Kimi K2.5 first (best multimodal support)
+  // Try Kimi K3 first (best multimodal support)
   if (process.env.MOONSHOT_API_KEY) {
     try {
       const kimiResponse = await callKimi(messages, { temperature, maxTokens });
@@ -68,7 +76,7 @@ export async function callAI(
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn('Kimi K2.5 failed, falling back to Gemini:', message);
+      console.warn('Kimi failed, falling back to Gemini:', message);
     }
   }
 
@@ -109,7 +117,19 @@ export async function callGeminiDirect(
 }
 
 /**
- * Gemini Flash 2.0 API Call
+ * Gemini 3.x liefert ggf. mehrere Parts (u. a. mit thoughtSignature) - nur Text-Parts zusammenfuegen.
+ */
+function extractGeminiText(data: any): string {
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return '';
+  return parts
+    .filter((part: any) => typeof part?.text === 'string' && !part?.thought)
+    .map((part: any) => part.text)
+    .join('');
+}
+
+/**
+ * Gemini Flash API Call
  */
 let resolvedGeminiModel: string | null = null;
 let resolvedGeminiApiVersion: string | null = null;
@@ -124,19 +144,12 @@ async function callGemini(
 
   const modelCandidates = Array.from(new Set([
     process.env.GEMINI_MODEL,
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-001',
-    'gemini-2.0-flash-lite',
-    'gemini-2.0-flash-lite-001',
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
-    'gemini-2.5-pro'
-  ].filter(Boolean))) as string[];
+    GEMINI_TEXT_MODELS.flash,
+    GEMINI_TEXT_MODELS.lite,
+    GEMINI_TEXT_MODELS.pro,
+  ].filter((model): model is string => !!model && !isRetiredModelId(model))));
 
-  const apiVersionCandidates = Array.from(new Set([
-    process.env.GEMINI_API_VERSION || 'v1',
-    'v1beta'
-  ]));
+  const apiVersionCandidates = geminiApiVersions(process.env.GEMINI_API_VERSION);
 
   // Format messages for Gemini
   const systemMsg = messages.find(m => m.role === 'system')?.content || '';
@@ -164,7 +177,7 @@ async function callGemini(
 
   for (const apiVersion of versionsToTry) {
     for (const model of modelsToTry) {
-      if (!model || badGeminiModels.has(model)) continue;
+      if (!model || badGeminiModels.has(`${apiVersion}:${model}`)) continue;
 
       const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent`;
       const payload = {
@@ -172,6 +185,7 @@ async function callGemini(
         generationConfig: {
           temperature: options.temperature,
           maxOutputTokens: options.maxTokens,
+          ...withGeminiThinking(model),
         },
       };
 
@@ -196,7 +210,7 @@ async function callGemini(
             lastErrorText = errorText || `HTTP ${response.status}`;
 
             if (response.status === 404) {
-              badGeminiModels.add(model);
+              badGeminiModels.add(`${apiVersion}:${model}`);
               break; // try next model
             }
 
@@ -213,7 +227,7 @@ async function callGemini(
           resolvedGeminiModel = model;
           resolvedGeminiApiVersion = apiVersion;
           return {
-            content: data.candidates?.[0]?.content?.parts?.[0]?.text || '',
+            content: extractGeminiText(data),
             model,
             usage: data.usageMetadata
               ? {
@@ -245,9 +259,12 @@ async function callGemini(
 }
 
 /**
- * Kimi K2.5 API Call (Moonshot AI - Primary Provider)
- * Native multimodal support for images and videos
+ * Kimi K3 API Call (Moonshot AI - Primary Provider)
+ * K3 denkt immer; temperature ist fest 1.0 und darf nicht gesendet werden.
+ * Reasoning-Tokens zaehlen gegen max_tokens, daher Puffer obendrauf.
  */
+const KIMI_REASONING_HEADROOM_TOKENS = 4096;
+
 async function callKimi(
   messages: AIMessage[],
   options: { temperature: number; maxTokens: number }
@@ -262,22 +279,23 @@ async function callKimi(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'kimi-k2.5',
+      model: process.env.MOONSHOT_MODEL && !isRetiredModelId(process.env.MOONSHOT_MODEL)
+        ? process.env.MOONSHOT_MODEL
+        : KIMI_MODEL,
       messages,
-      temperature: options.temperature,
-      max_tokens: options.maxTokens,
+      max_tokens: options.maxTokens + KIMI_REASONING_HEADROOM_TOKENS,
     })
   });
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Kimi K2.5 API error: ${error}`);
+    throw new Error(`Kimi API error: ${error}`);
   }
 
   const data = await response.json();
   return {
     content: data.choices?.[0]?.message?.content || '',
-    model: data.model || 'kimi-k2.5',
+    model: data.model || KIMI_MODEL,
     usage: data.usage ? {
       promptTokens: data.usage.prompt_tokens,
       completionTokens: data.usage.completion_tokens,
@@ -303,10 +321,13 @@ async function callGroq(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_MODEL,
       messages,
       temperature: options.temperature,
-      max_tokens: options.maxTokens,
+      // gpt-oss ist ein Reasoning-Modell: wenig Reasoning, nicht mit ausliefern, Puffer fuer Reasoning-Tokens
+      reasoning_effort: 'low',
+      include_reasoning: false,
+      max_tokens: options.maxTokens + 1024,
     })
   });
 

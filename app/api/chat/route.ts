@@ -1,15 +1,16 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { createGoogle } from '@ai-sdk/google';
+import { createTextStreamResponse, streamText, toTextStream } from 'ai';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/database/prisma';
 import { knowledgeBasePrompt } from '@/lib/ai/knowledge-base';
 import { RateLimiters } from '@/lib/security/rate-limit';
 import { buildAiSdkTools } from '@/lib/ai/orion-tools';
+import { GEMINI_TEXT_MODELS, GROQ_MODEL, geminiThinkingConfig } from '@/lib/ai/text-models';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 // Configure Gemini as primary
-const gemini = createGoogleGenerativeAI({
+const gemini = createGoogle({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
@@ -125,24 +126,27 @@ ${memoryLines || 'Noch keine Erinnerungen vorhanden. Nutze das Tool "store_user_
   // Try Gemini first, fallback to Groq
   try {
     const result = await streamText({
-      model: gemini('gemini-2.0-flash-exp'),
-      system: systemPrompt,
+      model: gemini(GEMINI_TEXT_MODELS.flash),
+      instructions: systemPrompt,
       messages,
+      providerOptions: {
+        google: { thinkingConfig: geminiThinkingConfig(GEMINI_TEXT_MODELS.flash, 'low') },
+      },
       tools: tools as any, // Allow tool execution and response
     });
 
-    return result.toTextStreamResponse();
+    return createTextStreamResponse({ stream: toTextStream({ stream: result.stream }) });
   } catch (error) {
     console.warn('Gemini failed, falling back to Groq:', error);
 
     // Fallback to Groq
     const result = await streamText({
-      model: groq('llama-3.1-70b-versatile'),
-      system: systemPrompt,
+      model: groq.chat(GROQ_MODEL),
+      instructions: systemPrompt,
       messages,
       tools: tools as any,
     });
 
-    return result.toTextStreamResponse();
+    return createTextStreamResponse({ stream: toTextStream({ stream: result.stream }) });
   }
 }

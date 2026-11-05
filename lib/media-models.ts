@@ -1,5 +1,6 @@
 /**
- * Centralized AI Media Model Registry - January 2026 Edition
+ * Centralized AI Media Model Registry - Stand 05.11.2026
+ * (Modell-IDs und Eingaben live gegen replicate.com geprueft)
  */
 
 export type MediaProvider = 'replicate' | 'openai';
@@ -27,14 +28,14 @@ export const IMAGE_MODELS: Record<string, ModelDefinition> = {
     aspectRatios: ['1:1', '16:9', '9:16'],
   },
   // STUDIO / MARKETING PRO
-  'flux-1.1-pro': {
-    id: 'black-forest-labs/flux-1.1-pro',
+  'flux-3': {
+    id: 'black-forest-labs/flux-3-image',
     provider: 'replicate',
     tier: 'pro',
-    label: 'Flux 1.1 Pro (Gold Standard)',
+    label: 'Flux 3 (Neueste Generation)',
     cost: 15,
     type: 'image',
-    aspectRatios: ['1:1', '16:9', '9:16', '4:5', '3:2'],
+    aspectRatios: ['1:1', '16:9', '9:16', '4:5', '3:2', '21:9'],
   },
   'flux-2-pro': {
     id: 'black-forest-labs/flux-2-pro',
@@ -43,11 +44,41 @@ export const IMAGE_MODELS: Record<string, ModelDefinition> = {
     label: 'Flux 2 Pro (Photorealism)',
     cost: 25,
     type: 'image',
-    aspectRatios: ['1:1', '16:9', '9:16', '21:9'],
+    aspectRatios: ['1:1', '16:9', '9:16', '4:5', '3:2'],
+  },
+  'flux-1.1-pro': {
+    id: 'black-forest-labs/flux-1.1-pro',
+    provider: 'replicate',
+    tier: 'pro',
+    label: 'Flux 1.1 Pro (Legacy)',
+    cost: 15,
+    type: 'image',
+    aspectRatios: ['1:1', '16:9', '9:16', '4:5', '3:2'],
   },
 };
 
+const KLING_V4: ModelDefinition = {
+  id: 'kwaivgi/kling-v4.0',
+  provider: 'replicate',
+  tier: 'pro',
+  label: 'Kling 4.0 (bis 30s, 1080p)',
+  cost: 55,
+  type: 'video',
+  aspectRatios: ['16:9', '9:16', '1:1', '21:9'],
+};
+
+const LUMA_RAY: ModelDefinition = {
+  id: 'luma/ray-3.2',
+  provider: 'replicate',
+  tier: 'pro',
+  label: 'Luma Ray 3.2 (Atmospheric)',
+  cost: 40,
+  type: 'video',
+  aspectRatios: ['16:9', '9:16', '1:1', '21:9'],
+};
+
 export const VIDEO_MODELS: Record<string, ModelDefinition> = {
+  'kling-v4.0': KLING_V4,
   'kling-v2.6': {
     id: 'kwaivgi/kling-v2.6',
     provider: 'replicate',
@@ -55,7 +86,7 @@ export const VIDEO_MODELS: Record<string, ModelDefinition> = {
     label: 'Kling 2.6 Pro (Cinema + Audio)',
     cost: 55,
     type: 'video',
-    aspectRatios: ['16:9', '9:16', '4:5'],
+    aspectRatios: ['16:9', '9:16', '1:1'],
   },
   'sora-2': {
     id: 'openai/sora-2',
@@ -64,7 +95,7 @@ export const VIDEO_MODELS: Record<string, ModelDefinition> = {
     label: 'Sora 2 (Flagship + Synced Audio)',
     cost: 60,
     type: 'video',
-    aspectRatios: ['16:9', '9:16', '1:1'],
+    aspectRatios: ['16:9', '9:16'],
   },
   'veo-3.1': {
     id: 'google/veo-3.1',
@@ -75,34 +106,28 @@ export const VIDEO_MODELS: Record<string, ModelDefinition> = {
     type: 'video',
     aspectRatios: ['16:9', '9:16'],
   },
+  'minimax-h3': {
+    id: 'minimax/h3',
+    provider: 'replicate',
+    tier: 'pro',
+    label: 'MiniMax H3 (Human Motion)',
+    cost: 45,
+    type: 'video',
+    aspectRatios: ['16:9', '9:16', '1:1'],
+  },
+  'luma-ray-3.2': LUMA_RAY,
   'minimax-video-01': {
     id: 'minimax/video-01',
     provider: 'replicate',
     tier: 'pro',
-    label: 'Minimax Video (Human Motion)',
+    label: 'Minimax Video-01 (Legacy)',
     cost: 45,
     type: 'video',
     aspectRatios: ['16:9', '9:16'],
   },
-  'luma-dream-machine': {
-    id: 'lumaai/dream-machine',
-    provider: 'replicate',
-    tier: 'pro',
-    label: 'Luma Dream Machine (Atmospheric)',
-    cost: 40,
-    type: 'video',
-    aspectRatios: ['16:9', '9:16'],
-  },
-  // Legacy (keep for backward compat)
-  'kling-v1.5-pro': {
-    id: 'kwaivgi/kling-v1.5-pro',
-    provider: 'replicate',
-    tier: 'pro',
-    label: 'Kling 1.5 Pro (Legacy)',
-    cost: 50,
-    type: 'video',
-    aspectRatios: ['16:9', '9:16', '4:5'],
-  },
+  // Alte Schluessel: Modelle auf Replicate geloescht -> auf Nachfolger umgeleitet
+  'kling-v1.5-pro': KLING_V4,
+  'luma-dream-machine': LUMA_RAY,
 };
 
 export interface FaceSwapModelDefinition {
@@ -125,22 +150,7 @@ export interface LipSyncModelDefinition {
 }
 
 export const FACESWAP_MODELS: Record<string, FaceSwapModelDefinition> = {
-  'lucataco-faceswap': {
-    id: 'lucataco/faceswap',
-    provider: 'replicate',
-    tier: 'pro',
-    label: 'Face Swap Pro (Roop)',
-    cost: 50,
-    description: 'High-quality face replacement in videos. Best for ads and content creation.',
-  },
-  'codeplugtech-faceswap': {
-    id: 'codeplugtech/face-swap',
-    provider: 'replicate',
-    tier: 'pro',
-    label: 'CodePlug Face Swap',
-    cost: 45,
-    description: 'Fast face swap with good quality. Ideal for quick iterations.',
-  },
+  // lucataco/faceswap ist auf Replicate geloescht; codeplugtech/face-swap kann nur Bilder.
   'live-portrait': {
     id: 'fofr/live-portrait',
     provider: 'replicate',
@@ -200,9 +210,9 @@ export const MOTION_TRANSFER_MODELS: Record<string, MotionTransferModelDefinitio
 
 export const DEFAULT_MODELS = {
   forum: IMAGE_MODELS['flux-schnell'],
-  studio_image: IMAGE_MODELS['flux-2-pro'],
-  studio_video: VIDEO_MODELS['kling-v2.6'], // Updated to latest
-  studio_faceswap: FACESWAP_MODELS['lucataco-faceswap'],
+  studio_image: IMAGE_MODELS['flux-3'],
+  studio_video: VIDEO_MODELS['kling-v4.0'],
+  studio_faceswap: FACESWAP_MODELS['live-portrait'],
   studio_lipsync: LIPSYNC_MODELS.final,
   studio_motion_transfer: MOTION_TRANSFER_MODELS['wan-2.2-animate'],
 };

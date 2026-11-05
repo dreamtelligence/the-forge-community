@@ -61,6 +61,8 @@ export type MarketingMediaReplicateInput = {
   generateAudio?: boolean;
   imageUrl?: string | string[];
   endImageUrl?: string;
+  /** Gewuenschte Video-Aufloesung (720p/1080p); nur Modelle mit Aufloesungswahl nutzen sie. */
+  resolution?: string | null;
 };
 
 const IMAGE_COSTS: Record<string, number> = {
@@ -73,7 +75,15 @@ const VIDEO_FALLBACK_COSTS: Record<string, number> = {
   'image-to-video': 40,
 };
 
+// Stand 05.11.2026, Schemas live von replicate.com/<model>/api/schema geprueft.
 export const MODEL_CONFIGS: Record<string, MarketingMediaModelConfig> = {
+  'black-forest-labs/flux-3-image': {
+    id: 'black-forest-labs/flux-3-image',
+    label: 'Flux 3',
+    modes: ['text-to-image'],
+    outputType: 'image',
+    provider: 'replicate',
+  },
   'black-forest-labs/flux-2-pro': {
     id: 'black-forest-labs/flux-2-pro',
     label: 'Flux 2 Pro',
@@ -88,17 +98,26 @@ export const MODEL_CONFIGS: Record<string, MarketingMediaModelConfig> = {
     outputType: 'image',
     provider: 'replicate',
   },
-  'kwaivgi/kling-v1.5-pro': {
-    id: 'kwaivgi/kling-v1.5-pro',
-    label: 'Kling 1.5 Pro',
-    modes: ['image-to-video'],
+  'kwaivgi/kling-v4.0': {
+    id: 'kwaivgi/kling-v4.0',
+    label: 'Kling 4.0',
+    modes: ['text-to-video', 'image-to-video'],
     outputType: 'video',
     supportsImageInput: true,
     provider: 'replicate',
   },
   'kwaivgi/kling-v2.6': {
     id: 'kwaivgi/kling-v2.6',
-    label: 'Kling 2.6 Pro',
+    label: 'Kling 2.6 Pro · Audio',
+    modes: ['text-to-video', 'image-to-video'],
+    outputType: 'video',
+    supportsImageInput: true,
+    supportsAudioToggle: true,
+    provider: 'replicate',
+  },
+  'minimax/h3': {
+    id: 'minimax/h3',
+    label: 'MiniMax H3',
     modes: ['text-to-video', 'image-to-video'],
     outputType: 'video',
     supportsImageInput: true,
@@ -106,16 +125,17 @@ export const MODEL_CONFIGS: Record<string, MarketingMediaModelConfig> = {
   },
   'minimax/video-01': {
     id: 'minimax/video-01',
-    label: 'Minimax Video',
+    label: 'Minimax Video-01 (Legacy)',
     modes: ['text-to-video'],
     outputType: 'video',
     provider: 'replicate',
   },
-  'lumaai/dream-machine': {
-    id: 'lumaai/dream-machine',
-    label: 'Luma Dream Machine',
-    modes: ['text-to-video'],
+  'luma/ray-3.2': {
+    id: 'luma/ray-3.2',
+    label: 'Luma Ray 3.2',
+    modes: ['text-to-video', 'image-to-video'],
     outputType: 'video',
+    supportsImageInput: true,
     provider: 'replicate',
   },
   'openai/sora-2': {
@@ -126,9 +146,17 @@ export const MODEL_CONFIGS: Record<string, MarketingMediaModelConfig> = {
     supportsImageInput: true,
     provider: 'replicate',
   },
+  'google/nano-banana-2.1': {
+    id: 'google/nano-banana-2.1',
+    label: 'Nano Banana 2.1 · Multi-Image Blending',
+    modes: ['image-to-image'],
+    outputType: 'image',
+    provider: 'replicate',
+    supportsImageInput: true,
+  },
   'google/nano-banana': {
     id: 'google/nano-banana',
-    label: 'Nano Banana · Multi-Image Blending',
+    label: 'Nano Banana (Legacy)',
     modes: ['image-to-image'],
     outputType: 'image',
     provider: 'replicate',
@@ -141,7 +169,17 @@ export const MODEL_CONFIGS: Record<string, MarketingMediaModelConfig> = {
     outputType: 'video',
     provider: 'replicate',
     supportsImageInput: true,
+    supportsAudioToggle: true,
   },
+};
+
+/**
+ * Abgeschaltete Replicate-Modelle (404 seit 2026) -> Nachfolger, damit gespeicherte
+ * Presets/Clients mit alten IDs weiter funktionieren.
+ */
+export const RETIRED_MODEL_REPLACEMENTS: Record<string, string> = {
+  'kwaivgi/kling-v1.5-pro': 'kwaivgi/kling-v4.0',
+  'lumaai/dream-machine': 'luma/ray-3.2',
 };
 
 const MEDIA_MODES: MarketingMediaMode[] = [
@@ -152,32 +190,32 @@ const MEDIA_MODES: MarketingMediaMode[] = [
 ];
 
 const DEFAULT_MODEL_BY_MODE: Record<MarketingMediaMode, string> = {
-  'text-to-image': 'black-forest-labs/flux-2-pro',
-  'text-to-video': 'minimax/video-01',
-  'image-to-video': 'kwaivgi/kling-v1.5-pro',
-  'image-to-image': 'google/nano-banana',
+  'text-to-image': 'black-forest-labs/flux-3-image',
+  'text-to-video': 'minimax/h3',
+  'image-to-video': 'kwaivgi/kling-v4.0',
+  'image-to-image': 'google/nano-banana-2.1',
 };
 
 const MODEL_ALLOWED_ASPECTS: Record<string, string[]> = {
-  'kwaivgi/kling-v1.5-pro': ['16:9', '9:16', '4:5'],
+  'kwaivgi/kling-v4.0': ['16:9', '9:16', '1:1', '21:9'],
   'kwaivgi/kling-v2.6': ['16:9', '9:16', '1:1'],
+  'minimax/h3': ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9'],
   'google/veo-3.1': ['16:9', '9:16'],
   'minimax/video-01': ['16:9', '9:16'],
-  'lumaai/dream-machine': ['16:9', '9:16'],
-  'openai/sora-2': ['16:9', '9:16', '1:1'],
+  'luma/ray-3.2': ['16:9', '9:16', '1:1', '4:3', '3:4', '21:9'],
+  'openai/sora-2': ['16:9', '9:16'],
 };
 
 const MODEL_ALLOWED_DURATIONS: Record<string, number[]> = {
-  'kwaivgi/kling-v1.5-pro': [5, 10],
+  'kwaivgi/kling-v4.0': [5, 10, 15],
   'kwaivgi/kling-v2.6': [5, 10],
+  'minimax/h3': [5, 6, 8, 10],
+  'luma/ray-3.2': [5],
   'google/veo-3.1': [4, 6, 8],
-  'openai/sora-2': [4, 6, 8],
+  'openai/sora-2': [4, 8, 12],
 };
 
-const MODEL_RANGES: Record<string, { guidance?: { min: number; max: number } }> = {
-  'kwaivgi/kling-v1.5-pro': { guidance: { min: 1, max: 15 } },
-  'kwaivgi/kling-v2.6': { guidance: { min: 1, max: 15 } },
-};
+const MODEL_RANGES: Record<string, { guidance?: { min: number; max: number } }> = {};
 
 const OUTPUT_RESOLUTIONS = new Set(['720p', '1080p', '4k']);
 
@@ -218,7 +256,7 @@ export const resolveAllowedMarketingMediaModel = (
 ) => {
   const fallback = DEFAULT_MODEL_BY_MODE[mode];
   if (!requestedModel) return MODEL_CONFIGS[fallback];
-  const modelConfig = MODEL_CONFIGS[requestedModel];
+  const modelConfig = MODEL_CONFIGS[RETIRED_MODEL_REPLACEMENTS[requestedModel] ?? requestedModel];
   if (!modelConfig) return null;
   if (!modelConfig.modes.includes(mode)) return null;
   return modelConfig;

@@ -97,7 +97,7 @@ export const pageSeo = {
   
   marketingStudio: {
     title: "AI Video Studio | Veo 3.1 & Kling AI | STAKE & SCALE",
-    description: "Erstelle professionelle Marketing-Videos mit Veo 3.1, Kling AI & Luma Dream Machine. Face-Swap, AI-Avatare, AI Influencer Images, Lip-Sync und Product Videos – direkt in deinem Brand-Workspace.",
+    description: "Erstelle professionelle Marketing-Videos mit Veo 3.1, Kling 4.0 & Luma Ray 3.2. Face-Swap, AI-Avatare, AI Influencer Images, Lip-Sync und Product Videos – direkt in deinem Brand-Workspace.",
     keywords: [
       "veo ai", "veo 3.1 video", "kling ai", "luma dream machine",
       "ai video generator", "text to video deutsch", "image to video ai",

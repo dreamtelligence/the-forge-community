@@ -30,18 +30,6 @@ interface TestConfig {
 // Test Cases
 const FACESWAP_TEST_CASES = [
   {
-    name: 'Roop Face Swap',
-    model: 'lucataco-faceswap',
-    provider: 'replicate',
-    expectedCredits: 50,
-  },
-  {
-    name: 'CodePlug Face Swap',
-    model: 'codeplugtech-faceswap',
-    provider: 'replicate',
-    expectedCredits: 45,
-  },
-  {
     name: 'Live Portrait Pro',
     model: 'live-portrait',
     provider: 'replicate',

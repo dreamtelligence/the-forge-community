@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 const stripeKey = process.env.STRIPE_SECRET_KEY || 'dummy-key-for-build';
 
 export const stripe = new Stripe(stripeKey, {
-  apiVersion: '2026-02-25.clover',
+  apiVersion: '2026-10-28.endive',
   typescript: true,
 });
 

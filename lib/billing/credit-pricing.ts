@@ -46,18 +46,35 @@ type VideoRateSet = {
 };
 
 const DEFAULT_VIDEO_RATES_USD: Record<string, VideoRateSet> = {
-  // Defaults can be overridden via env. If you don't want defaults, set env to 0.
+  // Replicate-Listenpreise, live geprueft am 05.11.2026. Per Env ueberschreibbar.
   'google/veo-3.1': {
     default: { withAudio: 0.4, withoutAudio: 0.2 },
   },
   'google/veo-3.1-fast': {
-    default: { withAudio: 0.15, withoutAudio: 0.15 },
+    default: { withAudio: 0.15, withoutAudio: 0.1 },
+  },
+  // Kling 4.0: kein Audio-Schalter; 720p 0.157 $/s, 1080p 0.235 $/s
+  'kwaivgi/kling-v4.0': {
+    default: { withAudio: 0.157, withoutAudio: 0.157 },
+    perResolution: {
+      '720p': { withAudio: 0.157, withoutAudio: 0.157 },
+      '1080p': { withAudio: 0.235, withoutAudio: 0.235 },
+    },
   },
   'kwaivgi/kling-v2.6': {
     default: { withAudio: 0.14, withoutAudio: 0.07 },
   },
-  'kwaivgi/kling-v1.5-pro': {
-    default: { withAudio: 0.14, withoutAudio: 0.07 },
+  // MiniMax H3 wird immer mit 768P angefragt: 0.08 $/s
+  'minimax/h3': {
+    default: { withAudio: 0.08, withoutAudio: 0.08 },
+  },
+  // Sora 2 (Replicate-Abrechnung, ohne eigenen OpenAI-Key): 0.10 $/s
+  'openai/sora-2': {
+    default: { withAudio: 0.1, withoutAudio: 0.1 },
+  },
+  // Luma Ray 3.2 wird mit 720p / 5s angefragt: 0.30 $ pro Video = 0.06 $/s
+  'luma/ray-3.2': {
+    default: { withAudio: 0.06, withoutAudio: 0.06 },
   },
 };
 

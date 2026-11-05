@@ -134,6 +134,7 @@ export async function startMarketingMediaGeneration(
         generateAudio: plan.generateAudio,
         imageUrl: uploadedInputs.imageUrl,
         endImageUrl: uploadedInputs.endImageUrl,
+        resolution: plan.outputResolution,
         width: 0,
         height: 0,
       },
