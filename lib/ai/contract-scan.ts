@@ -1,5 +1,5 @@
 import type { ContractScanResult } from '@/types/contract-scan';
-import { GEMINI_TEXT_MODELS, isRetiredModelId, withGeminiThinking } from '@/lib/ai/text-models';
+import { GEMINI_TEXT_MODELS, geminiApiVersions, isRetiredModelId, withGeminiThinking } from '@/lib/ai/text-models';
 
 const CONTRACT_SCAN_PROMPT = `Du bist ein wirtschaftlicher Vertragsanalyst fuer Startups.
 Analysiere den Vertrag auf wirtschaftliche Risiken, Kostenfallen und Plausibilitaet.
@@ -48,9 +48,7 @@ const MODEL_CANDIDATES = Array.from(new Set([
   GEMINI_TEXT_MODELS.flash,
 ].filter((model): model is string => !!model && !isRetiredModelId(model))));
 
-const API_VERSION_CANDIDATES = Array.from(
-  new Set([process.env.GEMINI_API_VERSION || 'v1', 'v1beta'])
-);
+const API_VERSION_CANDIDATES = geminiApiVersions(process.env.GEMINI_API_VERSION);
 
 const extractJson = (text: string): ContractScanResult => {
   const start = text.indexOf('{');

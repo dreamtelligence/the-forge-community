@@ -5,6 +5,7 @@ import {
   GEMINI_TEXT_MODELS,
   GROQ_MODEL,
   KIMI_MODEL,
+  geminiApiVersions,
   withGeminiThinking,
   isRetiredModelId,
 } from '@/lib/ai/text-models';
@@ -148,10 +149,7 @@ async function callGemini(
     GEMINI_TEXT_MODELS.pro,
   ].filter((model): model is string => !!model && !isRetiredModelId(model))));
 
-  const apiVersionCandidates = Array.from(new Set([
-    process.env.GEMINI_API_VERSION || 'v1',
-    'v1beta'
-  ]));
+  const apiVersionCandidates = geminiApiVersions(process.env.GEMINI_API_VERSION);
 
   // Format messages for Gemini
   const systemMsg = messages.find(m => m.role === 'system')?.content || '';
@@ -179,7 +177,7 @@ async function callGemini(
 
   for (const apiVersion of versionsToTry) {
     for (const model of modelsToTry) {
-      if (!model || badGeminiModels.has(model)) continue;
+      if (!model || badGeminiModels.has(`${apiVersion}:${model}`)) continue;
 
       const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent`;
       const payload = {
@@ -212,7 +210,7 @@ async function callGemini(
             lastErrorText = errorText || `HTTP ${response.status}`;
 
             if (response.status === 404) {
-              badGeminiModels.add(model);
+              badGeminiModels.add(`${apiVersion}:${model}`);
               break; // try next model
             }
 

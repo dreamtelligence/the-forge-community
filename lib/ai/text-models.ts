@@ -103,3 +103,10 @@ export const withGeminiThinking = (
   const thinkingConfig = geminiThinkingConfig(model, preferred);
   return thinkingConfig ? { thinkingConfig } : {};
 };
+
+/**
+ * API-Versionen fuer generativelanguage.googleapis.com: v1beta zuerst, weil neue Felder
+ * (thinkingConfig, imageConfig, thoughtSignature) dort dokumentiert sind. Env-Werte folgen als Fallback.
+ */
+export const geminiApiVersions = (...envValues: Array<string | null | undefined>) =>
+  Array.from(new Set(['v1beta', ...envValues.map((value) => value?.trim()).filter((value): value is string => !!value)]));

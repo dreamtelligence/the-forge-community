@@ -20,9 +20,9 @@ const VIDEO_ANALYSIS_PROMPT = `Analysiere das Video detailliert für eine Rekons
 
 // Bild-*Analyse* (Vision). Nicht GEMINI_IMAGE_MODEL verwenden - das ist das Bild-*Generierungs*-Modell (Nano Banana).
 const GEMINI_VISION_MODEL = pickModel(process.env.GEMINI_VISION_MODEL, GEMINI_TEXT_MODELS.flash);
-const GEMINI_IMAGE_API_VERSION = process.env.GEMINI_IMAGE_API_VERSION || process.env.GEMINI_API_VERSION || 'v1beta';
+const GEMINI_IMAGE_API_VERSION = process.env.GEMINI_VISION_API_VERSION || 'v1beta';
 const GEMINI_DOC_MODEL = pickModel(process.env.GEMINI_DOC_MODEL, process.env.GEMINI_MODEL, GEMINI_TEXT_MODELS.flash);
-const GEMINI_DOC_API_VERSION = process.env.GEMINI_API_VERSION || 'v1beta';
+const GEMINI_DOC_API_VERSION = process.env.GEMINI_DOC_API_VERSION || 'v1beta';
 const GEMINI_VIDEO_MODEL = pickModel(process.env.GEMINI_VIDEO_MODEL, GEMINI_TEXT_MODELS.flash); // Video-faehiges Modell
 
 const isImageAttachment = (item: any) => {

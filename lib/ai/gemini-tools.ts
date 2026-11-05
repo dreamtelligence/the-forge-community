@@ -1,12 +1,11 @@
 import type { AIMessage, AIResponse } from '@/lib/ai';
 import { ORION_TOOL_DECLARATIONS, executeOrionToolCall, type ToolContext } from '@/lib/ai/orion-tools';
-import { GEMINI_TEXT_MODELS, isRetiredModelId, withGeminiThinking } from '@/lib/ai/text-models';
+import { GEMINI_TEXT_MODELS, geminiApiVersions, isRetiredModelId, withGeminiThinking } from '@/lib/ai/text-models';
 
-const GEMINI_TOOL_API_VERSION_CANDIDATES = Array.from(new Set([
+const GEMINI_TOOL_API_VERSION_CANDIDATES = geminiApiVersions(
   process.env.GEMINI_TOOL_API_VERSION,
-  process.env.GEMINI_API_VERSION,
-  'v1beta'
-].filter(Boolean))) as string[];
+  process.env.GEMINI_API_VERSION
+);
 
 const GEMINI_TOOL_MODEL_CANDIDATES = Array.from(new Set([
   process.env.GEMINI_TOOL_MODEL,
@@ -118,7 +117,7 @@ export async function callGeminiWithTools(
 
     for (const apiVersion of apiVersions) {
       for (const model of modelCandidates) {
-        if (!model || GEMINI_UNSUPPORTED_TOOL_MODELS.has(model) || badGeminiToolModels.has(model)) continue;
+        if (!model || GEMINI_UNSUPPORTED_TOOL_MODELS.has(model) || badGeminiToolModels.has(`${apiVersion}:${model}`)) continue;
         try {
           const data = await callGeminiWithModel(model, apiVersion, payload);
           selectedModel = model;
@@ -127,7 +126,7 @@ export async function callGeminiWithTools(
         } catch (error) {
           const err = error as Error & { status?: number };
           if (err.status === 404) {
-            badGeminiToolModels.add(model);
+            badGeminiToolModels.add(`${apiVersion}:${model}`);
             continue;
           }
           lastError = err;

@@ -20,7 +20,8 @@ const COST = parseLimit(process.env.MARKETING_CHARACTER_DNA_CREDITS, 2);
 const HOURLY_LIMIT = parseLimit(process.env.MARKETING_CHARACTER_DNA_HOURLY_LIMIT, 30);
 
 const MODEL = pickModel(process.env.GEMINI_CHARACTER_MODEL, process.env.GEMINI_MODEL, GEMINI_TEXT_MODELS.flash);
-const API_VERSION = process.env.GEMINI_API_VERSION || 'v1';
+// v1beta: thinkingConfig ist dort dokumentiert
+const API_VERSION = process.env.GEMINI_CHARACTER_API_VERSION || 'v1beta';
 
 const CHARACTER_PROMPT = `Analyze the provided portrait(s) and write a compact image-generation prompt that recreates the face faithfully.\n\nRequirements:\n- If multiple images are provided, synthesize the consistent features across them.\n- Describe only visible physical attributes (face shape, jawline, cheekbones, eyes, eyebrows, nose, lips, hair style/color/texture, complexion, age range, expression).\n- Do NOT guess ethnicity, nationality, religion, gender, identity, or name.\n- Keep it concise: one comma-separated line, no full sentences, no quotes.\n- Add short camera/style notes: studio portrait, soft lighting, shallow depth of field, high detail.\n\nOutput only the prompt line.`;
 
