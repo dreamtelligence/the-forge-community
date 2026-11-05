@@ -68,6 +68,10 @@ const DEFAULT_VIDEO_RATES_USD: Record<string, VideoRateSet> = {
   'minimax/h3': {
     default: { withAudio: 0.08, withoutAudio: 0.08 },
   },
+  // Sora 2 (Replicate-Abrechnung, ohne eigenen OpenAI-Key): 0.10 $/s
+  'openai/sora-2': {
+    default: { withAudio: 0.1, withoutAudio: 0.1 },
+  },
   // Luma Ray 3.2 wird mit 720p / 5s angefragt: 0.30 $ pro Video = 0.06 $/s
   'luma/ray-3.2': {
     default: { withAudio: 0.06, withoutAudio: 0.06 },
