@@ -5,6 +5,7 @@ import { streamText, convertToModelMessages } from 'ai';
 import { getUserFullContext } from '@/lib/ai/context';
 import { prisma } from '@/lib/database/prisma';
 import { buildAiSdkTools } from '@/lib/ai/orion-tools';
+import { GEMINI_TEXT_MODELS, geminiThinkingConfig } from '@/lib/ai/text-models';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 const gemini = createGoogleGenerativeAI({
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
       ANTWORTE IMMER AUF DEUTSCH.
     `;
 
-    const modelName = 'gemini-2.0-flash';
+    const modelName = GEMINI_TEXT_MODELS.flash;
     console.log('[JARVIS] Starting Gemini stream with model:', modelName);
 
     const lastUserMessage = Array.isArray(messages)
@@ -109,6 +110,9 @@ export async function POST(req: NextRequest) {
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
+      providerOptions: {
+        google: { thinkingConfig: geminiThinkingConfig(modelName, 'low') },
+      },
     });
 
     console.log('[JARVIS] Gemini stream started successfully');

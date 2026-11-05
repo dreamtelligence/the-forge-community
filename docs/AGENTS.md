@@ -15,7 +15,7 @@
 - **Squads**: Groups of 2-5 members form to build ventures collaboratively
 - **Ventures**: Created via a guided wizard (E-Commerce, SaaS, Service types)
 - **The Forge**: The venture workspace with studios for Brand, Legal, Marketing, and Sourcing
-- **AI-First**: Gemini 2.0 Flash powers content generation, moderation, and advisor chatbot
+- **AI-First**: Kimi K3 + Gemini 3.6 Flash power content generation, moderation, and advisor chatbot (model IDs centralized in `lib/ai/text-models.ts`)
 
 ---
 
@@ -28,7 +28,7 @@
 | **Database** | PostgreSQL (Vercel Postgres) + Prisma 7.7 |
 | **Authentication** | NextAuth v5 (JWT, Magic Links via Resend) |
 | **Payments** | Stripe (Subscriptions + Connect for marketplace) |
-| **AI** | Gemini 2.0 Flash (primary), Groq (fallback) |
+| **AI** | Kimi K3 (primary), Gemini 3.6 Flash, Groq gpt-oss-120b (fallbacks); media via Replicate |
 | **Storage** | Vercel Blob for file uploads |
 | **Styling** | Tailwind CSS v4 |
 | **Deployment** | Vercel |
@@ -182,7 +182,7 @@ const reservation = await reserveEnergy({
   feature: 'marketing-content',
   requestId: `unique-id-${Date.now()}`,
   provider: 'gemini',
-  model: 'gemini-2.0-flash'
+  model: 'gemini-3.6-flash'
 });
 
 try {

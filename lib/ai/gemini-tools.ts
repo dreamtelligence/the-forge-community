@@ -1,5 +1,6 @@
 import type { AIMessage, AIResponse } from '@/lib/ai';
 import { ORION_TOOL_DECLARATIONS, executeOrionToolCall, type ToolContext } from '@/lib/ai/orion-tools';
+import { GEMINI_TEXT_MODELS, isRetiredModelId, withGeminiThinking } from '@/lib/ai/text-models';
 
 const GEMINI_TOOL_API_VERSION_CANDIDATES = Array.from(new Set([
   process.env.GEMINI_TOOL_API_VERSION,
@@ -10,16 +11,12 @@ const GEMINI_TOOL_API_VERSION_CANDIDATES = Array.from(new Set([
 const GEMINI_TOOL_MODEL_CANDIDATES = Array.from(new Set([
   process.env.GEMINI_TOOL_MODEL,
   process.env.GEMINI_MODEL,
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-2.5-pro',
-  'gemini-2.0-pro'
-].filter(Boolean))) as string[];
+  GEMINI_TEXT_MODELS.flash,
+  GEMINI_TEXT_MODELS.pro
+].filter((model): model is string => !!model && !isRetiredModelId(model))));
 
-const GEMINI_UNSUPPORTED_TOOL_MODELS = new Set([
-  'gemini-2.0-flash-lite',
-  'gemini-2.0-flash-lite-001'
-]);
+const GEMINI_UNSUPPORTED_TOOL_MODELS = new Set<string>([]);
+
 
 let resolvedGeminiToolModel: string | null = null;
 let resolvedGeminiToolApiVersion: string | null = null;
@@ -27,7 +24,8 @@ const badGeminiToolModels = new Set<string>();
 
 type GeminiContent = {
   role: 'user' | 'model';
-  parts: Array<{ text?: string; functionCall?: any; functionResponse?: any }>;
+  // thoughtSignature muss bei Gemini 3 unveraendert zurueckgeschickt werden
+  parts: Array<{ text?: string; functionCall?: any; functionResponse?: any; thoughtSignature?: string; thought?: boolean }>;
 };
 
 const toGeminiContents = (messages: AIMessage[]): GeminiContent[] => {
@@ -160,7 +158,8 @@ export async function callGeminiWithTools(
       toolConfig,
       generationConfig: {
         temperature: options.temperature,
-        maxOutputTokens: options.maxTokens
+        maxOutputTokens: options.maxTokens,
+        ...withGeminiThinking(selectedModel || modelCandidates[0] || GEMINI_TEXT_MODELS.flash, 'low')
       }
     };
 
@@ -181,6 +180,7 @@ export async function callGeminiWithTools(
 
     if (functionCalls.length === 0) {
       finalText = parts
+        .filter((part: any) => !part?.thought)
         .map((part: any) => part?.text)
         .filter(Boolean)
         .join('')
@@ -188,9 +188,10 @@ export async function callGeminiWithTools(
       break;
     }
 
+    // Original-Parts uebernehmen (inkl. thoughtSignature), sonst lehnt Gemini 3 den naechsten Turn ab
     contents.push({
       role: 'model',
-      parts: functionCalls.map((call: any) => ({ functionCall: call }))
+      parts
     });
 
     const responses: Array<{ name: string; response: any }> = [];

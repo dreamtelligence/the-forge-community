@@ -5,6 +5,8 @@ import { reserveEnergy } from '@/lib/finance/energy';
 import { expandPrompt } from '@/lib/ai/prompt-engine';
 import { IMAGE_MODELS, VIDEO_MODELS, DEFAULT_MODELS } from '@/lib/media-models';
 import { estimateVideoCredits } from '@/lib/billing/credit-pricing';
+import { buildMarketingMediaReplicateInput } from '@/lib/ai/infrastructure/marketing-media-replicate';
+import { normalizeAspectRatio, normalizeDuration } from '@/lib/ai/domain/marketing-media';
 import { getReplicateClientForUser } from '@/lib/integrations/provider-keys';
 
 export const runtime = 'nodejs';
@@ -58,10 +60,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const effectiveDuration = normalizeDuration(modelDef.id, typeof duration === 'number' ? duration : undefined);
     const cost = type === 'video'
       ? estimateVideoCredits({
           modelId: modelDef.id,
-          durationSeconds: typeof duration === 'number' ? duration : null,
+          durationSeconds: effectiveDuration ?? null,
           generateAudio: typeof generateAudio === 'boolean' ? generateAudio : true,
           fallbackCredits: modelDef.cost,
           minimumCredits: 1,
@@ -79,20 +82,15 @@ export async function POST(request: NextRequest) {
     // 4. Expand Prompt (only if not a tiny request)
     const refinedPrompt = await expandPrompt(rawPrompt, type as 'image' | 'video');
 
-    // 5. Call Replicate
-    // NOTE: We assume most models follow standard Replicate input schema.
-    // For specific models like Kling or Flux Pro, we might need adjustments.
-    
-    const replicateInput: any = {
+    // 5. Call Replicate - gleicher Input-Builder wie die Marketing-Pipeline (modellspezifische Feldnamen)
+    const replicateInput = buildMarketingMediaReplicateInput(modelDef.id, {
       prompt: refinedPrompt,
-      aspect_ratio: aspectRatio,
-    };
-
-    // Specific model adjustments
-    if (modelDef.id.includes('flux-1.1-pro') || modelDef.id.includes('flux-2-pro')) {
-      replicateInput.output_format = "jpg";
-      replicateInput.output_quality = 100;
-    }
+      aspectRatio: normalizeAspectRatio(modelDef.id, aspectRatio),
+      width: 0,
+      height: 0,
+      duration: effectiveDuration,
+      generateAudio: typeof generateAudio === 'boolean' ? generateAudio : undefined,
+    });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
     const webhookUrl =

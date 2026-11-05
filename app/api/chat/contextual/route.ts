@@ -9,6 +9,7 @@ import { RateLimiters } from '@/lib/security/rate-limit';
 import { braveSearch } from '@/lib/ai/research-core';
 import { listPendingActions } from '@/lib/ai/actions';
 import { executeOrionToolCall } from '@/lib/ai/orion-tools';
+import { GEMINI_TEXT_MODELS, KIMI_MODEL, withGeminiThinking, isRetiredModelId, pickModel } from '@/lib/ai/text-models';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 const IMAGE_ANALYSIS_PROMPT = `Analysiere das Bild und liefere einen kompakten Prompt, mit dem man es in einem Text-zu-Bild-Model rekonstruieren kann.\n\nAnforderungen:\n- Beschreibe Motiv, Stil, Farben, Licht, Komposition, Kameraperspektive.\n- Keine sensiblen Attribute raten (Ethnie, Religion, Identitaet).\n- Ausgabe: 1-2 Sätze, keine Aufzählung, keine Anführungszeichen.\n\nWenn der User explizit nach etwas fragt, berücksichtige es.`;
@@ -17,11 +18,12 @@ const PDF_SUMMARY_PROMPT = `Fasse das PDF kurz zusammen.\n\nAnforderungen:\n- 5-
 
 const VIDEO_ANALYSIS_PROMPT = `Analysiere das Video detailliert für eine Rekonstruktion.\n\nAspekte:\n- Shot Type (Close-up, Wide, Dolly, Pan)\n- Kamera & Licht (Cinematic, Natural, Neon, Dark)\n- Mood & Atmosphäre\n- Handlung & Pacing\n- Stil & Ästhetik\n- Sound-Design (impliziert)\n\nOutput Format:\n1. **Video-Zusammenfassung** (2-3 Sätze)\n2. **Rekonstruktions-Prompt** (Detaillierter Prompt für Text-to-Video Modelle)\n3. **Optimierter Veo-Prompt** (Spezifisch für Google Veo: 9:16, 5-8s, photorealistisch, englisch)`;
 
-const GEMINI_IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL || process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp';
+// Bild-*Analyse* (Vision). Nicht GEMINI_IMAGE_MODEL verwenden - das ist das Bild-*Generierungs*-Modell (Nano Banana).
+const GEMINI_VISION_MODEL = pickModel(process.env.GEMINI_VISION_MODEL, GEMINI_TEXT_MODELS.flash);
 const GEMINI_IMAGE_API_VERSION = process.env.GEMINI_IMAGE_API_VERSION || process.env.GEMINI_API_VERSION || 'v1beta';
-const GEMINI_DOC_MODEL = process.env.GEMINI_DOC_MODEL || process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp';
+const GEMINI_DOC_MODEL = pickModel(process.env.GEMINI_DOC_MODEL, process.env.GEMINI_MODEL, GEMINI_TEXT_MODELS.flash);
 const GEMINI_DOC_API_VERSION = process.env.GEMINI_API_VERSION || 'v1beta';
-const GEMINI_VIDEO_MODEL = process.env.GEMINI_VIDEO_MODEL || 'gemini-2.0-flash-exp'; // Video capable model
+const GEMINI_VIDEO_MODEL = pickModel(process.env.GEMINI_VIDEO_MODEL, GEMINI_TEXT_MODELS.flash); // Video-faehiges Modell
 
 const isImageAttachment = (item: any) => {
   const type = String(item?.type || '').toLowerCase();
@@ -92,7 +94,7 @@ const fetchAttachmentBuffer = async (url: string, maxBytes = 10 * 1024 * 1024) =
 };
 
 /**
- * Kimi K2.5 Inline Call (Multimodal - Images & Videos)
+ * Kimi K3 Inline Call (Multimodal - Images & Videos)
  * Primary provider for image/video analysis
  */
 const callKimiInline = async (textPrompt: string, imageBase64?: string, mimeType?: string) => {
@@ -117,16 +119,18 @@ const callKimiInline = async (textPrompt: string, imageBase64?: string, mimeType
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'kimi-k2.5',
+      model: process.env.MOONSHOT_MODEL && !isRetiredModelId(process.env.MOONSHOT_MODEL)
+        ? process.env.MOONSHOT_MODEL
+        : KIMI_MODEL,
       messages: [{ role: 'user', content }],
-      temperature: 0.2,
-      max_tokens: 800,
+      // Kimi K3: temperature fest 1.0 (nicht senden), Reasoning zaehlt gegen max_tokens
+      max_tokens: 800 + 4096,
     })
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Kimi K2.5 API error: ${errorText}`);
+    throw new Error(`Kimi API error: ${errorText}`);
   }
 
   const data = await response.json();
@@ -152,6 +156,7 @@ const callGeminiInline = async (model: string, apiVersion: string, parts: any[])
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 800,
+          ...withGeminiThinking(model),
         }
       })
     }
@@ -161,7 +166,7 @@ const callGeminiInline = async (model: string, apiVersion: string, parts: any[])
     throw new Error(`Gemini API error: ${errorText}`);
   }
   const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.map((part: any) => part?.text).filter(Boolean).join(' ').trim();
+  const text = data?.candidates?.[0]?.content?.parts?.filter((part: any) => !part?.thought).map((part: any) => part?.text).filter(Boolean).join(' ').trim();
   return text || '';
 };
 
@@ -626,7 +631,7 @@ ${formattedSources}
       const videoAnalyses: string[] = [];
       const pdfSummaries: string[] = [];
 
-      // Process images with Kimi K2.5 (primary) or Gemini (fallback)
+      // Process images with Kimi K3 (primary) or Gemini (fallback)
       const imageItems = attachmentList.filter(isImageAttachment).slice(0, 2);
       for (const item of imageItems) {
         if (!item?.url) continue;
@@ -638,11 +643,11 @@ ${formattedSources}
 
           let analysis = '';
 
-          // Try Kimi K2.5 first
+          // Try Kimi K3 first
           if (process.env.MOONSHOT_API_KEY) {
             try {
               analysis = await callKimiInline(prompt, base64, mimeType);
-              console.log('[Image Analysis] ✅ Kimi K2.5 used');
+              console.log('[Image Analysis] ✅ Kimi K3 used');
             } catch (kimiError) {
               console.warn('[Image Analysis] Kimi failed, falling back to Gemini:', kimiError);
             }
@@ -650,7 +655,7 @@ ${formattedSources}
 
           // Fallback to Gemini if Kimi failed
           if (!analysis && process.env.GEMINI_API_KEY) {
-            analysis = await callGeminiInline(GEMINI_IMAGE_MODEL, GEMINI_IMAGE_API_VERSION, [
+            analysis = await callGeminiInline(GEMINI_VISION_MODEL, GEMINI_IMAGE_API_VERSION, [
               { text: prompt },
               { inline_data: { mime_type: mimeType, data: base64 } }
             ]);

@@ -502,7 +502,7 @@ function AppBuilder({ app, onUpdate, onClose }: { app: ForgeApp, onUpdate: (app:
                     onChange={(e) => setLocalApp({ ...localApp, workflow: { ...localApp.workflow, model: e.target.value } })}
                     className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none"
                   >
-                    <option value="google/nano-banana">Nano Banana (Schnell)</option>
+                    <option value="google/nano-banana">Nano Banana 2.1 (Schnell)</option>
                     <option value="google/nano-banana-pro">Nano Banana Pro (Qualität)</option>
                   </select>
                </div>

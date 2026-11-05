@@ -367,8 +367,7 @@ async function testStartFaceSwapGeneration() {
   const formData = {
     get(name: string) {
       const values: Record<string, unknown> = {
-        model: 'lucataco-faceswap',
-        swapCondition: 'first',
+        model: 'live-portrait',
         face: {
           name: 'face.png',
           type: 'image/png',
@@ -434,11 +433,14 @@ async function testStartFaceSwapGeneration() {
         };
       },
       async createPrediction(input) {
-        assert.equal(input.model, 'lucataco/faceswap');
+        assert.equal(input.model, 'fofr/live-portrait');
         assert.deepEqual(input.input, {
-          target_video: 'https://blob.example.com/video.mp4',
-          swap_image: 'https://blob.example.com/face.png',
-          swap_condition: 'first',
+          face_image: 'https://blob.example.com/face.png',
+          driving_video: 'https://blob.example.com/video.mp4',
+          live_portrait_eye_retargeting: true,
+          live_portrait_lip_zero: true,
+          live_portrait_stitching: true,
+          live_portrait_relative: true,
         });
         return {
           prediction: { id: 'pred-face-1', status: 'starting' },
@@ -458,8 +460,8 @@ async function testStartFaceSwapGeneration() {
     predictionId: 'pred-face-1',
     status: 'starting',
     provider: 'replicate',
-    model: 'Face Swap Pro (Roop)',
-    creditsUsed: 50,
+    model: 'Live Portrait Pro (Character Animation)',
+    creditsUsed: 65,
   });
 }
 

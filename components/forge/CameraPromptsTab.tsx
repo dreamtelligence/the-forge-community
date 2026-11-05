@@ -205,6 +205,7 @@ type CameraMovement =
 
 type PromptTargetModel =
   | 'google/veo-3.1'
+  | 'kwaivgi/kling-v4.0'
   | 'kwaivgi/kling-v2.6'
   | 'openai/sora-2'
   | 'generic';
@@ -249,6 +250,11 @@ const TARGET_MODEL_OPTIONS: Array<{ id: PromptTargetModel; label: string; note: 
     id: 'google/veo-3.1',
     label: 'Veo 3.1',
     note: 'Prioritizes subject/context/action/style and clear motion cues.',
+  },
+  {
+    id: 'kwaivgi/kling-v4.0',
+    label: 'Kling 4.0',
+    note: 'Up to 30s; strong camera direction, no native audio. Reference images as @image_1, @image_2.',
   },
   {
     id: 'kwaivgi/kling-v2.6',
@@ -774,6 +780,11 @@ export function CameraPromptsTab({ onUsePrompt }: CameraPromptsTabProps) {
         inputMode === 'image-to-video'
           ? `Source-image animation: keep subject and scene consistent. ${motionCore} ${cameraCore} Lighting: ${resolvedLighting}.${realismSegment} ${qualityGuardrail}`
           : `${subject} in ${setting}. ${motionCore} ${cameraCore} Lighting: ${resolvedLighting}. Style: ${style}.${realismSegment} Ambient sound design: ${ambience}.${dialogueSegment}${qualityGuardrail}`;
+    } else if (targetModel === 'kwaivgi/kling-v4.0') {
+      modelPrompt =
+        inputMode === 'image-to-video'
+          ? `Animate @image_1 and keep subject, wardrobe and scene consistent. ${motionCore} ${cameraCore} Lighting and mood: ${resolvedLighting}.${realismSegment} Keep scene stable from start to end.${qualityGuardrail}`
+          : `${subject} in ${setting}. ${motionCore} ${cameraCore} Lighting and mood: ${resolvedLighting}. Style: ${style}.${realismSegment} Keep scene stable from start to end.${qualityGuardrail}`;
     } else if (targetModel === 'kwaivgi/kling-v2.6') {
       modelPrompt = `${subject} in ${setting}. ${motionCore} ${cameraCore} Lighting and mood: ${resolvedLighting}. Style: ${style}.${realismSegment} Sound bed: ${ambience}.${dialogueSegment} Keep scene stable from start to end.${qualityGuardrail}`;
     } else if (targetModel === 'openai/sora-2') {

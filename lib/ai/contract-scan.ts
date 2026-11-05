@@ -1,4 +1,5 @@
 import type { ContractScanResult } from '@/types/contract-scan';
+import { GEMINI_TEXT_MODELS, isRetiredModelId, withGeminiThinking } from '@/lib/ai/text-models';
 
 const CONTRACT_SCAN_PROMPT = `Du bist ein wirtschaftlicher Vertragsanalyst fuer Startups.
 Analysiere den Vertrag auf wirtschaftliche Risiken, Kostenfallen und Plausibilitaet.
@@ -40,13 +41,12 @@ Gib genau dieses JSON-Format zurueck:
   }
 }`;
 
-const MODEL_CANDIDATES = [
+const MODEL_CANDIDATES = Array.from(new Set([
   process.env.GEMINI_CONTRACT_MODEL,
   process.env.GEMINI_MODEL,
-  'gemini-2.0-flash',
-  'gemini-1.5-pro',
-  'gemini-2.0-flash',
-].filter(Boolean) as string[];
+  GEMINI_TEXT_MODELS.pro,
+  GEMINI_TEXT_MODELS.flash,
+].filter((model): model is string => !!model && !isRetiredModelId(model))));
 
 const API_VERSION_CANDIDATES = Array.from(
   new Set([process.env.GEMINI_API_VERSION || 'v1', 'v1beta'])
@@ -104,8 +104,10 @@ export async function analyzeContractPdf(params: {
               ],
               generationConfig: {
                 temperature: 0.2,
-                maxOutputTokens: 1400,
+                // Denk-Tokens zaehlen mit - Luft lassen, sonst wird das JSON abgeschnitten
+                maxOutputTokens: 8192,
                 responseMimeType: 'application/json',
+                ...withGeminiThinking(model, 'low'),
               },
             }),
           }
@@ -120,7 +122,11 @@ export async function analyzeContractPdf(params: {
         }
 
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        const text = parts
+          .filter((part: any) => !part?.thought && typeof part?.text === 'string')
+          .map((part: any) => part.text)
+          .join('');
         return extractJson(text);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown Gemini error');

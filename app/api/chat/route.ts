@@ -6,6 +6,7 @@ import { prisma } from '@/lib/database/prisma';
 import { knowledgeBasePrompt } from '@/lib/ai/knowledge-base';
 import { RateLimiters } from '@/lib/security/rate-limit';
 import { buildAiSdkTools } from '@/lib/ai/orion-tools';
+import { GEMINI_TEXT_MODELS, GROQ_MODEL, geminiThinkingConfig } from '@/lib/ai/text-models';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 // Configure Gemini as primary
@@ -125,9 +126,12 @@ ${memoryLines || 'Noch keine Erinnerungen vorhanden. Nutze das Tool "store_user_
   // Try Gemini first, fallback to Groq
   try {
     const result = await streamText({
-      model: gemini('gemini-2.0-flash-exp'),
+      model: gemini(GEMINI_TEXT_MODELS.flash),
       system: systemPrompt,
       messages,
+      providerOptions: {
+        google: { thinkingConfig: geminiThinkingConfig(GEMINI_TEXT_MODELS.flash, 'low') },
+      },
       tools: tools as any, // Allow tool execution and response
     });
 
@@ -137,7 +141,7 @@ ${memoryLines || 'Noch keine Erinnerungen vorhanden. Nutze das Tool "store_user_
 
     // Fallback to Groq
     const result = await streamText({
-      model: groq('llama-3.1-70b-versatile'),
+      model: groq.chat(GROQ_MODEL),
       system: systemPrompt,
       messages,
       tools: tools as any,

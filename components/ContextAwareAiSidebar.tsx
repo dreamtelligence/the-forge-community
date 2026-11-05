@@ -510,7 +510,7 @@ export default function ContextAwareAiSidebar() {
                 Shift + Enter für neue Zeile
               </p>
               <p className="text-[10px] text-white/20 text-center mt-3 uppercase tracking-widest font-medium">
-                {mode === 'chat' ? 'Powered by Gemini 2.0' : 'Powered by Gemini 2.0 + Brave Search'} 
+                {mode === 'chat' ? 'Powered by Kimi K3 & Gemini 3.6' : 'Powered by Kimi K3 & Gemini 3.6 + Brave Search'} 
                 • Admin Shield Active
               </p>
             </div>

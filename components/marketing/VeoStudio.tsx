@@ -103,13 +103,9 @@ const FALLBACK_CONFIG: VeoConfig = {
       id: 'references-to-video',
       label: modeLabels['references-to-video'],
     },
-    {
-      id: 'extend-video',
-      label: modeLabels['extend-video'],
-    },
   ],
   aspectRatios: ['16:9', '9:16'],
-  resolutions: ['720p', '1080p', '4k'],
+  resolutions: ['720p', '1080p'],
   durationOptions: [4, 6, 8],
   limits: { maxReferences: 3 },
 };
@@ -339,13 +335,11 @@ export function VeoStudio({ ventureId }: VeoStudioProps) {
   const modeOptions = config?.modes ?? FALLBACK_CONFIG.modes;
   const maxReferences = config?.limits?.maxReferences ?? FALLBACK_CONFIG.limits.maxReferences;
   const aspectRatioOptions = config?.aspectRatios ?? FALLBACK_CONFIG.aspectRatios ?? ['16:9', '9:16'];
-  const resolutionOptions = config?.resolutions ?? FALLBACK_CONFIG.resolutions ?? ['720p', '1080p', '4k'];
+  const resolutionOptions = config?.resolutions ?? FALLBACK_CONFIG.resolutions ?? ['720p', '1080p'];
   const durationOptions = config?.durationOptions ?? FALLBACK_CONFIG.durationOptions ?? [4, 6, 8];
 
-  const requiresEightSeconds =
-    generationMode === 'references-to-video' ||
-    generationMode === 'extend-video' ||
-    resolution !== '720p';
+  // Replicate google/veo-3.1: Referenzbilder nur mit 16:9 und 8s
+  const requiresEightSeconds = generationMode === 'references-to-video';
   const availableDurations = requiresEightSeconds
     ? durationOptions.filter((value) => value === 8)
     : durationOptions;
@@ -572,8 +566,8 @@ export function VeoStudio({ ventureId }: VeoStudioProps) {
       tooltipText = isSubmitDisabled ? 'Please enter a prompt.' : '';
       break;
     case 'image-to-video':
-      isSubmitDisabled = !startFrame;
-      tooltipText = isSubmitDisabled ? 'A source image is required.' : '';
+      isSubmitDisabled = !startFrame || !prompt.trim();
+      tooltipText = isSubmitDisabled ? 'A source image and a prompt are required.' : '';
       break;
     case 'references-to-video':
       isSubmitDisabled = !prompt.trim() || referenceImages.length === 0;
@@ -886,7 +880,7 @@ export function VeoStudio({ ventureId }: VeoStudioProps) {
             </div>
           </div>
           <p className="text-[10px] text-white/30 text-center mt-2 px-4 uppercase tracking-tighter">
-            Veo 3.1 supports 16:9 and 9:16. Durations: 4s/6s/8s. 1080p/4k + Character/Extend require 8s. Extend requires 720p.
+            Veo 3.1 supports 16:9 and 9:16, 720p/1080p. Durations: 4s/6s/8s. Character references require 16:9 + 8s (Veo 3.1 only).
           </p>
         </form>
 

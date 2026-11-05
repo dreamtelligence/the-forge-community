@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const forgeLabAllowedTools = ['rembg'] as const;
+// Stufen-Schalter fuer /marketing/nano-banana: 'google/nano-banana' = Nano Banana 2.1, '-pro' = Nano Banana Pro
 export const forgeLabAllowedModels = ['google/nano-banana', 'google/nano-banana-pro'] as const;
 export const forgeLabInputIdRegex = /^[a-zA-Z0-9_]+$/;
 

@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/database/prisma';
 
-type GenerationMode = 'text-to-video' | 'image-to-video' | 'references-to-video' | 'extend-video';
+type GenerationMode = 'text-to-video' | 'image-to-video' | 'references-to-video';
 type VeoModelKey = 'veo-3.1' | 'veo-3.1-fast';
 
 const MODE_LABELS: Record<GenerationMode, string> = {
   'text-to-video': 'Text to Video',
   'image-to-video': 'Image to Video',
   'references-to-video': 'Character References',
-  'extend-video': 'Extend Video',
 };
 
 const parseCsv = (value: string | undefined, fallback: string[]) => {
@@ -61,11 +60,13 @@ export async function GET(
     { id: 'text-to-video', label: MODE_LABELS['text-to-video'] },
     { id: 'image-to-video', label: MODE_LABELS['image-to-video'] },
     { id: 'references-to-video', label: MODE_LABELS['references-to-video'] },
-    { id: 'extend-video', label: MODE_LABELS['extend-video'] },
   ];
 
   const aspectRatios = parseCsv(process.env.VEO_ASPECT_RATIOS, ['16:9', '9:16']);
-  const resolutions = parseCsv(process.env.VEO_RESOLUTIONS, ['720p', '1080p', '4k']);
+  // google/veo-3.1 auf Replicate: 720p / 1080p
+  const resolutions = parseCsv(process.env.VEO_RESOLUTIONS, ['720p', '1080p']).filter((value) =>
+    ['720p', '1080p'].includes(value)
+  );
   const durationOptions = [4, 6, 8];
 
   return NextResponse.json({
@@ -84,7 +85,6 @@ export async function GET(
     limits: {
       maxReferences: 3,
       maxImageBytes: 10 * 1024 * 1024,
-      maxVideoBytes: 100 * 1024 * 1024,
     },
   });
 }

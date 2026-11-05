@@ -212,7 +212,7 @@ export function NanoBananaStudio({ ventureId }: NanoBananaStudioProps) {
                 : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'
             }`}
           >
-            Nano Banana
+            Nano Banana 2.1
           </button>
           <button
             onClick={() => setModel('google/nano-banana-pro')}

@@ -26,6 +26,16 @@ interface TestConfig {
 // Test Cases
 const VIDEO_TEST_CASES_REPLICATE = [
   {
+    name: 'Kling 4.0',
+    model: 'kwaivgi/kling-v4.0',
+    provider: 'replicate',
+    prompt: 'gentle waves rolling onto a sandy beach at sunset, cinematic',
+    duration: 5,
+    aspectRatio: '16:9',
+    includeAudio: false,
+    expectedCredits: 8,
+  },
+  {
     name: 'Kling 2.6 Pro (Cinema + Audio)',
     model: 'kwaivgi/kling-v2.6',
     provider: 'replicate',
@@ -56,21 +66,21 @@ const VIDEO_TEST_CASES_REPLICATE = [
     expectedCredits: 58,
   },
   {
-    name: 'Minimax Video-01 (Human Motion)',
-    model: 'minimax/video-01',
+    name: 'MiniMax H3 (Human Motion)',
+    model: 'minimax/h3',
     provider: 'replicate',
     prompt: 'a person walking confidently down a city street',
-    duration: 4,
+    duration: 5,
     aspectRatio: '16:9',
     includeAudio: false,
     expectedCredits: 45,
   },
   {
-    name: 'Luma Dream Machine (Atmospheric)',
-    model: 'lumaai/dream-machine',
+    name: 'Luma Ray 3.2 (Atmospheric)',
+    model: 'luma/ray-3.2',
     provider: 'replicate',
     prompt: 'clouds moving slowly across a blue sky, time-lapse',
-    duration: 4,
+    duration: 5,
     aspectRatio: '16:9',
     includeAudio: false,
     expectedCredits: 40,
@@ -79,9 +89,9 @@ const VIDEO_TEST_CASES_REPLICATE = [
 
 const VIDEO_TEST_CASES_VEO = [
   {
-    name: 'Veo 3.1 (Direct Google API)',
+    name: 'Veo 3.1 (Veo Studio via Replicate)',
     model: 'veo-3.1',
-    provider: 'google',
+    provider: 'replicate',
     prompt: 'a beautiful sunset over mountains, warm colors',
     duration: 4,
     resolution: '720p',
@@ -92,7 +102,7 @@ const VIDEO_TEST_CASES_VEO = [
   {
     name: 'Veo 3.1 Fast',
     model: 'veo-3.1-fast',
-    provider: 'google',
+    provider: 'replicate',
     prompt: 'a beautiful sunset over mountains, warm colors',
     duration: 4,
     resolution: '720p',

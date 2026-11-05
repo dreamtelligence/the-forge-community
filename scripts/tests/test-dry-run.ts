@@ -27,12 +27,6 @@ interface TestConfig {
 
 const TEST_CASES = [
     {
-        name: 'Face Swap (Lucataco)',
-        endpoint: '/api/ventures/{ventureId}/marketing/faceswap',
-        model: 'lucataco-faceswap',
-        type: 'faceswap',
-    },
-    {
         name: 'Character Swap (Live Portrait)',
         endpoint: '/api/ventures/{ventureId}/marketing/faceswap',
         model: 'live-portrait',

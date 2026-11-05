@@ -6,6 +6,7 @@ import { put } from '@vercel/blob';
 import { consumeHourlyQuota, InsufficientEnergyError, reserveEnergy, refundEnergy, settleEnergy } from '@/lib/finance/energy';
 import { generateUUID } from '@/lib/utils/uuid';
 import { GOOGLE_AI_STUDIO_KEY_ENV_HINT, resolveGoogleAIStudioApiKey } from '@/lib/ai/google';
+import { GEMINI_IMAGE_MODELS, isRetiredModelId } from '@/lib/ai/text-models';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -32,18 +33,18 @@ const parseModelCandidates = (value: string | undefined, fallback: string[]) => 
         .map((entry) => entry.trim())
         .filter(Boolean)
     : [];
-  const merged = [...preferred, ...fallback].filter(Boolean);
+  const merged = [...preferred, ...fallback].filter((model) => !!model && !isRetiredModelId(model));
   return Array.from(new Set(merged));
 };
 
 const MODEL_STANDARD_CANDIDATES = parseModelCandidates(
   process.env.GEMINI_IMAGE_MODEL,
-  ['gemini-2.5-flash-image-preview', 'gemini-2.5-flash-image']
+  [GEMINI_IMAGE_MODELS.standard, GEMINI_IMAGE_MODELS.standardFallback]
 );
 
 const MODEL_PRO_CANDIDATES = parseModelCandidates(
   process.env.GEMINI_IMAGE_MODEL_PRO,
-  ['gemini-2.5-flash-image-preview']
+  [GEMINI_IMAGE_MODELS.pro, GEMINI_IMAGE_MODELS.standard]
 );
 const API_VERSION = process.env.GEMINI_IMAGE_API_VERSION || 'v1beta';
 
@@ -287,8 +288,9 @@ export async function POST(
     }
 
     const responseParts = data?.candidates?.[0]?.content?.parts || [];
+    // Gemini-3-Bildmodelle liefern beim Denken Zwischenbilder (thought: true) - nur Endbilder nehmen
     const imageParts = responseParts.filter((part: any) =>
-      part?.inline_data?.data || part?.inlineData?.data
+      !part?.thought && (part?.inline_data?.data || part?.inlineData?.data)
     );
 
     if (!imageParts.length) {
