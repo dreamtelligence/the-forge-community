@@ -1,6 +1,6 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { createGoogle } from '@ai-sdk/google';
+import { createTextStreamResponse, streamText, toTextStream } from 'ai';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/database/prisma';
 import { knowledgeBasePrompt } from '@/lib/ai/knowledge-base';
@@ -10,7 +10,7 @@ import { GEMINI_TEXT_MODELS, GROQ_MODEL, geminiThinkingConfig } from '@/lib/ai/t
 // personal-studio ventures are excluded via isPersonalStudio flag
 
 // Configure Gemini as primary
-const gemini = createGoogleGenerativeAI({
+const gemini = createGoogle({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
@@ -127,7 +127,7 @@ ${memoryLines || 'Noch keine Erinnerungen vorhanden. Nutze das Tool "store_user_
   try {
     const result = await streamText({
       model: gemini(GEMINI_TEXT_MODELS.flash),
-      system: systemPrompt,
+      instructions: systemPrompt,
       messages,
       providerOptions: {
         google: { thinkingConfig: geminiThinkingConfig(GEMINI_TEXT_MODELS.flash, 'low') },
@@ -135,18 +135,18 @@ ${memoryLines || 'Noch keine Erinnerungen vorhanden. Nutze das Tool "store_user_
       tools: tools as any, // Allow tool execution and response
     });
 
-    return result.toTextStreamResponse();
+    return createTextStreamResponse({ stream: toTextStream({ stream: result.stream }) });
   } catch (error) {
     console.warn('Gemini failed, falling back to Groq:', error);
 
     // Fallback to Groq
     const result = await streamText({
       model: groq.chat(GROQ_MODEL),
-      system: systemPrompt,
+      instructions: systemPrompt,
       messages,
       tools: tools as any,
     });
 
-    return result.toTextStreamResponse();
+    return createTextStreamResponse({ stream: toTextStream({ stream: result.stream }) });
   }
 }

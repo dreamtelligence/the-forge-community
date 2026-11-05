@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText, convertToModelMessages } from 'ai';
+import { createGoogle } from '@ai-sdk/google';
+import { streamText, convertToModelMessages, createUIMessageStreamResponse, toUIMessageStream } from 'ai';
 import { getUserFullContext } from '@/lib/ai/context';
 import { prisma } from '@/lib/database/prisma';
 import { buildAiSdkTools } from '@/lib/ai/orion-tools';
 import { GEMINI_TEXT_MODELS, geminiThinkingConfig } from '@/lib/ai/text-models';
 // personal-studio ventures are excluded via isPersonalStudio flag
 
-const gemini = createGoogleGenerativeAI({
+const gemini = createGoogle({
   apiKey: process.env.GEMINI_API_KEY,
   // Using v1beta for systemInstruction and tools support
   baseURL: 'https://generativelanguage.googleapis.com/v1beta',
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     const result = await streamText({
       model: gemini(modelName),
-      system: systemPrompt,
+      instructions: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools,
       providerOptions: {
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     });
 
     console.log('[JARVIS] Gemini stream started successfully');
-    return result.toUIMessageStreamResponse();
+    return createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream }) });
   } catch (error) {
     console.error('[JARVIS] Chat failed completely:', error);
     return NextResponse.json({ error: 'AI service unavailable', details: String(error) }, { status: 500 });
