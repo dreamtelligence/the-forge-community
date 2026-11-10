@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import { useI18n } from '@/components/i18n/I18nProvider';
 import LandingShaderAccent from '@/components/landing/kimi/LandingShaderAccent';
 
@@ -130,15 +129,6 @@ export default function Services() {
                       <p className="text-white/50 text-sm leading-relaxed">
                         {service.description}
                       </p>
-                      {service.href && service.linkLabel && (
-                        <Link
-                          href={service.href}
-                          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-white/80 hover:text-white transition-colors duration-300 mt-3"
-                        >
-                          {service.linkLabel}
-                          <span aria-hidden="true">→</span>
-                        </Link>
-                      )}
                     </div>
                   </div>
                 </div>

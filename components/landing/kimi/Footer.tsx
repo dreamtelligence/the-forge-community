@@ -18,22 +18,14 @@ const socialIcons = [
   { label: 'X', src: '/x-logo_svgstack_com_5651770101637.svg' },
 ];
 
-const paymentIcons = [
-  { label: 'Visa', src: '/vendor/payment-logos/assets/cards/visa.svg' },
-  { label: 'Mastercard', src: '/vendor/payment-logos/assets/cards/mastercard.svg' },
-  { label: 'American Express', src: '/vendor/payment-logos/assets/cards/american-express.svg' },
-  { label: 'PayPal', src: '/vendor/payment-logos/assets/apm/paypal.svg' },
-  { label: 'Apple Pay', src: '/vendor/payment-logos/assets/wallets/apple-pay.svg' },
-  { label: 'Google Pay', src: '/vendor/payment-logos/assets/wallets/google-pay.svg' },
-];
-
 export default function Footer() {
   const { copy, link } = useI18n();
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  const quickLinks = copy?.footer?.quickLinks ?? [];
-  const legalLinks = copy?.footer?.legalLinks ?? [];
+  const quickLinks = (copy?.footer?.quickLinks ?? []).filter((item: { href: string }) => item.href?.startsWith('#'));
+  const allowedLegal = new Set(['/legal/impressum', '/legal/datenschutz', '/legal/agb']);
+  const legalLinks = (copy?.footer?.legalLinks ?? []).filter((item: { href: string }) => allowedLegal.has(item.href.replace(/^\/en/, '')));
 
   return (
     <footer className="pt-16 lg:pt-24 pb-0 bg-black border-t border-white/10">
@@ -121,22 +113,6 @@ export default function Footer() {
                   </a>
                 );
               })}
-            </div>
-          </div>
-
-          <div className="text-center md:text-right">
-            <p className="text-white/50 text-xs uppercase tracking-widest mb-3">{copy?.footer?.payments}</p>
-            <div className="grid grid-cols-3 gap-x-4 gap-y-3 items-center justify-center md:justify-end">
-              {paymentIcons.map((icon) => (
-                <span key={icon.label} className="inline-flex items-center justify-center relative h-5 sm:h-6 w-16">
-                  <Image
-                    src={icon.src}
-                    alt={icon.label}
-                    fill
-                    className="object-contain opacity-75 hover:opacity-100 transition duration-200"
-                  />
-                </span>
-              ))}
             </div>
           </div>
         </div>
