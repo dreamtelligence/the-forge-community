@@ -31,10 +31,6 @@ export default function TrendRadar() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
   const fetchReports = async () => {
     try {
       const res = await fetch(`/api/ventures/${ventureId}/trends`);
@@ -48,6 +44,10 @@ export default function TrendRadar() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
 
   const handleGenerate = async () => {
     setGenerating(true);

@@ -67,12 +67,6 @@ export function SlackSettingsDialog({
     return map;
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      loadSettings();
-    }
-  }, [isOpen]);
-
   const loadSettings = async () => {
     setIsLoading(true);
     try {
@@ -94,6 +88,12 @@ export function SlackSettingsDialog({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadSettings();
+    }
+  }, [isOpen]);
 
   const handleSave = async () => {
     setIsSaving(true);

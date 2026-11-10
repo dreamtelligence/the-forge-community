@@ -17,6 +17,16 @@ A fullstack platform for founder collaboration, venture workspaces and AI-assist
 
 This is a modular monolith. The repository includes community, legal-document, billing and integration modules as well as AI workflows. Their presence is not a claim that every product flow is currently validated for public use.
 
+![Marketing studio with prompt input, generation modes and model selection](public/docs/screenshots/Bildschirmfoto%202026-04-02%20um%2011.24.19.png)
+
+Existing product screenshot from April 2026. The interface and model labels show that historical version; they do not guarantee current provider availability.
+
+## Reviewing the project
+
+Follow one flow from the [HTTP route](app/api/ventures/%5Bid%5D/marketing/media/route.ts) through the [application use case](lib/ai/application/start-marketing-media-generation.ts), [domain rules](lib/ai/domain/marketing-media.ts) and [workflow tests](scripts/tests/test-marketing-media-flow.ts). Then inspect [webhook delivery handling](lib/ai/application/handle-replicate-webhook-receipt.ts), [warehouse boundaries](scripts/tests/test-warehouse-boundary.ts) and the [Prisma schema](prisma/schema.prisma).
+
+The [documentation index](docs/README.md) provides a shorter path through architecture, operations and historical evidence. The [November review](docs/evidence/recruiter-review-2026-11.md) records the checks and remaining limits.
+
 ## One representative flow: AI media generation
 
 ```mermaid
@@ -47,10 +57,13 @@ npm run check:architecture
 npm run typecheck
 npm run test:warehouse:boundary
 npm run test:marketing:media
+npm run test:legacy:replicate
 npm run test:webhook:replicate
+npm run test:api-key:crypto
+npm run test:external-api:availability
 ```
 
-GitHub Actions runs these checks on pushes and pull requests. Prisma client generation does not require a running database. These checks cover selected boundaries and workflows, not the entire platform or live integrations.
+The GitHub Actions workflow declares these checks for pushes and pull requests. Prisma client generation does not require a running database. These checks cover selected boundaries and workflows, not the entire platform or live integrations. See the review report for the latest local results and hosted CI status.
 
 ## Local application setup
 
@@ -86,6 +99,8 @@ For a production build, configure the required runtime services and run `npm run
 Read [repository boundaries](docs/architecture/repo-boundaries.md) and the [modular monolith notes](docs/architecture/modular-monolith.md) before moving code across modules.
 
 ## Verification scope
+
+The legacy external image API returns 501 until a real, tested provider integration replaces its former placeholder; see [API availability](lib/api-keys/README.md). Authenticated Studio generation uses separate application flows.
 
 The `test:smoke:*` scripts use real application services and can write data or start paid generation jobs. They require a dedicated test deployment and are not part of the credential-free CI job. Billing, email delivery, complete tenant isolation, provider availability, migration recovery and load behavior need separate integration checks.
 

@@ -154,7 +154,7 @@ async function main() {
   ];
 
   const dateStamp = new Date().toISOString().slice(0, 10);
-  const outDir = path.join(process.cwd(), 'docs');
+  const outDir = path.join(process.cwd(), 'local-exports', 'supplier-contacts');
   fs.mkdirSync(outDir, { recursive: true });
 
   const csvPath = path.join(outDir, `haendler-kontaktliste-${dateStamp}.csv`);
@@ -223,8 +223,8 @@ async function main() {
     `- Mit Telefon: ${withPhone}`,
     `- Mit E-Mail oder Telefon: ${withAnyContact}`,
     '',
-    `CSV-Datei: docs/${path.basename(csvPath)}`,
-    `Kontaktierbar (nur mit E-Mail/Telefon): docs/${path.basename(contactCsvPath)}`,
+    `CSV-Datei: ${path.basename(csvPath)}`,
+    `Kontaktierbar (nur mit E-Mail/Telefon): ${path.basename(contactCsvPath)}`,
     '',
     '## Schnellansicht (erste 20)',
     '',

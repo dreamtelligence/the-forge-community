@@ -69,7 +69,7 @@ export function CreditsTopUpModal(props: {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.message || data?.error || 'Checkout failed');
-      if (data?.url) window.location.href = data.url;
+      if (data?.url) window.location.assign(data.url);
       else throw new Error('No checkout URL returned');
     } catch (e: any) {
       alert(e?.message || 'Checkout fehlgeschlagen');

@@ -73,7 +73,7 @@ export default function IntegrationsClient({
       }
 
       // Redirect to OAuth provider
-      window.location.href = data.url;
+      window.location.assign(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connection failed');
       setIsConnecting(null);
@@ -274,7 +274,7 @@ export default function IntegrationsClient({
       {/* Documentation Link */}
       <div className="pt-8 border-t border-white/10">
         <Link
-          href="https://docs.theforge.system/integrations"
+          href="https://github.com/dreamtelligence/the-forge-community/blob/main/docs/INTEGRATIONS.md"
           target="_blank"
           className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors"
         >

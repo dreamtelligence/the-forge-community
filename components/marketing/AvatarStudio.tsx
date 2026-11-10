@@ -13,6 +13,25 @@ interface AvatarStudioProps {
   brandDNA?: any;
 }
 
+const YouTubeEmbed = ({ src, label }: { src: string; label: string }) => (
+  <div className="space-y-2">
+    <div className="aspect-video rounded-xl border border-white/10 bg-black/40 overflow-hidden">
+      <iframe
+        className="w-full h-full"
+        src={src}
+        title="YouTube video player"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    </div>
+    <div className="flex items-center gap-2 text-[10px] text-white/40 font-bold uppercase tracking-widest">
+      <Play className="w-3.5 h-3.5 text-red-500" />
+      <span>{label}</span>
+    </div>
+  </div>
+);
+
 export function AvatarStudio({ ventureId }: AvatarStudioProps) {
   const [, setIsPaid] = useState(false);
   const [tierLabel, setTierLabel] = useState<'Free' | 'Pro' | 'Enterprise'>('Free');
@@ -199,25 +218,6 @@ export function AvatarStudio({ ventureId }: AvatarStudioProps) {
       }
     }, 3000);
   };
-
-  const YouTubeEmbed = ({ src, label }: { src: string; label: string }) => (
-    <div className="space-y-2">
-      <div className="aspect-video rounded-xl border border-white/10 bg-black/40 overflow-hidden">
-        <iframe
-          className="w-full h-full"
-          src={src}
-          title="YouTube video player"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
-      </div>
-      <div className="flex items-center gap-2 text-[10px] text-white/40 font-bold uppercase tracking-widest">
-        <Play className="w-3.5 h-3.5 text-red-500" />
-        <span>{label}</span>
-      </div>
-    </div>
-  );
 
   return (
     <>

@@ -33,33 +33,31 @@ export function LinkPreview({ url }: LinkPreviewProps) {
   const youtubeId = getYouTubeId(url);
 
   useEffect(() => {
-    // If it's a YouTube video, we might not even need the API preview, 
-    // but we'll fetch it anyway for title/description
-    fetchPreview();
-  }, [fetchPreview, url]);
+    async function fetchPreview() {
+      setLoading(true);
+      setError(false);
 
-  async function fetchPreview() {
-    setLoading(true);
-    setError(false);
+      try {
+        const response = await fetch('/api/link-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
 
-    try {
-      const response = await fetch('/api/link-preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
+        if (!response.ok) throw new Error('Failed to fetch preview');
 
-      if (!response.ok) throw new Error('Failed to fetch preview');
-
-      const data = await response.json();
-      setPreview(data);
-    } catch (err) {
-      console.error('Link preview error:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
+        const data = await response.json();
+        setPreview(data);
+      } catch (err) {
+        console.error('Link preview error:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     }
-  }
+
+    void fetchPreview();
+  }, [url]);
 
   if (loading) {
     return (

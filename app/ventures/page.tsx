@@ -14,10 +14,6 @@ export default function VenturesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadVentures();
-  }, []);
-
   const loadVentures = async () => {
     try {
       const data = await getUserVentures();
@@ -28,6 +24,10 @@ export default function VenturesPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadVentures();
+  }, []);
 
   const handleDelete = async (ventureId: string) => {
     setDeletingId(ventureId);

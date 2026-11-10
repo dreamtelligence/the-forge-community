@@ -649,6 +649,21 @@ export default function Forum({
     // fetchPosts wird initial durch den useEffect([activeChannel, sortMode]) getriggert, da diese default gesetzt sind
   }, [initialUser]);
 
+  const fetchNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const response = await fetch('/api/notifications');
+      if (!response.ok) return;
+      const payload = await response.json();
+      setNotifications(payload.notifications || []);
+      setNotificationsUnread(payload.unreadCount || 0);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
 
@@ -682,21 +697,6 @@ export default function Forum({
       }
     };
   }, [user?.id]);
-
-  const fetchNotifications = async () => {
-    try {
-      setNotificationsLoading(true);
-      const response = await fetch('/api/notifications');
-      if (!response.ok) return;
-      const payload = await response.json();
-      setNotifications(payload.notifications || []);
-      setNotificationsUnread(payload.unreadCount || 0);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setNotificationsLoading(false);
-    }
-  };
 
   const markNotificationsRead = async (ids?: string[]) => {
     if (!ids || ids.length === 0) return;
@@ -736,7 +736,6 @@ export default function Forum({
 
   // Client-side Sortieren ist hinfällig da API das macht, aber wir behalten es für Optimistic Updates
 
-
   const pushToast = (message: string) => {
     setToastMessage(message);
     if (toastTimeoutRef.current) {
@@ -762,9 +761,6 @@ export default function Forum({
       pushToast('Teilen fehlgeschlagen.');
     }
   };
-
-
-
 
   const handleVote = async (id: string, delta: number) => {
     setPosts(prev => prev.map(p => {

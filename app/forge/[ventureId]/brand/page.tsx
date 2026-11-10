@@ -69,10 +69,6 @@ export default function BrandDNAPage() {
     setContext('Brand Studio - Brand DNA, Tonalität, Guidelines & Assets.');
   }, [setContext]);
 
-  useEffect(() => {
-    fetchBrandDNA();
-  }, [ventureId]);
-
   const fetchBrandDNA = async () => {
     try {
       const res = await fetch(`/api/ventures/${ventureId}/brand-dna`);
@@ -98,6 +94,10 @@ export default function BrandDNAPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchBrandDNA();
+  }, [ventureId]);
 
   const addCompetitor = () => {
     setData((prev) => ({

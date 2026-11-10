@@ -33,3 +33,7 @@ Thumbs.db
 /coverage
 .vercel
 .env*.local
+
+# Local agent input and business-data exports
+/.deepseek/
+/local-exports/

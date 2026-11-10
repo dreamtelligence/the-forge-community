@@ -28,7 +28,9 @@
     "test:marketing:media": "node --import tsx scripts/tests/test-marketing-media-flow.ts",
     "test:legacy:replicate": "node --import tsx scripts/tests/test-legacy-replicate-job-flow.ts",
     "test:webhook:replicate": "node --import tsx scripts/tests/test-replicate-webhook-receipt.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:api-key:crypto": "node --import tsx scripts/tests/test-api-key-crypto.ts",
+    "test:external-api:availability": "node --import tsx scripts/tests/test-external-api-availability.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.112",
@@ -96,22 +98,19 @@
       "flatted": "3.4.2"
     },
     "minimatch@3": {
-      "brace-expansion": "1.1.13"
+      "brace-expansion": "1.1.21"
     },
     "tinyglobby": {
       "picomatch": "4.0.4"
     },
     "@typescript-eslint/typescript-estree": {
-      "minimatch": {
-        ".": "9.0.9",
-        "brace-expansion": "2.0.3"
-      }
+      "minimatch": "11.0.1"
     },
     "glob": {
-      "minimatch": {
-        ".": "9.0.9",
-        "brace-expansion": "2.0.3"
-      }
+      "minimatch": "11.0.1"
+    },
+    "@vercel/cli-config": {
+      "zod": "4.6.7"
     }
   },
   "devDependencies": {

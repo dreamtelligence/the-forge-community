@@ -693,6 +693,68 @@ export function MediaGeneratorModal({
     };
   }, []);
 
+  const pollPrediction = async (
+    predictionId: string,
+    outputTypeOverride?: 'image' | 'video'
+  ) => {
+    const pollStart = Date.now();
+    const outputType = outputTypeOverride ?? (isVideoMode ? 'video' : 'image');
+    const maxWaitMs = outputType === 'video' ? 1000 * 60 * 12 : 1000 * 60 * 4;
+    let attempt = 0;
+
+    while (Date.now() - pollStart < maxWaitMs) {
+      if (isUnmounted.current || cancelRequested.current) throw new Error('Operation aborted');
+      await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 800 : 1800));
+      attempt += 1;
+
+      try {
+        const res = await fetch(`/api/ventures/${ventureId}/marketing/media?predictionId=${predictionId}`);
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data?.error || 'Prediction fehlgeschlagen.');
+        }
+
+        if (isUnmounted.current) return;
+        setPredictionStatus(data?.status || null);
+
+        if (data?.status === 'succeeded') {
+          setCreditsRemaining(data.creditsRemaining ?? null);
+          const nextAssets = Array.isArray(data.assets) ? data.assets : [];
+          if (nextAssets.length > 0) {
+            setAssets(nextAssets);
+            setSuccessMessage('Generierung abgeschlossen.');
+            clearPendingJob();
+            if (onAssetCreated) {
+              nextAssets.forEach((asset: any) => onAssetCreated(asset));
+            }
+            return;
+          }
+
+          try {
+            await pollLatestAsset(outputType, 15000);
+            return;
+          } catch {
+            setSuccessMessage('Generierung abgeschlossen. Output wird in der Library angezeigt.');
+            clearPendingJob();
+            return;
+          }
+        }
+
+        if (data?.status === 'failed' || data?.status === 'canceled') {
+          clearPendingJob();
+          throw new Error(data?.error || 'Generierung fehlgeschlagen.');
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') throw err;
+        throw err;
+      }
+    }
+
+    clearPendingJob();
+    throw new Error('Timeout: Bitte später erneut prüfen.');
+  };
+
   useEffect(() => {
     if (restoredPending.current) return;
     restoredPending.current = true;
@@ -761,68 +823,6 @@ export function MediaGeneratorModal({
   useEffect(() => {
     setUseCharacterPrompt(Boolean(brandDNA?.characterPrompt));
   }, [brandDNA?.characterPrompt]);
-
-  const pollPrediction = async (
-    predictionId: string,
-    outputTypeOverride?: 'image' | 'video'
-  ) => {
-    const pollStart = Date.now();
-    const outputType = outputTypeOverride ?? (isVideoMode ? 'video' : 'image');
-    const maxWaitMs = outputType === 'video' ? 1000 * 60 * 12 : 1000 * 60 * 4;
-    let attempt = 0;
-
-    while (Date.now() - pollStart < maxWaitMs) {
-      if (isUnmounted.current || cancelRequested.current) throw new Error('Operation aborted');
-      await new Promise((resolve) => setTimeout(resolve, attempt === 0 ? 800 : 1800));
-      attempt += 1;
-
-      try {
-        const res = await fetch(`/api/ventures/${ventureId}/marketing/media?predictionId=${predictionId}`);
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data?.error || 'Prediction fehlgeschlagen.');
-        }
-
-        if (isUnmounted.current) return;
-        setPredictionStatus(data?.status || null);
-
-        if (data?.status === 'succeeded') {
-          setCreditsRemaining(data.creditsRemaining ?? null);
-          const nextAssets = Array.isArray(data.assets) ? data.assets : [];
-          if (nextAssets.length > 0) {
-            setAssets(nextAssets);
-            setSuccessMessage('Generierung abgeschlossen.');
-            clearPendingJob();
-            if (onAssetCreated) {
-              nextAssets.forEach((asset: any) => onAssetCreated(asset));
-            }
-            return;
-          }
-
-          try {
-            await pollLatestAsset(outputType, 15000);
-            return;
-          } catch {
-            setSuccessMessage('Generierung abgeschlossen. Output wird in der Library angezeigt.');
-            clearPendingJob();
-            return;
-          }
-        }
-
-        if (data?.status === 'failed' || data?.status === 'canceled') {
-          clearPendingJob();
-          throw new Error(data?.error || 'Generierung fehlgeschlagen.');
-        }
-      } catch (err: any) {
-        if (err.name === 'AbortError') throw err;
-        throw err;
-      }
-    }
-
-    clearPendingJob();
-    throw new Error('Timeout: Bitte später erneut prüfen.');
-  };
 
   const handlePublishAsset = async (assetId: string | undefined, nextPublic: boolean) => {
     if (!assetId || pendingPublish[assetId]) return;

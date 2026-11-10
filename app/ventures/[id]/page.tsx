@@ -23,10 +23,6 @@ export default function VentureDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadVenture();
-  }, [ventureId]);
-
   const loadVenture = async () => {
     try {
       const [ventureData, costsData] = await Promise.all([
@@ -41,6 +37,10 @@ export default function VentureDetailPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadVenture();
+  }, [ventureId]);
 
   const handleTaskStatusChange = async (taskId: string, newStatus: string) => {
     await updateVentureTask(taskId, { status: newStatus });

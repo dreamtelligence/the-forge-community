@@ -61,7 +61,7 @@ export function SlackConnectButton({
         }, 500);
       } else {
         // Fallback: redirect
-        window.location.href = '/api/integrations/slack/auth';
+        window.location.assign(new URL('/api/integrations/slack/auth', window.location.origin).href);
       }
     } catch (error) {
       console.error('Slack connect error:', error);

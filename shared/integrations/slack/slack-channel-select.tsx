@@ -39,10 +39,6 @@ export function SlackChannelSelect({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadChannels();
-  }, []);
-
   const loadChannels = async () => {
     setIsLoading(true);
     setError(null);
@@ -63,6 +59,10 @@ export function SlackChannelSelect({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadChannels();
+  }, []);
 
   const handleChange = (channelId: string) => {
     const channel = channels.find(c => c.id === channelId);

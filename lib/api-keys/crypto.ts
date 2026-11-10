@@ -1,11 +1,11 @@
 /**
  * API Key Cryptography Utilities
  *
- * Enterprise-grade API key generation and validation.
+ * API key generation and validation.
  * Uses Node.js crypto for cryptographically secure random generation.
  *
  * Key Format: forge_[env]_[32 bytes base64url]
- * Example: forge_prod_kJ8vLp2Qm9xR4sT6uV3wX1yZ5aB7cD9eF
+ * Example: YOUR_FORGE_API_KEY
  *
  * Security:
  * - Cryptographically secure random bytes (crypto.randomBytes)
@@ -17,7 +17,7 @@
  * @version 1.0.0
  */
 
-import { createHash, randomBytes, timingSafeEqual } from 'crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 /**
  * API key prefix for The Forge platform
@@ -62,9 +62,9 @@ function base64urlEncode(buffer: Buffer): string {
  *
  * @example
  * const { apiKey, keyHash, keyPrefix } = generateApiKey();
- * // apiKey: "forge_prod_kJ8vLp2Qm9xR4sT6uV3wX1yZ5aB7cD9eF"
+ * // apiKey: "YOUR_FORGE_API_KEY"
  * // keyHash: "sha256_hash_for_database_storage"
- * // keyPrefix: "forge_pro" (first 10 chars for display)
+ * // keyPrefix: "forge_prod" (first 10 chars for display)
  */
 export function generateApiKey(): {
   apiKey: string;
@@ -131,6 +131,8 @@ export function isValidApiKeyFormat(apiKey: string): boolean {
  * @returns True if the key matches the hash
  */
 export function verifyApiKey(apiKey: string, storedHash: string): boolean {
+  if (!/^[a-fA-F0-9]{64}$/.test(storedHash)) return false;
+
   const computedHash = hashApiKey(apiKey);
 
   // Constant-time comparison to prevent timing attacks
@@ -190,10 +192,7 @@ export function generateWebhookSecret(): {
  * @returns HMAC signature (hex encoded)
  */
 export function signWebhookPayload(payload: string, secret: string): string {
-  const hmac = createHash('sha256');
-  hmac.update(payload);
-  hmac.update(secret);
-  return hmac.digest('hex');
+  return createHmac('sha256', secret).update(payload).digest('hex');
 }
 
 /**
@@ -209,6 +208,8 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string
 ): boolean {
+  if (!/^[a-fA-F0-9]{64}$/.test(signature)) return false;
+
   const computedSignature = signWebhookPayload(payload, secret);
 
   try {
