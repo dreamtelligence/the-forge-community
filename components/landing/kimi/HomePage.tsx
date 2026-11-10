@@ -16,7 +16,6 @@ const CategoryScroll = dynamic(() => import('@/components/landing/kimi/CategoryS
 const Practice = dynamic(() => import('@/components/landing/kimi/Practice'));
 const Testimonials = dynamic(() => import('@/components/landing/kimi/Testimonials'));
 const ForgeFeatures = dynamic(() => import('@/components/landing/kimi/ForgeFeatures'));
-const Pricing = dynamic(() => import('@/components/landing/kimi/Pricing'));
 const SignupCard = dynamic(() => import('@/components/landing/kimi/SignupCard'));
 const FAQ = dynamic(() => import('@/components/landing/kimi/FAQ'));
 const Footer = dynamic(() => import('@/components/landing/kimi/Footer'));
@@ -39,7 +38,6 @@ export default function HomePage({ locale, copy }: { locale: Locale; copy: Recor
             <Practice />
             <Testimonials />
             <ForgeFeatures />
-            <Pricing />
             <section id="start" className="relative overflow-hidden py-16 lg:py-24 bg-black">
               <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
                 <SignupCard />

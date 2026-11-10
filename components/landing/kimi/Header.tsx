@@ -12,7 +12,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { copy, link, locale } = useI18n();
-  const navLinks = copy.header.nav as Array<{ label: string; href: string }>;
+  const navLinks = (copy.header.nav as Array<{ label: string; href: string }>).filter(item => item.href !== '#pricing');
   const toggleHref = locale === 'en' ? '/' : '/en';
   const toggleLabel = copy.header.languageToggle.label as string;
 
