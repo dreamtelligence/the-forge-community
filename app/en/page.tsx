@@ -3,8 +3,10 @@ import { getCopy } from '@/lib/i18n';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'STAKE & SCALE | Community Venture Studio',
-  description: 'Build your venture with AI‑powered tools, squads and end‑to‑end execution.',
+  title: 'STAKE & SCALE — Design Showcase',
+  description: 'Archived landing page and interface design concept. The original Stake & Scale product is no longer active; login and sign-up are disabled.',
+  alternates: { canonical: 'https://the-forge-community.vercel.app/en' },
+  robots: { index: false, follow: false },
 };
 
 export default async function HomeEn() {
